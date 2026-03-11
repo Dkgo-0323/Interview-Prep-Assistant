@@ -39,8 +39,9 @@ interview-prep-assistant/
 ├── 📄 README.md                     # Project introduction & quick start
 ├── 📄 ARCHITECTURE.md              # This file - technical documentation
 │
-├── 📄 config.py                     # Global configuration (model, params, constants)
-│   └── Status: [ ] Not started
+├── 📄 config.py                     # ✅ Global configuration (model, params, constants)
+│   └── Status: [✅] Completed
+│   └── Exports: All global constants and paths
 │
 ├── 📂 app/                          # ========== FRONTEND (Streamlit) ==========
 │   │
@@ -184,7 +185,7 @@ interview-prep-assistant/
 │           - validate_file_extension(filename: str) -> bool
 │
 ├── 📂 data/                         # ========== DATA STORAGE ==========
-│   └── 📂 uploads/                  # Temporary uploaded files
+│   └── 📂 uploads/                  # ✅ Temporary uploaded files (auto-created)
 │       └── .gitkeep
 │
 └── 📂 tests/                        # ========== TESTS ==========
@@ -459,8 +460,14 @@ class Question(BaseModel):
 
 ```
 Configuration Layer:
-├── [ ] config.py                    (0% - Not started)
-└── [ ] .env setup                   (100% - Completed)
+├── [✅] config.py                    (100% - Completed)
+│   ├── ✅ Environment variables loading
+│   ├── ✅ Project paths configuration
+│   ├── ✅ LLM settings (API key, model, temperature)
+│   ├── ✅ File upload constraints
+│   ├── ✅ Logging configuration
+│   └── ✅ Auto-create upload directory
+└── [✅] .env setup                   (100% - Completed)
 
 Data Models:
 └── [ ] models/schemas.py            (0% - Not started)
@@ -500,29 +507,41 @@ Frontend:
 ├── [ ] app/pages/02_analysis.py     (0% - Not started)
 └── [ ] app/pages/03_questions.py    (0% - Not started)
 
-Overall Phase 1 Progress: 0/24 modules (0%)
+Overall Phase 1 Progress: 1/24 modules (4.2%)
 ```
 
 ---
 
 ## 🎯 Current Working Module
 
-**Status**: 🟡 Ready to start Phase 1 development  
-**Next Target**: `config.py`  
+**Status**: 🟢 config.py completed - Ready for next module  
+**Next Target**: `models/schemas.py`  
 
-**What to implement in config.py**:
+**What to implement in models/schemas.py**:
 ```python
-# Global settings:
-- MODEL_NAME (OpenAI model to use)
-- TEMPERATURE (LLM temperature)
-- MAX_TOKENS (Max response length)
-- UPLOAD_MAX_SIZE (File size limit)
-- ALLOWED_EXTENSIONS (File formats)
-- LOG_LEVEL (Logging verbosity)
+# Data models using Pydantic:
+1. Enums:
+   - QuestionType (TECHNICAL/BEHAVIORAL/SCENARIO/PROJECT)
+   - DifficultyLevel (JUNIOR/MID/SENIOR)
+
+2. Supporting Models:
+   - WorkExperience (company, role, duration, achievements)
+   - Project (name, description, technologies, role)
+   - Education (degree, institution, graduation_year)
+
+3. Main Models:
+   - JDInfo (job_title, required_skills, nice_to_have_skills, responsibilities, industry, seniority_level)
+   - ResumeInfo (skills, experiences, projects, education, years_of_experience)
+   - GapAnalysis (overall_match_score, matched_skills, missing_skills, strengths, weaknesses, focus_areas)
+   - Question (question_text, question_type, difficulty, focus_area, reference_answer, evaluation_criteria)
 ```
 
+**Why this order?**  
+- Schemas define the data contracts used by ALL other modules
+- Once schemas are done, we can implement parsers → analyzers → generators with clear type hints
+
 **Blockers**: None  
-**Dependencies Ready**: ✅ All required packages installed
+**Dependencies Ready**: ✅ Pydantic installed, config.py completed
 
 ---
 
@@ -582,15 +601,22 @@ DEBUG=False                              # Debug mode
 LOG_LEVEL=INFO                          # Logging level
 ```
 
-### **Global Config (config.py)**
+### **Global Config (config.py)** ✅
 
 ```python
-# To be implemented
-# Will contain:
-# - Model settings
-# - File upload limits
-# - LLM parameters
-# - Constants
+# ✅ Implemented constants:
+- PROJECT_ROOT: Path          # Project root directory
+- UPLOAD_DIR: Path            # Upload files directory
+- OPENAI_API_KEY: str         # API key from environment
+- OPENAI_BASE_URL: str        # API base URL
+- MODEL_NAME: str             # LLM model name
+- TEMPERATURE: float          # LLM temperature (0.7)
+- MAX_TOKENS: int             # Max response tokens (2000)
+- UPLOAD_MAX_SIZE_MB: int     # Max file size (10MB)
+- ALLOWED_EXTENSIONS: set     # Allowed file types {.pdf, .docx, .txt}
+- LOG_LEVEL: str              # Logging level (INFO)
+- DEBUG: bool                 # Debug mode flag
+- DEFAULT_NUM_QUESTIONS: int  # Default question count (10)
 ```
 
 ---
@@ -599,25 +625,27 @@ LOG_LEVEL=INFO                          # Logging level
 
 | Date | Version | Changes |
 |------|---------|---------|
-| 2025-01-XX | 0.1.0 | Initial architecture documentation |
+| 2026-03-11 | 0.1.0 | Initial architecture documentation |
+| 2026-03-11 | 0.1.1 | ✅ Completed `config.py` implementation |
 | - | - | Project setup completed |
 | - | - | Dependencies installed |
 | - | - | Directory structure created |
+| - | - | Global configuration system established |
 
 ---
 
 ## 🔜 Next Steps
 
 1. ✅ Complete environment setup
-2. ⬜ Implement `config.py`
-3. ⬜ Implement `models/schemas.py`
+2. ✅ Implement `config.py`
+3. ⬜ **[NEXT]** Implement `models/schemas.py`
 4. ⬜ Implement `utils/logger.py`
 5. ⬜ Implement file parsers
 
 ---
 
 **Note**: Update this file whenever:
-- A new module is completed
+- A new module is completed ✅
 - API signatures change
 - New dependencies are added
 - Major architectural decisions are made
