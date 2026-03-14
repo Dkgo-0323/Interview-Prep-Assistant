@@ -1,0 +1,4 @@
+[2026-03-14 21:45:06] [INFO] [test_module] [logger.py:192] 这是 INFO 消息
+[2026-03-14 21:45:06] [WARNING] [test_module] [logger.py:193] 这是 WARNING 消息
+[2026-03-14 21:45:06] [ERROR] [test_module] [logger.py:194] 这是 ERROR 消息
+[2026-03-14 21:45:06] [CRITICAL] [test_module] [logger.py:195] 这是 CRITICAL 消息
