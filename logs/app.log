@@ -2,3 +2,10 @@
 [2026-03-14 21:45:06] [WARNING] [test_module] [logger.py:193] 这是 WARNING 消息
 [2026-03-14 21:45:06] [ERROR] [test_module] [logger.py:194] 这是 ERROR 消息
 [2026-03-14 21:45:06] [CRITICAL] [test_module] [logger.py:195] 这是 CRITICAL 消息
+[2026-03-14 22:54:49] [INFO] [__main__] [text_cleaner.py:166] 文本清洗完成: 38 -> 21 字符
+[2026-03-14 22:54:49] [INFO] [__main__] [text_cleaner.py:166] 文本清洗完成: 24 -> 18 字符
+[2026-03-14 22:54:49] [INFO] [__main__] [text_cleaner.py:166] 文本清洗完成: 39 -> 39 字符
+[2026-03-14 22:54:49] [INFO] [__main__] [text_cleaner.py:166] 文本清洗完成: 65 -> 42 字符
+[2026-03-14 22:54:49] [WARNING] [__main__] [text_cleaner.py:59] 输入文本为None，返回空字符串
+[2026-03-14 22:54:49] [INFO] [__main__] [text_cleaner.py:166] 文本清洗完成: 10 -> 0 字符
+[2026-03-14 22:54:49] [WARNING] [__main__] [text_cleaner.py:170] 清洗后文本为空，可能输入内容全为空白或特殊字符

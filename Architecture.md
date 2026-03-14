@@ -44,183 +44,184 @@ interview-prep-assistant/
 │   └── Exports: All global constants and paths
 │
 ├── 📂 app/                          # ========== FRONTEND (Streamlit) ==========
-│   │
 │   ├── 📄 main.py                   # Application entry point
-│   │   └── Status: [ ] Not started
-│   │   └── Purpose: Streamlit app config, routing, session state
-│   │
-│   ├── 📂 pages/                    # Streamlit multi-page app
-│   │   ├── 📄 01_upload.py          # Page: Upload JD + Resume
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Purpose: File uploader UI, validation, trigger parsing
-│   │   │
-│   │   ├── 📄 02_analysis.py        # Page: Gap analysis results
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Purpose: Display JD vs Resume matching score & insights
-│   │   │
-│   │   ├── 📄 03_questions.py       # Page: Generated interview questions
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Purpose: Display questions with difficulty, type, answer
-│   │   │
-│   │   ├── 📄 04_mock_interview.py  # [Phase 2] Mock interview chat UI
-│   │   ├── 📄 05_report.py          # [Phase 2] Evaluation report
-│   │   └── 📄 06_history.py         # [Phase 3] History & wrong answer book
-│   │
-│   └── 📂 components/               # Reusable UI components
-│       └── (Empty for Phase 1)
+│   └── 📂 pages/                    # Streamlit multi-page app
+│       ├── 📄 01_upload.py          # Page: Upload JD + Resume
+│       ├── 📄 02_analysis.py        # Page: Gap analysis results
+│       └── 📄 03_questions.py       # Page: Generated interview questions
 │
 ├── 📂 core/                         # ========== BUSINESS LOGIC ==========
-│   │
 │   ├── 📂 parsers/                  # File parsing module
-│   │   ├── 📄 __init__.py
-│   │   │
 │   │   ├── 📄 pdf_parser.py         # Parse PDF to text
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Function: extract_text_from_pdf(file_path) -> str
-│   │   │
 │   │   ├── 📄 docx_parser.py        # Parse DOCX to text
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Function: extract_text_from_docx(file_path) -> str
-│   │   │
 │   │   ├── 📄 txt_parser.py         # Parse TXT with encoding detection
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Function: extract_text_from_txt(file_path) -> str
-│   │   │
 │   │   └── 📄 parser_factory.py     # Auto-select parser by file extension
-│   │       └── Status: [ ] Not started
-│   │       └── Function: parse_file(file_path) -> str
 │   │
 │   ├── 📂 analyzers/                # AI analysis module
-│   │   ├── 📄 __init__.py
-│   │   │
 │   │   ├── 📄 jd_analyzer.py        # Extract structured info from JD
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Function: analyze_jd(text: str) -> JDInfo
-│   │   │   └── Returns: job title, required skills, nice-to-have, responsibilities
-│   │   │
 │   │   ├── 📄 resume_analyzer.py    # Extract structured info from Resume
-│   │   │   └── Status: [ ] Not started
-│   │   │   └── Function: analyze_resume(text: str) -> ResumeInfo
-│   │   │   └── Returns: skills, experiences, projects, education
-│   │   │
 │   │   └── 📄 gap_analyzer.py       # Match JD vs Resume
-│   │       └── Status: [ ] Not started
-│   │       └── Function: analyze_gap(jd: JDInfo, resume: ResumeInfo) -> GapAnalysis
-│   │       └── Returns: match score, strengths, weaknesses, focus areas
 │   │
-│   ├── 📂 generators/               # Question generation module
-│   │   ├── 📄 __init__.py
-│   │   │
-│   │   └── 📄 question_generator.py # Generate personalized questions
-│   │       └── Status: [ ] Not started
-│   │       └── Function: generate_questions(gap: GapAnalysis) -> List[Question]
-│   │       └── Returns: 10 questions with type, difficulty, answer
-│   │
-│   └── 📂 interview/                # [Phase 2] Mock interview module
-│       └── (Not yet created)
+│   └── 📂 generators/               # Question generation module
+│       └── 📄 question_generator.py # Generate personalized questions
 │
 ├── 📂 prompts/                      # ========== LLM PROMPT TEMPLATES ==========
-│   │
 │   ├── 📄 jd_extraction.py          # Prompt for JD analysis
-│   │   └── Status: [ ] Not started
-│   │   └── Exports: JD_EXTRACTION_PROMPT (string template)
-│   │
 │   ├── 📄 resume_extraction.py      # Prompt for Resume analysis
-│   │   └── Status: [ ] Not started
-│   │   └── Exports: RESUME_EXTRACTION_PROMPT
-│   │
 │   ├── 📄 gap_analysis.py           # Prompt for gap analysis
-│   │   └── Status: [ ] Not started
-│   │   └── Exports: GAP_ANALYSIS_PROMPT
-│   │
 │   └── 📄 question_generation.py    # Prompt for question generation
-│       └── Status: [ ] Not started
-│       └── Exports: QUESTION_GENERATION_PROMPT
 │
 ├── 📂 models/                       # ========== DATA MODELS ==========
 │   ├── 📄 __init__.py               # ✅ Package exports
-│   │   └── Status: [✅] Completed
-│   │   └── Exports: All schemas for external import
-│   │
-│   └── 📄 schemas.py                # ✅ Pydantic models
-│       └── Status: [✅] Completed
-│       └── Defines:
-│           ✅ QuestionType (Enum: TECHNICAL/BEHAVIORAL/SCENARIO/PROJECT)
-│           ✅ DifficultyLevel (Enum: JUNIOR/MID/SENIOR)
-│           ✅ WorkExperience (company, role, duration, achievements)
-│           ✅ Project (name, description, technologies, role)
-│           ✅ Education (degree, institution, graduation_year)
-│           ✅ JDInfo (job_title, required_skills, nice_to_have_skills, etc.)
-│           ✅ ResumeInfo (skills, experiences, projects, education, years_of_experience)
-│           ✅ GapAnalysis (match_score, matched_skills, missing_skills, etc.)
-│           ✅ Question (question_text, type, difficulty, answer, criteria)
+│   └── 📄 schemas.py                # ✅ Pydantic models (all enums and models)
 │
 ├── 📂 services/                     # ========== SERVICES LAYER ==========
 │   ├── 📄 __init__.py
-│   │
-│   ├── 📄 llm_service.py            # LLM API wrapper
-│   │   └── Status: [ ] Not started
-│   │   └── Functions:
-│   │       - call_llm(prompt: str, response_model: Type[BaseModel]) -> BaseModel
-│   │       - count_tokens(text: str) -> int
-│   │   └── Features: retry, error handling, token management
-│   │
-│   ├── 📄 db_service.py             # [Phase 3] Database operations
-│   └── 📄 export_service.py         # [Phase 3] PDF export
+│   └── 📄 llm_service.py            # LLM API wrapper
 │
 ├── 📂 utils/                        # ========== UTILITIES ==========
 │   ├── 📄 __init__.py
-│   │
-│   ├── 📄 logger.py                 # Logging configuration
-│   │   └── Status: [ ] Not started
-│   │   └── Exports: get_logger(name: str) -> Logger
-│   │
-│   ├── 📄 text_cleaner.py           # Text preprocessing
-│   │   └── Status: [ ] Not started
-│   │   └── Function: clean_text(text: str) -> str
-│   │
+│   ├── 📄 logger.py                 # ✅ Logging configuration
+│   ├── 📄 text_cleaner.py           # ✅ Text preprocessing
 │   ├── 📄 token_counter.py          # Token counting & truncation
-│   │   └── Status: [ ] Not started
-│   │   └── Function: count_tokens(text: str, model: str) -> int
-│   │
 │   └── 📄 validators.py             # Input validation
-│       └── Status: [ ] Not started
-│       └── Functions:
-│           - validate_file_size(file, max_mb: int) -> bool
-│           - validate_file_extension(filename: str) -> bool
 │
-├── 📂 data/                         # ========== DATA STORAGE ==========
-│   └── 📂 uploads/                  # ✅ Temporary uploaded files (auto-created)
-│       └── .gitkeep
-│
+├── 📂 data/uploads/                 # ✅ Temporary uploaded files (auto-created)
+├── 📂 logs/                         # ✅ Log files (auto-created)
 └── 📂 tests/                        # ========== TESTS ==========
-    ├── 📂 fixtures/                 # Test sample files
-    │   └── (Will add sample JD & Resume)
-    │
-    └── test_*.py                    # Unit tests (to be added)
+    └── 📂 fixtures/                 # Test sample files
 ```
 
 ---
 
 ## 🔌 Core API Definitions
 
+### **Module: utils/text_cleaner** ✅
+
+```python
+# text_cleaner.py
+
+def clean_text(
+    text: str,
+    remove_extra_whitespace: bool = True,
+    normalize_line_breaks: bool = True,
+    remove_special_chars: bool = False,
+    lowercase: bool = False
+) -> str:
+    """
+    清洗和标准化文本内容
+    
+    Features:
+        - 统一换行符（\r\n, \r → \n）
+        - 去除多余空白（多空格、制表符、过多空行）
+        - 可选：去除特殊字符（保留字母数字和基本标点）
+        - 可选：转小写
+        
+    Returns:
+        清洗后的文本字符串
+    """
+
+def remove_html_tags(text: str) -> str:
+    """去除HTML标签和实体（&nbsp;等）"""
+
+def normalize_unicode(text: str) -> str:
+    """统一Unicode编码（NFC规范化）"""
+```
+
+**Usage:**
+```python
+from utils.text_cleaner import clean_text
+
+# 基础清洗
+text = clean_text(raw_text)
+
+# 完全清洗
+text = clean_text(raw_text, 
+                  remove_special_chars=True, 
+                  lowercase=True)
+```
+
+---
+
+### **Module: utils/logger** ✅
+
+```python
+# logger.py
+
+def get_logger(name: str) -> Logger:
+    """
+    获取配置好的logger实例
+    
+    Features:
+        - 彩色控制台输出（DEBUG=青, INFO=绿, WARNING=黄, ERROR=红）
+        - 文件轮转（5MB/文件，保留3个备份）
+        - 自动创建logs/目录
+        - Logger缓存避免重复handlers
+    """
+
+default_logger: Logger  # 模块级默认logger
+```
+
+---
+
+### **Module: models/schemas** ✅
+
+```python
+# schemas.py - 核心数据模型
+
+# 枚举类型
+class QuestionType(str, Enum):
+    TECHNICAL = "technical"
+    BEHAVIORAL = "behavioral"
+    SCENARIO = "scenario"
+    PROJECT = "project"
+
+class DifficultyLevel(str, Enum):
+    JUNIOR = "junior"
+    MID = "mid"
+    SENIOR = "senior"
+
+# 主要模型
+class JDInfo(BaseModel):
+    job_title: str
+    required_skills: List[str]
+    nice_to_have_skills: List[str]
+    responsibilities: List[str]
+    industry: Optional[str]
+    seniority_level: Optional[str]
+
+class ResumeInfo(BaseModel):
+    skills: List[str]
+    experiences: List[WorkExperience]
+    projects: List[Project]
+    education: List[Education]
+    years_of_experience: Optional[int]
+
+class GapAnalysis(BaseModel):
+    overall_match_score: float  # 0-100
+    matched_skills: List[str]
+    missing_skills: List[str]
+    strengths: List[str]
+    weaknesses: List[str]
+    focus_areas: List[str]
+
+class Question(BaseModel):
+    question_text: str
+    question_type: QuestionType
+    difficulty: DifficultyLevel
+    focus_area: str
+    reference_answer: str
+    evaluation_criteria: List[str]
+```
+
+---
+
 ### **Module: core/parsers**
 
 ```python
 # parser_factory.py
 def parse_file(file_path: str) -> str:
-    """
-    Auto-detect file type and extract text.
-    
-    Args:
-        file_path: Path to uploaded file
-        
-    Returns:
-        Extracted text content
-        
-    Raises:
-        ValueError: Unsupported file format
-    """
+    """自动检测文件类型并提取文本"""
 ```
 
 ---
@@ -229,68 +230,16 @@ def parse_file(file_path: str) -> str:
 
 ```python
 # jd_analyzer.py
-from models.schemas import JDInfo
-
 def analyze_jd(text: str) -> JDInfo:
-    """
-    Extract structured information from job description.
-    
-    Args:
-        text: Raw JD text
-        
-    Returns:
-        JDInfo model containing:
-        - job_title: str
-        - required_skills: List[str]
-        - nice_to_have_skills: List[str]
-        - responsibilities: List[str]
-        - industry: str
-        - seniority_level: str
-    """
-```
+    """从职位描述中提取结构化信息"""
 
-```python
 # resume_analyzer.py
-from models.schemas import ResumeInfo
-
 def analyze_resume(text: str) -> ResumeInfo:
-    """
-    Extract structured information from resume.
-    
-    Args:
-        text: Raw resume text
-        
-    Returns:
-        ResumeInfo model containing:
-        - skills: List[str]
-        - experiences: List[WorkExperience]
-        - projects: List[Project]
-        - education: List[Education]
-        - years_of_experience: int
-    """
-```
+    """从简历中提取结构化信息"""
 
-```python
 # gap_analyzer.py
-from models.schemas import JDInfo, ResumeInfo, GapAnalysis
-
 def analyze_gap(jd: JDInfo, resume: ResumeInfo) -> GapAnalysis:
-    """
-    Analyze the gap between JD requirements and resume.
-    
-    Args:
-        jd: Analyzed JD information
-        resume: Analyzed resume information
-        
-    Returns:
-        GapAnalysis model containing:
-        - overall_match_score: float (0-100)
-        - matched_skills: List[str]
-        - missing_skills: List[str]
-        - strengths: List[str]
-        - weaknesses: List[str]
-        - focus_areas: List[str]
-    """
+    """分析职位要求与简历的匹配度"""
 ```
 
 ---
@@ -299,28 +248,8 @@ def analyze_gap(jd: JDInfo, resume: ResumeInfo) -> GapAnalysis:
 
 ```python
 # question_generator.py
-from models.schemas import GapAnalysis, Question
-
-def generate_questions(
-    gap: GapAnalysis,
-    num_questions: int = 10
-) -> List[Question]:
-    """
-    Generate personalized interview questions.
-    
-    Args:
-        gap: Gap analysis results
-        num_questions: Number of questions to generate
-        
-    Returns:
-        List of Question models containing:
-        - question_text: str
-        - question_type: QuestionType (TECHNICAL/BEHAVIORAL/SCENARIO/PROJECT)
-        - difficulty: DifficultyLevel (JUNIOR/MID/SENIOR)
-        - focus_area: str
-        - reference_answer: str
-        - evaluation_criteria: List[str]
-    """
+def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Question]:
+    """生成个性化面试问题"""
 ```
 
 ---
@@ -340,131 +269,26 @@ def call_llm(
     temperature: float = 0.7,
     max_tokens: int = 2000
 ) -> T:
-    """
-    Call LLM API with structured output.
-    
-    Args:
-        prompt: Input prompt
-        response_model: Pydantic model for response validation
-        temperature: Sampling temperature
-        max_tokens: Max response length
-        
-    Returns:
-        Validated response as Pydantic model
-        
-    Raises:
-        APIError: If LLM call fails
-        ValidationError: If response doesn't match schema
-    """
+    """调用LLM API并返回结构化输出"""
 
 def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
-    """Count tokens in text for specific model."""
-```
-
----
-
-### **Module: models/schemas** ✅
-
-```python
-# schemas.py
-from pydantic import BaseModel, Field
-from typing import List, Optional
-from enum import Enum
-
-class QuestionType(str, Enum):
-    """面试问题类型枚举"""
-    TECHNICAL = "technical"      # 技术问题
-    BEHAVIORAL = "behavioral"    # 行为问题
-    SCENARIO = "scenario"        # 情景问题
-    PROJECT = "project"          # 项目问题
-
-class DifficultyLevel(str, Enum):
-    """问题难度等级枚举"""
-    JUNIOR = "junior"   # 初级 (0-2年)
-    MID = "mid"         # 中级 (3-5年)
-    SENIOR = "senior"   # 高级 (5年+)
-
-class WorkExperience(BaseModel):
-    """工作经历模型"""
-    company: str                 # 公司名称
-    role: str                    # 职位
-    duration: str                # 工作时长
-    achievements: List[str]      # 工作成就
-
-class Project(BaseModel):
-    """项目经历模型"""
-    name: str                    # 项目名称
-    description: str             # 项目描述
-    technologies: List[str]      # 技术栈
-    role: str                    # 项目角色
-
-class Education(BaseModel):
-    """教育背景模型"""
-    degree: str                  # 学位
-    institution: str             # 学校
-    graduation_year: Optional[int] = None  # 毕业年份
-
-class JDInfo(BaseModel):
-    """职位描述结构化信息"""
-    job_title: str
-    required_skills: List[str]
-    nice_to_have_skills: List[str] = []
-    responsibilities: List[str]
-    industry: Optional[str] = None
-    seniority_level: Optional[str] = None
-
-class ResumeInfo(BaseModel):
-    """简历结构化信息"""
-    skills: List[str]
-    experiences: List[WorkExperience]
-    projects: List[Project]
-    education: List[Education]
-    years_of_experience: Optional[int] = None
-
-class GapAnalysis(BaseModel):
-    """差距分析结果"""
-    overall_match_score: float = Field(ge=0, le=100)
-    matched_skills: List[str]
-    missing_skills: List[str]
-    strengths: List[str]
-    weaknesses: List[str]
-    focus_areas: List[str]
-
-class Question(BaseModel):
-    """面试问题模型"""
-    question_text: str
-    question_type: QuestionType
-    difficulty: DifficultyLevel
-    focus_area: str
-    reference_answer: str
-    evaluation_criteria: List[str]
+    """计算文本的token数量"""
 ```
 
 ---
 
 ## 📦 Installed Dependencies
 
-### **Current (requirements.txt)**
-
 | Package | Version | Purpose | Status |
 |---------|---------|---------|--------|
-| `streamlit` | 1.40.0 | Web UI framework | ✅ Installed |
-| `python-dotenv` | 1.0.1 | Environment variable management | ✅ Installed |
-| `pdfplumber` | 0.11.4 | PDF text extraction | ✅ Installed |
-| `python-docx` | 1.1.2 | DOCX text extraction | ✅ Installed |
-| `chardet` | 5.2.0 | Text encoding detection | ✅ Installed |
-| `openai` | 1.55.0 | OpenAI API client | ✅ Installed |
-| `tiktoken` | 0.8.0 | Token counting | ✅ Installed |
-| `pydantic` | 2.10.2 | Data validation | ✅ Installed |
-
-### **To Add in Future Phases**
-
-| Package | Purpose | Phase |
-|---------|---------|-------|
-| `sqlalchemy` | Database ORM | Phase 3 |
-| `fpdf2` | PDF export | Phase 3 |
-| `streamlit-chat` | Chat UI components | Phase 2 |
-| `pytest` | Unit testing | Phase 2/3 |
+| `streamlit` | 1.40.0 | Web UI framework | ✅ |
+| `python-dotenv` | 1.0.1 | Environment variables | ✅ |
+| `pdfplumber` | 0.11.4 | PDF extraction | ✅ |
+| `python-docx` | 1.1.2 | DOCX extraction | ✅ |
+| `chardet` | 5.2.0 | Encoding detection | ✅ |
+| `openai` | 1.55.0 | OpenAI API | ✅ |
+| `tiktoken` | 0.8.0 | Token counting | ✅ |
+| `pydantic` | 2.10.2 | Data validation | ✅ |
 
 ---
 
@@ -473,98 +297,82 @@ class Question(BaseModel):
 ### **Phase 1 Progress Tracker**
 
 ```
-Configuration Layer:
-├── [✅] config.py                    (100% - Completed)
-│   ├── ✅ Environment variables loading
-│   ├── ✅ Project paths configuration
-│   ├── ✅ LLM settings (API key, model, temperature)
-│   ├── ✅ File upload constraints
-│   ├── ✅ Logging configuration
-│   └── ✅ Auto-create upload directory
-└── [✅] .env setup                   (100% - Completed)
+✅ Configuration Layer (100%)
+├── [✅] config.py
+└── [✅] .env setup
 
-Data Models:
-├── [✅] models/schemas.py            (100% - Completed)
-│   ├── ✅ QuestionType enum
-│   ├── ✅ DifficultyLevel enum
-│   ├── ✅ WorkExperience model
-│   ├── ✅ Project model
-│   ├── ✅ Education model
-│   ├── ✅ JDInfo model
-│   ├── ✅ ResumeInfo model
-│   ├── ✅ GapAnalysis model
-│   └── ✅ Question model
-└── [✅] models/__init__.py           (100% - Completed)
+✅ Data Models (100%)
+├── [✅] models/schemas.py
+└── [✅] models/__init__.py
 
-Utilities:
-├── [ ] utils/logger.py              (0% - Not started)
-├── [ ] utils/text_cleaner.py        (0% - Not started)
-├── [ ] utils/token_counter.py       (0% - Not started)
-└── [ ] utils/validators.py          (0% - Not started)
+🚧 Utilities (25%)
+├── [✅] utils/logger.py              - Logging system
+├── [✅] utils/text_cleaner.py        - Text preprocessing
+├── [ ] utils/token_counter.py       - Token management
+└── [ ] utils/validators.py          - Input validation
 
-File Parsing:
-├── [ ] core/parsers/pdf_parser.py   (0% - Not started)
-├── [ ] core/parsers/docx_parser.py  (0% - Not started)
-├── [ ] core/parsers/txt_parser.py   (0% - Not started)
-└── [ ] core/parsers/parser_factory.py (0% - Not started)
+⬜ File Parsing (0%)
+├── [ ] core/parsers/pdf_parser.py
+├── [ ] core/parsers/docx_parser.py
+├── [ ] core/parsers/txt_parser.py
+└── [ ] core/parsers/parser_factory.py
 
-Services:
-└── [ ] services/llm_service.py      (0% - Not started)
+⬜ Services (0%)
+└── [ ] services/llm_service.py
 
-Prompts:
-├── [ ] prompts/jd_extraction.py     (0% - Not started)
-├── [ ] prompts/resume_extraction.py (0% - Not started)
-├── [ ] prompts/gap_analysis.py      (0% - Not started)
-└── [ ] prompts/question_generation.py (0% - Not started)
+⬜ Prompts (0%)
+├── [ ] prompts/jd_extraction.py
+├── [ ] prompts/resume_extraction.py
+├── [ ] prompts/gap_analysis.py
+└── [ ] prompts/question_generation.py
 
-Analyzers:
-├── [ ] core/analyzers/jd_analyzer.py (0% - Not started)
-├── [ ] core/analyzers/resume_analyzer.py (0% - Not started)
-└── [ ] core/analyzers/gap_analyzer.py (0% - Not started)
+⬜ Analyzers (0%)
+├── [ ] core/analyzers/jd_analyzer.py
+├── [ ] core/analyzers/resume_analyzer.py
+└── [ ] core/analyzers/gap_analyzer.py
 
-Generators:
-└── [ ] core/generators/question_generator.py (0% - Not started)
+⬜ Generators (0%)
+└── [ ] core/generators/question_generator.py
 
-Frontend:
-├── [ ] app/main.py                  (0% - Not started)
-├── [ ] app/pages/01_upload.py       (0% - Not started)
-├── [ ] app/pages/02_analysis.py     (0% - Not started)
-└── [ ] app/pages/03_questions.py    (0% - Not started)
+⬜ Frontend (0%)
+├── [ ] app/main.py
+├── [ ] app/pages/01_upload.py
+├── [ ] app/pages/02_analysis.py
+└── [ ] app/pages/03_questions.py
 
-Overall Phase 1 Progress: 3/25 modules (12%)
+Overall Phase 1 Progress: 5/25 modules (20%)
 ```
 
 ---
 
 ## 🎯 Current Working Module
 
-**Status**: 🟢 models/schemas.py completed - Ready for next module  
-**Next Target**: `utils/logger.py`  
+**Status**: 🟢 `utils/text_cleaner.py` completed  
+**Next Target**: `utils/token_counter.py`
 
-**What to implement in utils/logger.py**:
+**What to implement in utils/token_counter.py**:
 ```python
-# Logging utility with:
-1. Colored console output (development)
-2. File logging with rotation (production)
-3. Different log levels per environment
-4. Structured logging format
-5. get_logger(name: str) -> Logger factory function
+# Token计数和文本截断工具
+# 依赖：tiktoken, config.py
 
-Features:
-- Read LOG_LEVEL from config.py
-- Auto-create logs/ directory
-- Format: [TIMESTAMP] [LEVEL] [MODULE] MESSAGE
-- Console: colored output with rich/colorlog
-- File: daily rotation with size limit
+def count_tokens(text: str, model: str = "gpt-4o-mini") -> int:
+    """使用tiktoken计算文本的token数量"""
+
+def truncate_text(text: str, max_tokens: int, model: str = "gpt-4o-mini") -> str:
+    """截断文本到指定token数量"""
+
+def estimate_cost(num_tokens: int, model: str = "gpt-4o-mini") -> float:
+    """估算API调用成本（美元）"""
 ```
 
 **Why this order?**  
-- Logger is used by EVERY subsequent module for debugging
-- No external dependencies on other business logic
-- Once logger is ready, all future modules can import and use it
+- Token管理是调用LLM API的前置依赖
+- 需要在文本发送前检查长度限制
+- 后续所有analyzer和generator都需要使用
+- 依赖项已就绪：✅ config.py, ✅ tiktoken
 
 **Blockers**: None  
-**Dependencies Ready**: ✅ config.py completed, models/schemas.py completed
+**Dependencies Ready**: ✅ config.py, ✅ utils/logger.py, ✅ utils/text_cleaner.py
 
 ---
 
@@ -578,20 +386,25 @@ Features:
        │
        ▼
 ┌─────────────────┐
-│ parser_factory  │ ──→ Raw Text (str)
+│ parser_factory  │ ──→ Raw Text
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  text_cleaner   │ ──→ Cleaned Text ✅
 └────────┬────────┘
          │
     ┌────┴────┐
     ▼         ▼
 ┌────────┐ ┌────────┐
-│jd_     │ │resume_ │ ──→ JDInfo + ResumeInfo (Pydantic) ✅
+│jd_     │ │resume_ │ ──→ JDInfo + ResumeInfo ✅
 │analyzer│ │analyzer│
 └────┬───┘ └───┬────┘
      │         │
      └────┬────┘
           ▼
     ┌───────────┐
-    │gap_       │ ──→ GapAnalysis (Pydantic) ✅
+    │gap_       │ ──→ GapAnalysis ✅
     │analyzer   │
     └─────┬─────┘
           │
@@ -603,7 +416,7 @@ Features:
             │
             ▼
     ┌───────────────┐
-    │ Streamlit UI  │ ──→ Display to user
+    │ Streamlit UI  │
     └───────────────┘
 ```
 
@@ -615,31 +428,29 @@ Features:
 
 ```env
 # LLM Configuration
-OPENAI_API_KEY=sk-...                    # Required
-OPENAI_BASE_URL=https://api.openai.com/v1  # Optional (for proxy)
-MODEL_NAME=gpt-4o-mini                   # Model to use
+OPENAI_API_KEY=sk-...
+OPENAI_BASE_URL=https://api.openai.com/v1  # Optional
+MODEL_NAME=gpt-4o-mini
 
 # Application Settings
-DEBUG=False                              # Debug mode
-LOG_LEVEL=INFO                          # Logging level
+DEBUG=False
+LOG_LEVEL=INFO
 ```
 
 ### **Global Config (config.py)** ✅
 
 ```python
-# ✅ Implemented constants:
-- PROJECT_ROOT: Path          # Project root directory
-- UPLOAD_DIR: Path            # Upload files directory
-- OPENAI_API_KEY: str         # API key from environment
-- OPENAI_BASE_URL: str        # API base URL
-- MODEL_NAME: str             # LLM model name
-- TEMPERATURE: float          # LLM temperature (0.7)
-- MAX_TOKENS: int             # Max response tokens (2000)
-- UPLOAD_MAX_SIZE_MB: int     # Max file size (10MB)
-- ALLOWED_EXTENSIONS: set     # Allowed file types {.pdf, .docx, .txt}
-- LOG_LEVEL: str              # Logging level (INFO)
-- DEBUG: bool                 # Debug mode flag
-- DEFAULT_NUM_QUESTIONS: int  # Default question count (10)
+# Key constants:
+PROJECT_ROOT: Path
+UPLOAD_DIR: Path
+OPENAI_API_KEY: str
+MODEL_NAME: str
+TEMPERATURE: float = 0.7
+MAX_TOKENS: int = 2000
+UPLOAD_MAX_SIZE_MB: int = 10
+ALLOWED_EXTENSIONS: set = {'.pdf', '.docx', '.txt'}
+LOG_LEVEL: str
+DEBUG: bool
 ```
 
 ---
@@ -649,13 +460,11 @@ LOG_LEVEL=INFO                          # Logging level
 | Date | Version | Changes |
 |------|---------|---------|
 | 2025-01-XX | 0.1.0 | Initial architecture documentation |
-| 2025-01-XX | 0.1.1 | ✅ Completed `config.py` implementation |
-| 2025-01-XX | 0.1.2 | ✅ Completed `models/schemas.py` - All Pydantic models defined |
-| - | - | Project setup completed |
-| - | - | Dependencies installed |
-| - | - | Directory structure created |
-| - | - | Global configuration system established |
-| - | - | **Data contract layer completed** ✅ |
+| 2025-01-XX | 0.1.1 | ✅ Completed `config.py` |
+| 2025-01-XX | 0.1.2 | ✅ Completed `models/schemas.py` |
+| 2025-01-XX | 0.1.3 | ✅ Completed `utils/logger.py` |
+| 2025-01-XX | 0.1.4 | ✅ Completed `utils/text_cleaner.py` |
+| - | - | **Text preprocessing layer ready** ✅ |
 
 ---
 
@@ -664,83 +473,94 @@ LOG_LEVEL=INFO                          # Logging level
 1. ✅ Complete environment setup
 2. ✅ Implement `config.py`
 3. ✅ Implement `models/schemas.py`
-4. ⬜ **[NEXT]** Implement `utils/logger.py`
-5. ⬜ Implement `utils/text_cleaner.py`
-6. ⬜ Implement `utils/token_counter.py`
+4. ✅ Implement `utils/logger.py`
+5. ✅ Implement `utils/text_cleaner.py`
+6. ⬜ **[NEXT]** Implement `utils/token_counter.py`
 7. ⬜ Implement `utils/validators.py`
-8. ⬜ Implement file parsers
+8. ⬜ Implement file parsers (pdf/docx/txt)
+9. ⬜ Implement `services/llm_service.py`
+10. ⬜ Implement prompts and analyzers
 
 ---
 
 ## 📊 Completed Modules Detail
 
-### ✅ models/schemas.py (100%)
+### ✅ utils/text_cleaner.py (100%)
 
 **Implementation Details:**
-- **Enums**: 
-  - `QuestionType`: 4 types (TECHNICAL/BEHAVIORAL/SCENARIO/PROJECT)
-  - `DifficultyLevel`: 3 levels (JUNIOR/MID/SENIOR)
-  
-- **Sub-models**:
-  - `WorkExperience`: company, role, duration, achievements
-  - `Project`: name, description, technologies, role
-  - `Education`: degree, institution, graduation_year
-  
-- **Main Models**:
-  - `JDInfo`: 6 fields with optional industry & seniority
-  - `ResumeInfo`: 5 fields with nested models
-  - `GapAnalysis`: 6 fields with score validation (0-100)
-  - `Question`: 6 fields with enum types
+- **Core Functions**:
+  - `clean_text()`: 主清洗函数，支持4个可选参数
+  - `remove_html_tags()`: 去除HTML标签和实体
+  - `normalize_unicode()`: Unicode NFC规范化
+
+- **Features**:
+  - ✅ 换行符统一（\r\n, \r → \n）
+  - ✅ 去除多余空白（多空格、制表符、过多空行）
+  - ✅ 可选去除特殊字符（保留中英文、数字、基本标点）
+  - ✅ 可选转小写
+  - ✅ 每行首尾空白裁剪
+  - ✅ 完整的输入验证和日志记录
+
+**Export Interface:**
+```python
+from utils.text_cleaner import clean_text, remove_html_tags, normalize_unicode
+
+# 基础清洗（默认参数）
+clean_text = clean_text(raw_text)
+
+# 完全清洗
+clean_text = clean_text(raw_text, remove_special_chars=True, lowercase=True)
+
+# HTML清洗
+clean_text = remove_html_tags(html_text)
+```
+
+**Testing:**
+```bash
+python -m utils.text_cleaner
+```
+
+---
+
+### ✅ utils/logger.py (100%)
+
+**Features:**
+- ✅ 彩色控制台输出（DEBUG=青色, INFO=绿色, WARNING=黄色, ERROR=红色）
+- ✅ 文件轮转（5MB/文件，保留3个备份）
+- ✅ Logger缓存防止重复handlers
+- ✅ 自动创建logs/目录
+- ✅ 环境变量配置（DEBUG模式仅控制台）
+
+**Export Interface:**
+```python
+from utils.logger import get_logger, default_logger
+
+logger = get_logger(__name__)
+logger.info("Module started")
+```
+
+---
+
+### ✅ models/schemas.py (100%)
+
+**Includes:**
+- ✅ 2个枚举类（QuestionType, DifficultyLevel）
+- ✅ 3个子模型（WorkExperience, Project, Education）
+- ✅ 4个主模型（JDInfo, ResumeInfo, GapAnalysis, Question）
+- ✅ Pydantic v2类型验证和约束
 
 **Export Interface:**
 ```python
 from models.schemas import (
-    QuestionType,
-    DifficultyLevel,
-    WorkExperience,
-    Project,
-    Education,
-    JDInfo,
-    ResumeInfo,
-    GapAnalysis,
-    Question
-)
-```
-
-**Validation Features:**
-- ✅ Type safety with Pydantic v2
-- ✅ Field validation (e.g., score range 0-100)
-- ✅ Optional fields with defaults
-- ✅ Enum constraints for categorical fields
-- ✅ Nested model support
-
-**Usage Examples:**
-```python
-# Example 1: Create a JD info
-jd = JDInfo(
-    job_title="Senior Python Developer",
-    required_skills=["Python", "Django", "PostgreSQL"],
-    nice_to_have_skills=["Docker", "AWS"],
-    responsibilities=["Design APIs", "Code review"],
-    industry="FinTech",
-    seniority_level="Senior"
-)
-
-# Example 2: Create a question
-question = Question(
-    question_text="How do you handle database migrations?",
-    question_type=QuestionType.TECHNICAL,
-    difficulty=DifficultyLevel.MID,
-    focus_area="Database Management",
-    reference_answer="Use migration tools like Alembic...",
-    evaluation_criteria=["Knowledge of tools", "Best practices"]
+    QuestionType, DifficultyLevel,
+    JDInfo, ResumeInfo, GapAnalysis, Question
 )
 ```
 
 ---
 
-**Note**: Update this file whenever:
-- A new module is completed ✅
-- API signatures change
-- New dependencies are added
-- Major architectural decisions are made
+**Note**: This document is the **single source of truth** for project structure. Update whenever:
+- ✅ A new module is completed
+- 🔄 API signatures change
+- 📦 New dependencies are added
+- 🏗️ Architecture decisions are made
