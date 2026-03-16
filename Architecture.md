@@ -1,7 +1,7 @@
 # 📐 ARCHITECTURE.md
 
 > **Project Map & Technical Documentation**  
-> Last Updated: 2025-01-XX | Version: 0.1.5
+> Last Updated: 2025-01-XX | Version: 0.1.6
 
 ---
 
@@ -79,7 +79,7 @@ interview-prep-assistant/
 │   ├── 📄 logger.py                 # ✅ Logging system
 │   ├── 📄 text_cleaner.py           # ✅ Text preprocessing
 │   ├── 📄 token_counter.py          # ✅ Token management
-│   └── 📄 validators.py             # Input validation
+│   └── 📄 validators.py             # ✅ Input validation
 │
 ├── 📂 data/uploads/                 # ✅ Auto-created
 ├── 📂 logs/                         # ✅ Auto-created
@@ -99,11 +99,11 @@ interview-prep-assistant/
 ├── [✅] models/schemas.py            - Pydantic data models
 └── [✅] models/__init__.py           - Package exports
 
-✅ Utilities (75%)
+✅ Utilities (100%) 🎊
 ├── [✅] utils/logger.py              - Logging system
 ├── [✅] utils/text_cleaner.py        - Text preprocessing
-├── [✅] utils/token_counter.py       - Token management ⭐ NEW
-└── [ ] utils/validators.py          - Input validation
+├── [✅] utils/token_counter.py       - Token management
+└── [✅] utils/validators.py          - Input validation ⭐ NEW
 
 ⬜ File Parsing (0%)
 ├── [ ] core/parsers/pdf_parser.py
@@ -135,15 +135,68 @@ interview-prep-assistant/
 └── [ ] app/pages/03_questions.py
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Overall Progress: 6/25 modules (24%)
-Next Target: utils/validators.py
+Overall Progress: 7/25 modules (28%)
+Next Target: core/parsers/ (4 files)
 ```
 
 ---
 
 ## 🔌 Core API Definitions
 
-### **✅ utils/token_counter.py** (NEW)
+### **✅ utils/validators.py** (NEW - v0.1.6)
+
+```python
+def validate_file_extension(filename: str) -> Tuple[bool, str]:
+    """验证文件扩展名是否在允许列表中"""
+
+def validate_file_size(file_size: int) -> Tuple[bool, str]:
+    """验证文件大小是否在限制内（输入单位: bytes）"""
+
+def validate_text_content(
+    text: str, 
+    content_type: str = "general"  # "jd" | "resume" | "general"
+) -> Tuple[bool, str]:
+    """验证文本内容有效性（最小长度: JD=100, resume=50）"""
+
+def validate_upload(
+    filename: str, 
+    file_size: int
+) -> Tuple[bool, List[str]]:
+    """聚合验证：一次性验证文件名+大小"""
+```
+
+**Usage:**
+```python
+from utils.validators import validate_upload, validate_text_content
+
+# 文件上传验证
+is_valid, errors = validate_upload("resume.pdf", 2_000_000)
+if not is_valid:
+    for error in errors:
+        print(f"❌ {error}")
+
+# 文本内容验证
+is_valid, msg = validate_text_content(extracted_text, content_type="resume")
+if not is_valid:
+    raise ValueError(msg)
+```
+
+**Features:**
+- ✅ 统一返回格式 `Tuple[bool, str]`
+- ✅ 扩展名大小写不敏感（`.PDF` → `.pdf`）
+- ✅ 文件大小单位: bytes（与 Streamlit 一致）
+- ✅ 内容类型区分（JD=100字符，resume=50字符）
+- ✅ 聚合验证函数（收集所有错误）
+- ✅ 完整日志记录
+
+**Testing:**
+```bash
+python -m utils.validators
+```
+
+---
+
+### **✅ utils/token_counter.py**
 
 ```python
 def count_tokens(text: str, model: str = MODEL_NAME) -> int:
@@ -166,16 +219,6 @@ def estimate_cost(
 
 def get_token_info(text: str, model: str = MODEL_NAME) -> Dict:
     """获取完整token信息（便捷函数）"""
-```
-
-**Usage:**
-```python
-from utils.token_counter import count_tokens, truncate_text, estimate_cost
-
-tokens = count_tokens(text)
-if tokens > 4000:
-    text = truncate_text(text, max_tokens=4000)
-cost = estimate_cost(tokens)
 ```
 
 **Features:**
@@ -237,21 +280,6 @@ default_logger: Logger  # 模块级默认logger
 
 ---
 
-### **⬜ utils/validators.py** (NEXT TARGET)
-
-```python
-def validate_file_extension(filename: str) -> bool:
-    """验证文件扩展名是否允许"""
-
-def validate_file_size(file_size: int) -> bool:
-    """验证文件大小是否在限制内"""
-
-def validate_text_content(text: str) -> Tuple[bool, str]:
-    """验证文本内容（非空、最小长度）"""
-```
-
----
-
 ### **⬜ Core Modules** (To Be Implemented)
 
 ```python
@@ -287,9 +315,13 @@ def call_llm(prompt: str, response_model: Type[T], **kwargs) -> T:
 ```
 User Upload (JD + Resume)
     ↓
+validators (文件验证) ✅
+    ↓
 parser_factory → Raw Text
     ↓
 text_cleaner → Cleaned Text ✅
+    ↓
+validators (内容验证) ✅
     ↓
 token_counter (检查长度) ✅
     ↓
@@ -357,7 +389,52 @@ ALLOWED_EXTENSIONS: set = {'.pdf', '.docx', '.txt'}
 
 ## 📝 Completed Modules Detail
 
-### ✅ utils/token_counter.py (NEW)
+### ✅ utils/validators.py (NEW - v0.1.6)
+
+**4 Core Functions:**
+1. `validate_file_extension()` - 扩展名白名单验证
+2. `validate_file_size()` - 文件大小限制检查
+3. `validate_text_content()` - 文本有效性验证（区分JD/resume）
+4. `validate_upload()` - 聚合验证（文件名+大小）
+
+**Implementation Highlights:**
+- 统一返回 `Tuple[bool, str]`（前三个函数）
+- 聚合函数返回 `Tuple[bool, List[str]]`（收集所有错误）
+- 扩展名大小写不敏感
+- 内容类型区分（JD=100, resume=50, general=50）
+- 完整边界情况处理
+
+**Validation Rules:**
+```python
+# 文件扩展名
+ALLOWED_EXTENSIONS = {'.pdf', '.docx', '.txt'}
+
+# 文件大小
+MAX_SIZE = 10MB (10 * 1024 * 1024 bytes)
+MIN_SIZE = 1 byte (拒绝空文件)
+
+# 文本长度
+MIN_LENGTH = {
+    "jd": 100,       # 职位描述
+    "resume": 50,    # 简历
+    "general": 50    # 通用
+}
+```
+
+**Testing:**
+```bash
+python -m utils.validators
+
+# 测试覆盖:
+# - 8 种文件扩展名场景
+# - 7 种文件大小场景
+# - 8 种文本内容场景
+# - 6 种聚合验证场景
+```
+
+---
+
+### ✅ utils/token_counter.py
 
 **4 Core Functions:**
 1. `count_tokens()` - 使用tiktoken计算token数
@@ -370,11 +447,6 @@ ALLOWED_EXTENSIONS: set = {'.pdf', '.docx', '.txt'}
 - 模型fallback（未知模型→cl100k_base）
 - 价格表维护（4个主流模型）
 - 截断日志（记录减少百分比）
-
-**Testing:**
-```bash
-python -m utils.token_counter
-```
 
 ---
 
@@ -407,16 +479,23 @@ python -m utils.token_counter
 
 ## 🎯 Next Steps
 
-**Current**: ✅ utils/token_counter.py completed  
-**Next**: ⬜ utils/validators.py (Utilities层最后一个模块)
+**🎊 MILESTONE: Utilities Layer 100% Complete!**
 
-**After validators.py:**
-1. core/parsers/ (4个文件)
-2. services/llm_service.py
-3. prompts/ (4个文件)
-4. core/analyzers/ (3个文件)
-5. core/generators/
-6. app/ (Frontend)
+**Current**: ✅ utils/validators.py completed  
+**Next**: ⬜ core/parsers/ (进入核心业务逻辑层)
+
+**Parsers 模块优先级（按依赖关系）：**
+1. `txt_parser.py` - 最简单，无外部依赖
+2. `pdf_parser.py` - 依赖 pdfplumber
+3. `docx_parser.py` - 依赖 python-docx
+4. `parser_factory.py` - 依赖前三个解析器（工厂模式）
+
+**After parsers/:**
+1. services/llm_service.py
+2. prompts/ (4个文件)
+3. core/analyzers/ (3个文件)
+4. core/generators/
+5. app/ (Frontend)
 
 ---
 
@@ -424,6 +503,7 @@ python -m utils.token_counter
 
 | Version | Changes |
 |---------|---------|
+| 0.1.6 | ✅ Completed `utils/validators.py` - **Utilities 100%** 🎊 |
 | 0.1.5 | ✅ Completed `utils/token_counter.py` |
 | 0.1.4 | ✅ Completed `utils/text_cleaner.py` |
 | 0.1.3 | ✅ Completed `utils/logger.py` |
@@ -433,5 +513,70 @@ python -m utils.token_counter
 
 ---
 
+## 🏆 Phase Completion Status
+
+```
+Phase 1 - Foundation & Utilities
+├── [100%] Foundation Layer
+│   ├── ✅ config.py
+│   ├── ✅ models/schemas.py
+│   └── ✅ models/__init__.py
+│
+└── [100%] Utilities Layer  🎊🎊🎊
+    ├── ✅ utils/logger.py
+    ├── ✅ utils/text_cleaner.py
+    ├── ✅ utils/token_counter.py
+    └── ✅ utils/validators.py
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Phase 2 - File Parsing [0%]
+└── [ ] core/parsers/ (4 files) ← NEXT
+```
+
+---
+
 **Note**: This is the **single source of truth** for project structure.  
 Update on every module completion or architecture change.
+
+---
+
+## 📌 Quick Reference
+
+### Completed Utilities APIs
+
+```python
+# 日志
+from utils.logger import get_logger
+logger = get_logger(__name__)
+
+# 文本清洗
+from utils.text_cleaner import clean_text
+text = clean_text(raw_text)
+
+# Token计数
+from utils.token_counter import count_tokens, truncate_text
+tokens = count_tokens(text)
+text = truncate_text(text, max_tokens=4000)
+
+# 验证
+from utils.validators import validate_upload, validate_text_content
+is_valid, errors = validate_upload(filename, file_size)
+is_valid, msg = validate_text_content(text, content_type="jd")
+```
+
+### Module Import Pattern
+
+```python
+# ✅ Recommended
+from utils.logger import get_logger
+from utils.validators import validate_upload
+from models.schemas import JDInfo, ResumeInfo
+
+# ❌ Avoid
+from utils import *
+import utils.logger as logger
+```
+
+---
+
+**Ready for Phase 2: File Parsing Layer** 🚀

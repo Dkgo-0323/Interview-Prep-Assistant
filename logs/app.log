@@ -12,3 +12,29 @@
 [2026-03-16 18:31:40] [WARNING] [__main__] [token_counter.py:207] 文本已截断: 501 → 49 tokens (减少 452 tokens, 约 90.2%)
 [2026-03-16 18:31:40] [WARNING] [__main__] [token_counter.py:207] 文本已截断: 501 → 99 tokens (减少 402 tokens, 约 80.2%)
 [2026-03-16 18:31:40] [WARNING] [__main__] [token_counter.py:207] 文本已截断: 501 → 199 tokens (减少 302 tokens, 约 60.3%)
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:54] 不支持的文件格式: .exe, 文件: malware.exe
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:49] 文件无扩展名: no_extension
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:42] 文件名为空
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:54] 不支持的文件格式: .gz, 文件: archive.tar.gz
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:85] 文件为空（0字节）
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:93] 文件过大: 10.0MB > 10MB
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:93] 文件过大: 15.0MB > 10MB
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:80] 无效的文件大小: -1
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:126] 文本为 None
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:131] 文本为空字符串
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:136] 文本仅包含空白字符
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:145] 文本过短: 3 < 100 (jd)
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:145] 文本过短: 99 < 100 (jd)
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:145] 文本过短: 67 < 100 (jd)
+[2026-03-16 19:47:04] [INFO] [__main__] [validators.py:195] 文件验证通过: report.pdf (2000000 bytes)
+[2026-03-16 19:47:04] [INFO] [__main__] [validators.py:195] 文件验证通过: resume.docx (5000000 bytes)
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:54] 不支持的文件格式: .exe, 文件: file.exe
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:197] 文件验证失败: file.exe, 错误: ['不支持的文件格式: .exe, 允许: .docx, .pdf, .txt']
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:93] 文件过大: 14.3MB > 10MB
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:197] 文件验证失败: report.pdf, 错误: ['文件过大: 14.3MB, 上限: 10MB']
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:54] 不支持的文件格式: .exe, 文件: bad.exe
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:93] 文件过大: 19.1MB > 10MB
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:197] 文件验证失败: bad.exe, 错误: ['不支持的文件格式: .exe, 允许: .docx, .pdf, .txt', '文件过大: 19.1MB, 上限: 10MB']
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:42] 文件名为空
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:85] 文件为空（0字节）
+[2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:197] 文件验证失败: , 错误: ['文件名为空', '文件为空']
