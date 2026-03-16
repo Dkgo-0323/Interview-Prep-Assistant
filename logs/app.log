@@ -9,3 +9,6 @@
 [2026-03-14 22:54:49] [WARNING] [__main__] [text_cleaner.py:59] 输入文本为None，返回空字符串
 [2026-03-14 22:54:49] [INFO] [__main__] [text_cleaner.py:166] 文本清洗完成: 10 -> 0 字符
 [2026-03-14 22:54:49] [WARNING] [__main__] [text_cleaner.py:170] 清洗后文本为空，可能输入内容全为空白或特殊字符
+[2026-03-16 18:31:40] [WARNING] [__main__] [token_counter.py:207] 文本已截断: 501 → 49 tokens (减少 452 tokens, 约 90.2%)
+[2026-03-16 18:31:40] [WARNING] [__main__] [token_counter.py:207] 文本已截断: 501 → 99 tokens (减少 402 tokens, 约 80.2%)
+[2026-03-16 18:31:40] [WARNING] [__main__] [token_counter.py:207] 文本已截断: 501 → 199 tokens (减少 302 tokens, 约 60.3%)
