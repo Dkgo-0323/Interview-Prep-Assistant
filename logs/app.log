@@ -38,3 +38,41 @@
 [2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:42] 文件名为空
 [2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:85] 文件为空（0字节）
 [2026-03-16 19:47:04] [WARNING] [__main__] [validators.py:197] 文件验证失败: , 错误: ['文件名为空', '文件为空']
+[2026-03-17 22:06:45] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: file.pdf
+[2026-03-17 22:06:45] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:47] 文件不存在: \nonexistent\path\to\file.pdf
+[2026-03-17 22:06:45] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: resume.pdf
+[2026-03-17 22:06:45] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:47] 文件不存在: \fake\path\resume.pdf
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test.pdf
+[2026-03-17 22:06:46] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:88] PDF 文件损坏: test.pdf, 错误: No /Root object! - Is this really a PDF?
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test.pdf
+[2026-03-17 22:06:46] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:88] PDF 文件损坏: test.pdf, 错误: No /Root object! - Is this really a PDF?
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: sample_resume.pdf
+[2026-03-17 22:06:46] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 112 -> 112 字符
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: sample_resume.pdf, 提取 112 字符
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: encrypted.pdf
+[2026-03-17 22:06:46] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:92] PDF 已加密: encrypted.pdf
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: scanned.pdf
+[2026-03-17 22:06:46] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:158] 检测到扫描件 PDF: scanned.pdf, 全部 1 页均为扫描页
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: 
+[2026-03-17 22:06:46] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:100] PDF 解析失败: , 错误类型: PermissionError, 错误: [Errno 13] Permission denied: '.'
+[2026-03-17 22:06:46] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test_directory_path0
+[2026-03-17 22:06:46] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:100] PDF 解析失败: test_directory_path0, 错误类型: PermissionError, 错误: [Errno 13] Permission denied: 'C:\\Users\\dukai\\AppData\\Local\\Temp\\pytest-of-dukai\\pytest-0\\test_directory_path0'
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: file.pdf
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:47] 文件不存在: \nonexistent\path\to\file.pdf
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: resume.pdf
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:47] 文件不存在: \fake\path\resume.pdf
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test.pdf
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:88] PDF 文件损坏: test.pdf, 错误: No /Root object! - Is this really a PDF?
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test.pdf
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:88] PDF 文件损坏: test.pdf, 错误: No /Root object! - Is this really a PDF?
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: sample_resume.pdf
+[2026-03-17 22:12:47] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 112 -> 112 字符
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: sample_resume.pdf, 提取 112 字符
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: encrypted.pdf
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:92] PDF 已加密: encrypted.pdf
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: scanned.pdf
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:158] 检测到扫描件 PDF: scanned.pdf, 全部 1 页均为扫描页
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: 
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:100] PDF 解析失败: , 错误类型: PermissionError, 错误: [Errno 13] Permission denied: '.'
+[2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test_directory_path0
+[2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:100] PDF 解析失败: test_directory_path0, 错误类型: PermissionError, 错误: [Errno 13] Permission denied: 'C:\\Users\\dukai\\AppData\\Local\\Temp\\pytest-of-dukai\\pytest-1\\test_directory_path0'
