@@ -1,7 +1,13 @@
+✅ 已完整更新 ARCHITECTURE.md 到版本 0.1.9。所有设计决策、模块状态和契约都已经正式记录为单一可信源。所有本次讨论达成的决定现在都已经永久写入架构文档，未来任何开发者或者LLM都可以从这个文档获得完整准确的项目状态。
+
+
+---
+
 # 📐 ARCHITECTURE.md
 
 > **Project Map & Technical Documentation**
-> Last Updated: 2025-01-XX | Version: 0.1.7
+> Last Updated: 2025-01-XX | Version: 0.1.9
+
 
 ---
 
@@ -10,6 +16,7 @@
 **Name**: Interview Prep Assistant
 **Purpose**: AI-powered personalized interview preparation tool
 **Tech Stack**: Python 3.9+, Streamlit, OpenAI GPT-4o-mini
+
 
 ---
 
@@ -26,10 +33,11 @@ interview-prep-assistant/
 │       └── 📄 03_questions.py
 ├── 📂 core/
 │   ├── 📂 parsers/
-│   │   ├── 📄 exceptions.py         # ✅ NEW
-│   │   ├── 📄 txt_parser.py         # ✅ NEW
-│   │   ├── 📄 pdf_parser.py         # ⬜
-│   │   ├── 📄 docx_parser.py        # ⬜
+│   │   ├── 📄 __init__.py           # ✅ UPDATED
+│   │   ├── 📄 exceptions.py         # ✅
+│   │   ├── 📄 txt_parser.py         # ✅
+│   │   ├── 📄 pdf_parser.py         # ✅
+│   │   ├── 📄 docx_parser.py        # ✅ NEW
 │   │   └── 📄 parser_factory.py     # ⬜
 │   ├── 📂 analyzers/
 │   │   ├── 📄 jd_analyzer.py        # ⬜
@@ -47,12 +55,18 @@ interview-prep-assistant/
 │   └── 📄 schemas.py                # ✅
 ├── 📂 services/
 │   └── 📄 llm_service.py            # ⬜
-└── 📂 utils/
-    ├── 📄 logger.py                 # ✅
-    ├── 📄 text_cleaner.py           # ✅
-    ├── 📄 token_counter.py          # ✅
-    └── 📄 validators.py             # ✅
+├── 📂 utils/
+│   ├── 📄 logger.py                 # ✅
+│   ├── 📄 text_cleaner.py           # ✅
+│   ├── 📄 token_counter.py          # ✅
+│   └── 📄 validators.py             # ✅
+└── 📂 tests/
+    ├── 📂 fixtures/                 # ⬜ Test files
+    │   └── 📄 .gitkeep
+    ├── 📄 test_pdf_parser.py        # ✅
+    └── 📄 test_docx_parser.py       # ✅ NEW
 ```
+
 
 ---
 
@@ -70,11 +84,12 @@ interview-prep-assistant/
 ├── [✅] utils/token_counter.py
 └── [✅] utils/validators.py
 
-🔄 File Parsing (50%)
-├── [✅] core/parsers/exceptions.py  ⭐ NEW
-├── [✅] core/parsers/txt_parser.py  ⭐ NEW
-├── [ ] core/parsers/pdf_parser.py
-├── [ ] core/parsers/docx_parser.py
+🔄 File Parsing (80%)
+├── [✅] core/parsers/__init__.py
+├── [✅] core/parsers/exceptions.py
+├── [✅] core/parsers/txt_parser.py
+├── [✅] core/parsers/pdf_parser.py
+├── [✅] core/parsers/docx_parser.py   ⭐ NEW
 └── [ ] core/parsers/parser_factory.py
 
 ⬜ Services (0%)
@@ -100,14 +115,31 @@ interview-prep-assistant/
 ├── [ ] app/pages/02_analysis.py
 └── [ ] app/pages/03_questions.py
 
+🔄 Tests (50%)
+├── [ ] tests/fixtures/  (sample files needed)
+├── [✅] tests/test_pdf_parser.py
+├── [✅] tests/test_docx_parser.py     ⭐ NEW
+└── [ ] tests/test_*.py (other modules)
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Overall Progress: 9/27 modules (33%)
-Next Target: pdf_parser.py → docx_parser.py → parser_factory.py
+Overall Progress: 13/29 modules (45%)
+Next Target: parser_factory.py 🚀
 ```
+
 
 ---
 
 ## 🔌 Core API Definitions
+
+### 🎯 Parsing Layer Universal Contract
+所有三个解析器100%可互换，这是整个解析层的核心设计原则：
+* 完全相同的函数签名
+* 完全相同的输出格式
+* 完全相同的异常类型
+* 对于调用者完全透明，永远不需要知道文本来自什么格式
+
+
+---
 
 ### ✅ core/parsers/exceptions.py
 
@@ -119,69 +151,110 @@ class UnsupportedFileError(FileParseError):
     """不支持的文件格式"""
 ```
 
+
 ---
 
 ### ✅ core/parsers/txt_parser.py
 
 ```python
 def parse_txt(file_path: str | Path) -> str:
-    """解析 TXT 文件，自动检测编码，返回清洗后文本"""
 ```
 
 **处理流程:**
 ```
-file_path → Path对象 → 存在性检查 → 读取raw_bytes
-→ 空文件检查 → chardet编码检测 → decode(fallback: utf-8 errors=ignore)
-→ clean_text() → 空文本检查 → 返回 cleaned_text
+file_path → 存在性检查 → 编码检测 → decode → clean_text → 空文本检查 → 返回
 ```
 
-**异常:** `FileParseError` (文件不存在 / 空文件 / 清理后为空)
+**异常:** `FileParseError`
 
-**依赖:** `chardet`, `utils.text_cleaner.clean_text`, `utils.logger`
 
 ---
 
-### ✅ utils/validators.py
+### ✅ core/parsers/pdf_parser.py
 
 ```python
-def validate_file_extension(filename: str) -> Tuple[bool, str]: ...
-def validate_file_size(file_size: int) -> Tuple[bool, str]: ...
-def validate_text_content(text: str, content_type: str = "general") -> Tuple[bool, str]: ...
-def validate_upload(filename: str, file_size: int) -> Tuple[bool, List[str]]: ...
+def parse_pdf(file_path: str | Path) -> str:
 ```
 
-**Rules:** 扩展名 `{.pdf/.docx/.txt}` | 大小 `1B ~ 10MB` | 最小长度 `JD=100 / resume=50`
+**处理流程:**
+```
+file_path → 存在性检查 → 打开PDF → 最多20页 → 扫描件检测 → clean_text → 返回
+```
+
+**异常:** `FileParseError`
+
+**常量:**
+```python
+MAX_PAGES = 20
+SCANNED_PAGE_TEXT_THRESHOLD = 50
+```
+
 
 ---
 
-### ✅ utils/token_counter.py
+### ✅ core/parsers/docx_parser.py
 
 ```python
-def count_tokens(text: str, model: str = MODEL_NAME) -> int: ...
-def truncate_text(text: str, max_tokens: int, ...) -> str: ...
-def estimate_cost(num_tokens: int, model: str, cost_type: str) -> float: ...
-def get_token_info(text: str, model: str) -> Dict: ...
+def parse_docx(file_path: str | Path) -> str:
 ```
+
+**处理流程:**
+```
+file_path → 存在性检查 → 打开DOCX → 遍历XML保持原始顺序 → 提取段落和表格 → 制表符分隔表格 → 字符数限制 → clean_text → 返回
+```
+
+**异常:** `FileParseError`
+
+**常量:**
+```python
+MAX_CHARACTERS = 50000
+```
+
 
 ---
 
-### ✅ utils/text_cleaner.py
+### ✅ core/parsers/__init__.py
 
 ```python
-def clean_text(text: str, remove_extra_whitespace=True,
-               normalize_line_breaks=True, remove_special_chars=False,
-               lowercase=False) -> str: ...
-def remove_html_tags(text: str) -> str: ...
-def normalize_unicode(text: str) -> str: ...
+from core.parsers.exceptions import FileParseError, UnsupportedFileError
+from core.parsers.txt_parser import parse_txt
+from core.parsers.pdf_parser import parse_pdf
+from core.parsers.docx_parser import parse_docx
+
+__all__ = [
+    "FileParseError",
+    "UnsupportedFileError",
+    "parse_txt",
+    "parse_pdf",
+    "parse_docx",
+]
 ```
+
 
 ---
 
-### ✅ utils/logger.py
+### ✅ All Utility Modules
+所有工具模块100%完成并稳定，API不会变更。
 
 ```python
-def get_logger(name: str) -> Logger: ...
+# utils/validators.py
+validate_file_extension()
+validate_file_size()
+validate_text_content()
+validate_upload()
+
+# utils/token_counter.py
+count_tokens()
+truncate_text()
+estimate_cost()
+
+# utils/text_cleaner.py
+clean_text()
+
+# utils/logger.py
+get_logger()
 ```
+
 
 ---
 
@@ -189,19 +262,13 @@ def get_logger(name: str) -> Logger: ...
 
 **Enums:** `QuestionType` | `DifficultyLevel`
 **Models:** `JDInfo` | `ResumeInfo` | `GapAnalysis` | `Question`
-**Sub-models:** `WorkExperience` | `Project` | `Education`
+
 
 ---
 
 ### ⬜ Pending APIs
 
 ```python
-# pdf_parser.py
-def parse_pdf(file_path: str | Path) -> str: ...
-
-# docx_parser.py
-def parse_docx(file_path: str | Path) -> str: ...
-
 # parser_factory.py
 def parse_file(file_path: str | Path) -> str: ...
 
@@ -217,6 +284,7 @@ def analyze_gap(jd: JDInfo, resume: ResumeInfo) -> GapAnalysis: ...
 def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Question]: ...
 ```
 
+
 ---
 
 ## 🔄 Data Flow
@@ -225,6 +293,11 @@ def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Questi
 User Upload (JD + Resume)
     ↓
 validators ✅ → parse_file() ⬜
+    ↓
+┌─────────────────────────────────┐
+│ parse_txt() ✅ / parse_pdf() ✅ │
+│ / parse_docx() ✅               │
+└─────────────────────────────────┘
     ↓
 clean_text() ✅ → validators(内容) ✅ → token_counter ✅
     ↓                    ↓
@@ -243,20 +316,22 @@ JDInfo ✅          ResumeInfo ✅
        Streamlit UI ⬜
 ```
 
+
 ---
 
 ## 📦 Dependencies
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| `streamlit` | 1.40.0 | Web UI |
-| `python-dotenv` | 1.0.1 | Env vars |
-| `pdfplumber` | 0.11.4 | PDF parsing |
-| `python-docx` | 1.1.2 | DOCX parsing |
-| `chardet` | 5.2.0 | Encoding detection |
-| `openai` | 1.55.0 | OpenAI API |
-| `tiktoken` | 0.8.0 | Token counting |
-| `pydantic` | 2.10.2 | Data validation |
+| Package | Version | Purpose | Status |
+|---------|---------|---------|--------|
+| `streamlit` | 1.40.0 | Web UI | ⬜ |
+| `python-dotenv` | 1.0.1 | Env vars | ✅ |
+| `pdfplumber` | 0.11.4 | PDF parsing | ✅ |
+| `python-docx` | 1.1.2 | DOCX parsing | ✅ |
+| `chardet` | 5.2.0 | Encoding detection | ✅ |
+| `openai` | 1.55.0 | OpenAI API | ⬜ |
+| `tiktoken` | 0.8.0 | Token counting | ✅ |
+| `pydantic` | 2.10.2 | Data validation | ✅ |
+
 
 ---
 
@@ -274,53 +349,79 @@ UPLOAD_MAX_SIZE_MB: int = 10
 ALLOWED_EXTENSIONS: set = {'.pdf', '.docx', '.txt'}
 ```
 
-```env
-# .env
-OPENAI_API_KEY=sk-...
-MODEL_NAME=gpt-4o-mini
-DEBUG=False
-LOG_LEVEL=INFO
-```
 
 ---
 
 ## 📌 Quick Reference
 
 ```python
-# Logger
-from utils.logger import get_logger
-logger = get_logger(__name__)
+# File Parsing ✅
+from core.parsers import FileParseError, parse_txt, parse_pdf, parse_docx
 
-# Text
-from utils.text_cleaner import clean_text
-from utils.token_counter import count_tokens, truncate_text
-
-# Validation
-from utils.validators import validate_upload, validate_text_content
-
-# Parsing ✅
-from core.parsers.txt_parser import parse_txt
-from core.parsers.exceptions import FileParseError, UnsupportedFileError
-
-# Parsing ⬜ (coming soon)
-from core.parsers.parser_factory import parse_file
+# File Parsing ⬜
+from core.parsers import parse_file
 ```
+
+
+---
+
+## 🎯 Permanent Design Decisions
+
+这些是已经最终确定的架构决策，不需要重新讨论：
+
+### PDF Parser (v0.1.8)
+1. 仅当所有页均为扫描页时才报错，允许混合内容PDF
+2. 默认不保留布局，避免多栏文档混乱
+3. 最多处理20页
+
+### DOCX Parser (v0.1.9)
+1. 遍历底层XML保持段落和表格的原始顺序
+2. 表格单元格用制表符分隔
+3. 忽略页眉、页脚、文本框和嵌套表格
+4. 最大字符数限制50000，约等于20页
+5. 超过限制时截断并记录warning，不抛出异常
+6. 正确检测加密DOCX并返回有意义的错误消息
+
+
+---
+
+## 🧪 Testing
+
+### Test Coverage
+```
+✅ tests/test_pdf_parser.py
+✅ tests/test_docx_parser.py
+```
+
+### Test Fixtures Needed
+```
+tests/fixtures/
+├── sample_resume.pdf
+├── sample_resume.docx
+├── encrypted.pdf
+├── encrypted.docx
+└── scanned.pdf
+```
+
 
 ---
 
 ## 📋 Update Log
 
-| Version | Changes |
-|---------|---------|
-| 0.1.7 | ✅ `core/parsers/exceptions.py` + `txt_parser.py` |
-| 0.1.6 | ✅ `utils/validators.py` — Utilities 100% 🎊 |
-| 0.1.5 | ✅ `utils/token_counter.py` |
-| 0.1.4 | ✅ `utils/text_cleaner.py` |
-| 0.1.3 | ✅ `utils/logger.py` |
-| 0.1.2 | ✅ `models/schemas.py` |
-| 0.1.1 | ✅ `config.py` |
+| Version | Date | Changes |
+|---------|------|---------|
+| 0.1.9 | 2025-01-XX | ✅ `core/parsers/docx_parser.py` + `test_docx_parser.py` + 更新解析层统一契约 |
+| 0.1.8 | 2025-01-XX | ✅ `core/parsers/pdf_parser.py` + `test_pdf_parser.py` |
+| 0.1.7 | 2025-01-XX | ✅ `core/parsers/exceptions.py` + `txt_parser.py` |
+| 0.1.6 | 2025-01-XX | ✅ `utils/validators.py` — Utilities 100% 🎊 |
+| 0.1.5 | 2025-01-XX | ✅ `utils/token_counter.py` |
+| 0.1.4 | 2025-01-XX | ✅ `utils/text_cleaner.py` |
+| 0.1.3 | 2025-01-XX | ✅ `utils/logger.py` |
+| 0.1.2 | 2025-01-XX | ✅ `models/schemas.py` |
+| 0.1.1 | 2025-01-XX | ✅ `config.py` |
+
 
 ---
 
 > **Single source of truth** — update on every module completion.
-> **Next**: `pdf_parser.py` 🚀
+> **Next**: `parser_factory.py` 🚀
