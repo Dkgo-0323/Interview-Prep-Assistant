@@ -8,6 +8,7 @@ from core.parsers.exceptions import FileParseError, UnsupportedFileError
 from core.parsers.txt_parser import parse_txt
 from core.parsers.pdf_parser import parse_pdf
 from core.parsers.docx_parser import parse_docx
+from core.parsers.parser_factory import parse_file
 
 __all__ = [
     # 异常
@@ -17,4 +18,6 @@ __all__ = [
     "parse_txt",
     "parse_pdf",
     "parse_docx",
+    # 统一入口
+    "parse_file",
 ]
