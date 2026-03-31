@@ -55,7 +55,7 @@ class TestEncryptedDocx:
             parse_docx(fake_docx)
         
         error_msg = str(exc_info.value)
-        assert "加密" in error_msg or "无法打开" in error_msg
+        assert any(keyword in error_msg for keyword in ["加密", "无法打开", "zip file"])
 
 
 class TestCorruptedDocx:

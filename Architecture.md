@@ -1,13 +1,7 @@
-✅ 已完整更新 ARCHITECTURE.md 到版本 0.1.9。所有设计决策、模块状态和契约都已经正式记录为单一可信源。所有本次讨论达成的决定现在都已经永久写入架构文档，未来任何开发者或者LLM都可以从这个文档获得完整准确的项目状态。
-
-
----
-
 # 📐 ARCHITECTURE.md
 
 > **Project Map & Technical Documentation**
-> Last Updated: 2025-01-XX | Version: 0.1.9
-
+> Last Updated: 2025-01-XX | Version: 0.2.0
 
 ---
 
@@ -16,7 +10,6 @@
 **Name**: Interview Prep Assistant
 **Purpose**: AI-powered personalized interview preparation tool
 **Tech Stack**: Python 3.9+, Streamlit, OpenAI GPT-4o-mini
-
 
 ---
 
@@ -33,12 +26,12 @@ interview-prep-assistant/
 │       └── 📄 03_questions.py
 ├── 📂 core/
 │   ├── 📂 parsers/
-│   │   ├── 📄 __init__.py           # ✅ UPDATED
+│   │   ├── 📄 __init__.py           # ✅ UPDATED v0.2.0
 │   │   ├── 📄 exceptions.py         # ✅
 │   │   ├── 📄 txt_parser.py         # ✅
 │   │   ├── 📄 pdf_parser.py         # ✅
-│   │   ├── 📄 docx_parser.py        # ✅ NEW
-│   │   └── 📄 parser_factory.py     # ⬜
+│   │   ├── 📄 docx_parser.py        # ✅
+│   │   └── 📄 parser_factory.py     # ✅ NEW v0.2.0
 │   ├── 📂 analyzers/
 │   │   ├── 📄 jd_analyzer.py        # ⬜
 │   │   ├── 📄 resume_analyzer.py    # ⬜
@@ -64,9 +57,9 @@ interview-prep-assistant/
     ├── 📂 fixtures/                 # ⬜ Test files
     │   └── 📄 .gitkeep
     ├── 📄 test_pdf_parser.py        # ✅
-    └── 📄 test_docx_parser.py       # ✅ NEW
+    ├── 📄 test_docx_parser.py       # ✅
+    └── 📄 test_parser_factory.py    # ✅ NEW v0.2.0
 ```
-
 
 ---
 
@@ -84,13 +77,13 @@ interview-prep-assistant/
 ├── [✅] utils/token_counter.py
 └── [✅] utils/validators.py
 
-🔄 File Parsing (80%)
+✅ File Parsing (100%) 🎊 NEW!
 ├── [✅] core/parsers/__init__.py
 ├── [✅] core/parsers/exceptions.py
 ├── [✅] core/parsers/txt_parser.py
 ├── [✅] core/parsers/pdf_parser.py
-├── [✅] core/parsers/docx_parser.py   ⭐ NEW
-└── [ ] core/parsers/parser_factory.py
+├── [✅] core/parsers/docx_parser.py
+└── [✅] core/parsers/parser_factory.py  ⭐ NEW
 
 ⬜ Services (0%)
 └── [ ] services/llm_service.py
@@ -115,29 +108,29 @@ interview-prep-assistant/
 ├── [ ] app/pages/02_analysis.py
 └── [ ] app/pages/03_questions.py
 
-🔄 Tests (50%)
+🔄 Tests (60%)
 ├── [ ] tests/fixtures/  (sample files needed)
 ├── [✅] tests/test_pdf_parser.py
-├── [✅] tests/test_docx_parser.py     ⭐ NEW
+├── [✅] tests/test_docx_parser.py
+├── [✅] tests/test_parser_factory.py  ⭐ NEW
 └── [ ] tests/test_*.py (other modules)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Overall Progress: 13/29 modules (45%)
-Next Target: parser_factory.py 🚀
+Overall Progress: 14/29 modules (48%)
+Next Target: services/llm_service.py 🚀
 ```
-
 
 ---
 
 ## 🔌 Core API Definitions
 
 ### 🎯 Parsing Layer Universal Contract
-所有三个解析器100%可互换，这是整个解析层的核心设计原则：
+
+**核心原则：** 所有解析器 100% 可互换
 * 完全相同的函数签名
 * 完全相同的输出格式
 * 完全相同的异常类型
 * 对于调用者完全透明，永远不需要知道文本来自什么格式
-
 
 ---
 
@@ -150,7 +143,6 @@ class FileParseError(Exception):
 class UnsupportedFileError(FileParseError):
     """不支持的文件格式"""
 ```
-
 
 ---
 
@@ -166,7 +158,6 @@ file_path → 存在性检查 → 编码检测 → decode → clean_text → 空
 ```
 
 **异常:** `FileParseError`
-
 
 ---
 
@@ -189,7 +180,6 @@ MAX_PAGES = 20
 SCANNED_PAGE_TEXT_THRESHOLD = 50
 ```
 
-
 ---
 
 ### ✅ core/parsers/docx_parser.py
@@ -210,16 +200,42 @@ file_path → 存在性检查 → 打开DOCX → 遍历XML保持原始顺序 →
 MAX_CHARACTERS = 50000
 ```
 
+---
+
+### ✅ core/parsers/parser_factory.py ⭐ NEW
+
+```python
+def parse_file(file_path: str | Path) -> str:
+```
+
+**处理流程:**
+```
+file_path → Path化 → suffix.lower() → 查PARSER_MAP
+    → 找不到 → UnsupportedFileError
+    → 找到   → 调用对应解析器 → 返回str
+```
+
+**异常:** 
+- `UnsupportedFileError`: 不支持的文件格式
+- `FileParseError`: 解析失败（从底层解析器传递）
+
+**设计决策:**
+1. **纯函数**：不使用类，保持简单
+2. **纯路由**：只负责分发，不做验证（验证由调用者决定）
+3. **自检后缀**：对不支持的格式自己抛异常
+4. **大小写兼容**：`.PDF` `.Docx` `.TxT` 都正常识别
+5. **PARSER_MAP 不暴露**：实现细节
 
 ---
 
-### ✅ core/parsers/__init__.py
+### ✅ core/parsers/__init__.py (v0.2.0)
 
 ```python
 from core.parsers.exceptions import FileParseError, UnsupportedFileError
 from core.parsers.txt_parser import parse_txt
 from core.parsers.pdf_parser import parse_pdf
 from core.parsers.docx_parser import parse_docx
+from core.parsers.parser_factory import parse_file  # ⭐ NEW
 
 __all__ = [
     "FileParseError",
@@ -227,13 +243,14 @@ __all__ = [
     "parse_txt",
     "parse_pdf",
     "parse_docx",
+    "parse_file",  # ⭐ 推荐使用的统一入口
 ]
 ```
-
 
 ---
 
 ### ✅ All Utility Modules
+
 所有工具模块100%完成并稳定，API不会变更。
 
 ```python
@@ -255,7 +272,6 @@ clean_text()
 get_logger()
 ```
 
-
 ---
 
 ### ✅ models/schemas.py
@@ -263,15 +279,11 @@ get_logger()
 **Enums:** `QuestionType` | `DifficultyLevel`
 **Models:** `JDInfo` | `ResumeInfo` | `GapAnalysis` | `Question`
 
-
 ---
 
 ### ⬜ Pending APIs
 
 ```python
-# parser_factory.py
-def parse_file(file_path: str | Path) -> str: ...
-
 # llm_service.py
 def call_llm(prompt: str, response_model: Type[T], **kwargs) -> T: ...
 
@@ -284,7 +296,6 @@ def analyze_gap(jd: JDInfo, resume: ResumeInfo) -> GapAnalysis: ...
 def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Question]: ...
 ```
 
-
 ---
 
 ## 🔄 Data Flow
@@ -292,7 +303,7 @@ def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Questi
 ```
 User Upload (JD + Resume)
     ↓
-validators ✅ → parse_file() ⬜
+validators ✅ → parse_file() ✅  ⭐ UPDATED
     ↓
 ┌─────────────────────────────────┐
 │ parse_txt() ✅ / parse_pdf() ✅ │
@@ -316,7 +327,6 @@ JDInfo ✅          ResumeInfo ✅
        Streamlit UI ⬜
 ```
 
-
 ---
 
 ## 📦 Dependencies
@@ -331,7 +341,6 @@ JDInfo ✅          ResumeInfo ✅
 | `openai` | 1.55.0 | OpenAI API | ⬜ |
 | `tiktoken` | 0.8.0 | Token counting | ✅ |
 | `pydantic` | 2.10.2 | Data validation | ✅ |
-
 
 ---
 
@@ -349,19 +358,24 @@ UPLOAD_MAX_SIZE_MB: int = 10
 ALLOWED_EXTENSIONS: set = {'.pdf', '.docx', '.txt'}
 ```
 
-
 ---
 
 ## 📌 Quick Reference
 
 ```python
-# File Parsing ✅
-from core.parsers import FileParseError, parse_txt, parse_pdf, parse_docx
+# ⭐ 推荐：使用统一入口
+from core.parsers import parse_file, FileParseError, UnsupportedFileError
 
-# File Parsing ⬜
-from core.parsers import parse_file
+try:
+    text = parse_file("resume.pdf")  # 自动识别格式
+except UnsupportedFileError:
+    # 不支持的格式
+except FileParseError:
+    # 解析失败
+
+# 高级用法：直接调用特定解析器
+from core.parsers import parse_txt, parse_pdf, parse_docx
 ```
-
 
 ---
 
@@ -382,6 +396,12 @@ from core.parsers import parse_file
 5. 超过限制时截断并记录warning，不抛出异常
 6. 正确检测加密DOCX并返回有意义的错误消息
 
+### Parser Factory (v0.2.0) ⭐ NEW
+1. **纯函数设计**：不使用类，没有插件机制需求
+2. **纯路由职责**：只负责分发，验证由调用者决定
+3. **自检后缀**：对不支持格式自己抛 `UnsupportedFileError`
+4. **大小写兼容**：统一转小写匹配 `.PDF` `.Docx` `.TxT`
+5. **PARSER_MAP 私有**：实现细节不暴露
 
 ---
 
@@ -391,6 +411,7 @@ from core.parsers import parse_file
 ```
 ✅ tests/test_pdf_parser.py
 ✅ tests/test_docx_parser.py
+✅ tests/test_parser_factory.py  ⭐ NEW
 ```
 
 ### Test Fixtures Needed
@@ -403,13 +424,13 @@ tests/fixtures/
 └── scanned.pdf
 ```
 
-
 ---
 
 ## 📋 Update Log
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 0.2.0 | 2025-01-XX | ✅ `parser_factory.py` + `test_parser_factory.py` — **File Parsing 100%** 🎊 |
 | 0.1.9 | 2025-01-XX | ✅ `core/parsers/docx_parser.py` + `test_docx_parser.py` + 更新解析层统一契约 |
 | 0.1.8 | 2025-01-XX | ✅ `core/parsers/pdf_parser.py` + `test_pdf_parser.py` |
 | 0.1.7 | 2025-01-XX | ✅ `core/parsers/exceptions.py` + `txt_parser.py` |
@@ -420,8 +441,20 @@ tests/fixtures/
 | 0.1.2 | 2025-01-XX | ✅ `models/schemas.py` |
 | 0.1.1 | 2025-01-XX | ✅ `config.py` |
 
+---
+
+## 🎉 Milestones
+
+```
+✅ v0.1.x: Foundation + Utilities (100%)
+✅ v0.2.0: File Parsing Layer (100%)  ⭐ NEW!
+⬜ v0.3.x: LLM Service
+⬜ v0.4.x: Analyzers
+⬜ v0.5.x: Question Generator
+⬜ v1.0.0: Full Application
+```
 
 ---
 
 > **Single source of truth** — update on every module completion.
-> **Next**: `parser_factory.py` 🚀
+> **Next**: `services/llm_service.py` 🚀

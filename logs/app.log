@@ -76,3 +76,17 @@
 [2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:100] PDF 解析失败: , 错误类型: PermissionError, 错误: [Errno 13] Permission denied: '.'
 [2026-03-17 22:12:47] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: test_directory_path0
 [2026-03-17 22:12:47] [ERROR] [core.parsers.pdf_parser] [pdf_parser.py:100] PDF 解析失败: test_directory_path0, 错误类型: PermissionError, 错误: [Errno 13] Permission denied: 'C:\\Users\\dukai\\AppData\\Local\\Temp\\pytest-of-dukai\\pytest-1\\test_directory_path0'
+[2026-03-21 19:52:27] [ERROR] [core.parsers.docx_parser] [docx_parser.py:45] 文件不存在: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-2\test_file_not_exists0\nonexistent.docx
+[2026-03-21 19:52:27] [ERROR] [core.parsers.docx_parser] [docx_parser.py:45] 文件不存在: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-2\test_path_object_accepted0\test.docx
+[2026-03-21 19:52:27] [ERROR] [core.parsers.docx_parser] [docx_parser.py:45] 文件不存在: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-2\test_string_path_accepted0\test.docx
+[2026-03-21 19:52:27] [ERROR] [core.parsers.docx_parser] [docx_parser.py:59] 打开 DOCX 文件失败: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-2\test_encrypted_docx_error_mess0\encrypted.docx - File is not a zip file
+[2026-03-21 19:52:27] [ERROR] [core.parsers.docx_parser] [docx_parser.py:59] 打开 DOCX 文件失败: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-2\test_corrupted_file0\corrupted.docx - File is not a zip file
+[2026-03-21 19:58:21] [ERROR] [core.parsers.docx_parser] [docx_parser.py:45] 文件不存在: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-3\test_file_not_exists0\nonexistent.docx
+[2026-03-21 19:58:21] [ERROR] [core.parsers.docx_parser] [docx_parser.py:45] 文件不存在: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-3\test_path_object_accepted0\test.docx
+[2026-03-21 19:58:21] [ERROR] [core.parsers.docx_parser] [docx_parser.py:45] 文件不存在: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-3\test_string_path_accepted0\test.docx
+[2026-03-21 19:58:21] [ERROR] [core.parsers.docx_parser] [docx_parser.py:59] 打开 DOCX 文件失败: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-3\test_encrypted_docx_error_mess0\encrypted.docx - File is not a zip file
+[2026-03-21 19:58:21] [ERROR] [core.parsers.docx_parser] [docx_parser.py:59] 打开 DOCX 文件失败: C:\Users\dukai\AppData\Local\Temp\pytest-of-dukai\pytest-3\test_corrupted_file0\corrupted.docx - File is not a zip file
+[2026-03-31 00:27:33] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-03-31 00:28:21] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=7, temperature=0.70
+[2026-03-31 00:29:23] [WARNING] [services.llm_service] [llm_service.py:188] LLM call failed (attempt 1/2), retrying: Connection error.
+[2026-03-31 00:30:25] [ERROR] [services.llm_service] [llm_service.py:196] LLM call failed after 2 attempts: Connection error.
