@@ -63,8 +63,10 @@ class TestLLMServiceInit:
         assert service.default_max_tokens == 1000
 
     def test_init_without_api_key(self, monkeypatch):
-        """测试缺少 API Key 时抛出异常"""
+        import config # 确保导入了 config
+        monkeypatch.setattr(config, "OPENAI_API_KEY", None) # 强制把缓存的 key 抹掉
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        
         with pytest.raises(LLMServiceError, match="API Key is required"):
             LLMService()
 

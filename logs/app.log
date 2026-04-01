@@ -133,3 +133,41 @@
 [2026-04-01 19:16:08] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=170, cost=$0.0000, time=1.86s, attempt=1
 [2026-04-01 19:16:08] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=13, temperature=0.00
 [2026-04-01 19:16:10] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=154, cost=$0.0000, time=1.95s, attempt=1
+[2026-04-01 19:32:16] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:17] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4, temperature=0.50, max_tokens=1000
+[2026-04-01 19:32:17] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:18] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=17, temperature=0.00
+[2026-04-01 19:32:33] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=102, cost=$0.0000, time=15.59s, attempt=1
+[2026-04-01 19:32:35] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:35] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=16, temperature=0.00
+[2026-04-01 19:32:40] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=230, cost=$0.0000, time=4.40s, attempt=1
+[2026-04-01 19:32:40] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:40] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=15, temperature=0.00
+[2026-04-01 19:32:42] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=122, cost=$0.0000, time=1.83s, attempt=1
+[2026-04-01 19:32:42] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:42] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=10, temperature=0.00
+[2026-04-01 19:32:43] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=94, cost=$0.0000, time=1.54s, attempt=1
+[2026-04-01 19:32:44] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:44] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=15, temperature=0.30
+[2026-04-01 19:32:45] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=122, cost=$0.0000, time=1.77s, attempt=1
+[2026-04-01 19:32:46] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:47] [INFO] [services.llm_service] [llm_service.py:257] LLM simple call succeeded: tokens_used=29, cost=$0.0000, time=1.82s
+[2026-04-01 19:32:48] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:49] [INFO] [services.llm_service] [llm_service.py:257] LLM simple call succeeded: tokens_used=70, cost=$0.0000, time=1.62s
+[2026-04-01 19:32:49] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:49] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=6, temperature=0.70
+[2026-04-01 19:32:50] [WARNING] [services.llm_service] [llm_service.py:188] LLM call failed (attempt 1/2), retrying: Error code: 401 - {'error': 'Token is invalid'}
+[2026-04-01 19:32:52] [ERROR] [services.llm_service] [llm_service.py:196] LLM call failed after 2 attempts: Error code: 401 - {'error': 'Token is invalid'}
+[2026-04-01 19:32:52] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:52] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=10, temperature=0.70
+[2026-04-01 19:32:54] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=95, cost=$0.0000, time=2.54s, attempt=1
+[2026-04-01 19:32:56] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:56] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=35, temperature=0.00
+[2026-04-01 19:32:58] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=154, cost=$0.0000, time=1.93s, attempt=1
+[2026-04-01 19:32:58] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-01 19:32:58] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=13, temperature=0.00
+[2026-04-01 19:33:01] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=158, cost=$0.0000, time=2.56s, attempt=1
+[2026-04-01 19:33:01] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=13, temperature=0.00
+[2026-04-01 19:33:04] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=163, cost=$0.0000, time=3.20s, attempt=1
+[2026-04-01 19:33:04] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=13, temperature=0.00
+[2026-04-01 19:33:06] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=169, cost=$0.0000, time=1.38s, attempt=1
