@@ -6,7 +6,7 @@ Prompts 模块。
 """
 
 from prompts.jd_extraction import (
-    SYSTEM_PROMPT as JD_SYSTEM_PROMPT,
+    JD_SYSTEM_PROMPT,
     get_jd_extraction_prompt,
 )
 
