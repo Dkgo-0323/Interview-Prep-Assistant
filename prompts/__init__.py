@@ -10,8 +10,16 @@ from prompts.jd_extraction import (
     get_jd_extraction_prompt,
 )
 
+from prompts.resume_extraction import (
+    RESUME_SYSTEM_PROMPT,
+    get_resume_extraction_prompt,
+)
+
 __all__ = [
     # JD 提取
     "JD_SYSTEM_PROMPT",
     "get_jd_extraction_prompt",
+    # Resume 提取
+    "RESUME_SYSTEM_PROMPT",
+    "get_resume_extraction_prompt",
 ]

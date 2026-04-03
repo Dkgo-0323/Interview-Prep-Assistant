@@ -1,7 +1,7 @@
 # 📐 ARCHITECTURE.md
 
 > **Project Map & Technical Documentation**
-> Last Updated: 2025-01-XX | Version: 0.4.1
+> Last Updated: 2025-01-XX | Version: 0.4.2
 
 ---
 
@@ -38,15 +38,15 @@ interview-prep-assistant/
 │   │   └── 📄 gap_analyzer.py       # ⬜
 │   └── 📂 generators/
 │       └── 📄 question_generator.py # ⬜
-├── 📂 prompts/                      # 🔄 50%
-│   ├── 📄 __init__.py               # ✅ v0.4.0
+├── 📂 prompts/                      # 🔄 75%
+│   ├── 📄 __init__.py               # ✅ v0.4.2
 │   ├── 📄 jd_extraction.py          # ✅ v0.4.1
-│   ├── 📄 resume_extraction.py      # ⬜
+│   ├── 📄 resume_extraction.py      # ✅ v0.4.2 ⭐ NEW
 │   ├── 📄 gap_analysis.py           # ⬜
 │   └── 📄 question_generation.py    # ⬜
 ├── 📂 models/
 │   ├── 📄 __init__.py               # ✅
-│   └── 📄 schemas.py                # ✅ v0.4.1
+│   └── 📄 schemas.py                # ✅ v0.4.2
 ├── 📂 services/
 │   └── 📄 llm_service.py            # ✅ v0.3.0
 ├── 📂 utils/
@@ -60,7 +60,8 @@ interview-prep-assistant/
     ├── 📄 test_pdf_parser.py        # ✅
     ├── 📄 test_docx_parser.py       # ✅
     ├── 📄 test_parser_factory.py    # ✅
-    └── 📄 test_llm_service.py       # ✅ v0.3.0
+    ├── 📄 test_llm_service.py       # ✅ v0.3.0
+    └── 📄 test_resume_extraction.py # ✅ v0.4.2 ⭐ NEW
 ```
 
 ---
@@ -70,7 +71,7 @@ interview-prep-assistant/
 ```
 ✅ Foundation Layer (100%)
 ├── [✅] config.py
-├── [✅] models/schemas.py (v0.4.1)
+├── [✅] models/schemas.py (v0.4.2)
 └── [✅] models/__init__.py
 
 ✅ Utilities (100%) 🎊
@@ -90,10 +91,10 @@ interview-prep-assistant/
 ✅ Services (100%) 🎊
 └── [✅] services/llm_service.py
 
-🔄 Prompts (50%)
+🔄 Prompts (75%)
 ├── [✅] prompts/__init__.py
 ├── [✅] prompts/jd_extraction.py (v0.4.1)
-├── [ ] prompts/resume_extraction.py
+├── [✅] prompts/resume_extraction.py (v0.4.2) ⭐ NEW
 ├── [ ] prompts/gap_analysis.py
 └── [ ] prompts/question_generation.py
 
@@ -111,17 +112,18 @@ interview-prep-assistant/
 ├── [ ] app/pages/02_analysis.py
 └── [ ] app/pages/03_questions.py
 
-🔄 Tests (70%)
+🔄 Tests (75%)
 ├── [ ] tests/fixtures/  (sample files needed)
 ├── [✅] tests/test_pdf_parser.py
 ├── [✅] tests/test_docx_parser.py
 ├── [✅] tests/test_parser_factory.py
 ├── [✅] tests/test_llm_service.py
+├── [✅] tests/test_resume_extraction.py (v0.4.2) ⭐ NEW
 └── [ ] tests/test_*.py (other modules)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Overall Progress: 18/29 modules (62%)
-Next Target: prompts/resume_extraction.py 🚀
+Overall Progress: 19/29 modules (65%)
+Next Target: prompts/gap_analysis.py 🚀
 ```
 
 ---
@@ -166,13 +168,20 @@ advice = llm.call_simple(prompt="Give interview tips", temperature=0.7)
 
 ---
 
-### ✅ Prompts Layer (v0.4.1)
+### ✅ Prompts Layer (v0.4.2)
 
 ```python
+# JD Extraction
 from prompts.jd_extraction import JD_SYSTEM_PROMPT, get_jd_extraction_prompt
 
 prompt = get_jd_extraction_prompt(jd_text)
 llm.call(prompt=prompt, response_model=JDInfo, system_prompt=JD_SYSTEM_PROMPT)
+
+# Resume Extraction ⭐ NEW
+from prompts.resume_extraction import RESUME_SYSTEM_PROMPT, get_resume_extraction_prompt
+
+prompt = get_resume_extraction_prompt(resume_text)
+llm.call(prompt=prompt, response_model=ResumeInfo, system_prompt=RESUME_SYSTEM_PROMPT)
 ```
 
 **设计原则:**
@@ -182,30 +191,78 @@ llm.call(prompt=prompt, response_model=JDInfo, system_prompt=JD_SYSTEM_PROMPT)
 
 ---
 
-### ✅ Data Models (models/schemas.py v0.4.1)
+### ✅ Data Models (models/schemas.py v0.4.2)
 
 **Enums:** `QuestionType` | `DifficultyLevel`
 
 **Models:**
 
-| Model | 核心字段 | 新增/修正 (v0.4.1) |
+| Model | 核心字段 | 新增/修正 (v0.4.2) |
 |-------|---------|-------------------|
-| `JDInfo` | `job_title`, `required_skills`, `responsibilities` | ⭐ +`company`, +`experience_required`, +`education_required`<br>🐛 修复语法错误 |
-| `ResumeInfo` | `skills`, `experiences`, `projects`, `education` | 🐛 `WorkExperience.achievements` 拼写修正 |
+| `JDInfo` | `job_title`, `required_skills`, `responsibilities` | (v0.4.1) +`company`, +`experience_required`, +`education_required` |
+| `WorkExperience` | `company`, `title`, `responsibilities` | ⭐ **新增嵌套模型**<br>`start_date`, `end_date`, `achievements` |
+| `Project` | `name`, `description`, `technologies` | ⭐ **新增嵌套模型**<br>`role`, `link` |
+| `Education` | `institution`, `degree` | ⭐ **新增嵌套模型**<br>`field_of_study`, `graduation_date`, `gpa` |
+| `ResumeInfo` | `skills`, `experiences`, `projects`, `education` | ⭐ **扩展至8字段**<br>+`summary`, +`certifications`, +`languages`, `years_of_experience` |
 | `GapAnalysis` | `overall_match_score`, `matched_skills`, `missing_skills` | — |
-| `Question` | `question_text`, `question_type`, `difficulty` | 🐛 `QuestionType.TECHNICAL` 拼写修正 |
+| `Question` | `question_text`, `question_type`, `difficulty` | (v0.4.1) 拼写修正 |
 
-**JDInfo 完整字段列表 (9个):**
+---
+
+#### 📋 ResumeInfo 完整字段列表 (8个)
+
 ```python
-job_title: str                           # 必填
-company: Optional[str]                   # ⭐ v0.4.1 新增
-required_skills: List[str]               # 必填
-nice_to_have_skills: List[str]
-responsibilities: List[str]              # 必填
-experience_required: Optional[str]       # ⭐ v0.4.1 新增
-education_required: Optional[str]        # ⭐ v0.4.1 新增
-industry: Optional[str]
-seniority_level: Optional[str]
+# === 核心字段 (4个) ===
+skills: List[str]                              # 必填，可带熟练度标记
+experiences: List[WorkExperience]              # 必填（应届生可为空列表）
+projects: List[Project] = Field(default_factory=list)
+education: List[Education]                     # 必填（至少最高学历）
+
+# === 扩展字段 (4个) ===
+summary: Optional[str] = None                  # ⭐ v0.4.2 新增（职业总结）
+certifications: List[str] = Field(default_factory=list)  # ⭐ 新增（证书）
+languages: List[str] = Field(default_factory=list)       # ⭐ 新增（语言能力）
+years_of_experience: Optional[int] = None      # 推荐计算
+```
+
+---
+
+#### 📋 WorkExperience Schema
+
+```python
+class WorkExperience(BaseModel):
+    company: str                               # 必填
+    title: str                                 # 必填
+    start_date: Optional[str] = None           # 原样保留（如 "2020-01"）
+    end_date: Optional[str] = None             # 原样保留（如 "Present"）
+    responsibilities: List[str] = Field(default_factory=list)  # 未区分的职责
+    achievements: List[str] = Field(default_factory=list)      # 量化成果
+```
+
+---
+
+#### 📋 Project Schema
+
+```python
+class Project(BaseModel):
+    name: str                                  # 必填
+    description: str                           # 必填
+    technologies: List[str] = Field(default_factory=list)
+    role: Optional[str] = None                 # 如 "Tech Lead"
+    link: Optional[str] = None                 # GitHub/Demo 链接
+```
+
+---
+
+#### 📋 Education Schema
+
+```python
+class Education(BaseModel):
+    institution: str                           # 必填
+    degree: str                                # 必填（如 "Bachelor of Science"）
+    field_of_study: Optional[str] = None       # 允许与 degree 冗余
+    graduation_date: Optional[str] = None      # 原样保留
+    gpa: Optional[str] = None                  # 如 "3.8/4.0"
 ```
 
 ---
@@ -213,10 +270,6 @@ seniority_level: Optional[str]
 ### ⬜ Pending APIs
 
 ```python
-# prompts/resume_extraction.py
-RESUME_SYSTEM_PROMPT: str
-def get_resume_extraction_prompt(text: str) -> str: ...
-
 # prompts/gap_analysis.py
 GAP_SYSTEM_PROMPT: str
 def get_gap_analysis_prompt(jd: JDInfo, resume: ResumeInfo) -> str: ...
@@ -253,15 +306,22 @@ def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Questi
 
 ## 🎯 Permanent Design Decisions
 
-### Prompts Layer (v0.4.1)
-- system prompt 命名：`{MODULE}_SYSTEM_PROMPT`（如 `JD_SYSTEM_PROMPT`）
+### Prompts Layer (v0.4.2)
+- system prompt 命名：`{MODULE}_SYSTEM_PROMPT`（如 `JD_SYSTEM_PROMPT`, `RESUME_SYSTEM_PROMPT`）
 - 缺失值策略：
-  - 核心字段（`job_title`, `required_skills`, `responsibilities`）可推断，不可为空
+  - **JD:** 核心字段（`job_title`, `required_skills`, `responsibilities`）可推断，不可为空
+  - **Resume:** 核心字段（`skills`, `education`）必填，`experiences` 应届生可为空列表
   - 次要字段使用 `"Not specified"` 或 `[]`
 - User prompt 明确列出所有目标字段，防止 LLM 遗漏
 
-### Data Models (v0.4.1)
-- `JDInfo` 扩展支持公司、经验、教育要求（对 gap analysis 有用）
+### Data Models (v0.4.2)
+- **JDInfo** (v0.4.1): 扩展支持公司、经验、教育要求
+- **ResumeInfo** (v0.4.2): 新增3个嵌套模型 + 扩展至8字段
+  - 嵌套模型：`WorkExperience`, `Project`, `Education`
+  - 时间格式：原样保留（避免转换错误）
+  - 隐私考虑：不保留 `name`/`location` 字段
+  - 技能熟练度：保留原样（如 "Python (Expert)"）
+  - 职责/成就区分：量化成果→`achievements`，未区分→`responsibilities`
 - 所有 Optional 字段默认值为 `None`，列表字段使用 `Field(default_factory=list)`
 - 字段拼写和语法严格遵守 Python/Pydantic 规范
 
@@ -281,7 +341,8 @@ def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Questi
 
 | Version | Date | Changes |
 |---------|------|---------|
-| **0.4.1** | **2025-01-XX** | **🐛 Schema 修正 + JDInfo 扩展**<br>- 修复 `JDInfo` 语法错误（冒号）<br>- 新增 `company`, `experience_required`, `education_required`<br>- 修正 `QuestionType.TECHNICAL` 和 `WorkExperience.achievements` 拼写<br>- 更新 `jd_extraction.py` prompt 对齐9个字段 |
+| **0.4.2** | **2025-01-XX** | **✅ `prompts/resume_extraction.py` + Schema 嵌套模型**<br>- 新增 `WorkExperience`, `Project`, `Education` 嵌套模型<br>- `ResumeInfo` 扩展至 8 字段（+`summary`, +`certifications`, +`languages`）<br>- 新增 `tests/test_resume_extraction.py`（17 个测试用例）<br>- 更新 `prompts/__init__.py` 导出<br>— **Prompts 75%** 🎊 |
+| 0.4.1 | 2025-01-XX | 🐛 Schema 修正 + JDInfo 扩展<br>- 修复 `JDInfo` 语法错误（冒号）<br>- 新增 `company`, `experience_required`, `education_required`<br>- 修正 `QuestionType.TECHNICAL` 和 `WorkExperience.achievements` 拼写<br>- 更新 `jd_extraction.py` prompt 对齐9个字段 |
 | 0.4.0 | 2025-01-XX | ✅ `prompts/jd_extraction.py` + `prompts/__init__.py` — **Prompts 50%** 🎊 |
 | 0.3.0 | 2025-01-XX | ✅ `services/llm_service.py` + `test_llm_service.py` — **Services 100%** 🎊 |
 | 0.2.0 | 2025-01-XX | ✅ `parser_factory.py` + `test_parser_factory.py` — **File Parsing 100%** 🎊 |
@@ -295,7 +356,7 @@ def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Questi
 ✅ v0.1.x: Foundation + Utilities (100%)
 ✅ v0.2.0: File Parsing Layer (100%)
 ✅ v0.3.0: LLM Service (100%)
-🔄 v0.4.x: Prompts + Data Models Refinement (50%)  ⭐ IN PROGRESS
+🔄 v0.4.x: Prompts + Data Models Refinement (75%)  ⭐ IN PROGRESS
 ⬜ v0.5.x: Analyzers + Question Generator
 ⬜ v1.0.0: Full Application
 ```
@@ -305,23 +366,22 @@ def generate_questions(gap: GapAnalysis, num_questions: int = 10) -> List[Questi
 ## 🚀 Next Steps
 
 ### Immediate (Next 3 Tasks)
-1. ⬜ `prompts/resume_extraction.py` 🎯 **NEXT**
+1. ⬜ `prompts/gap_analysis.py` 🎯 **NEXT**
 2. ⬜ `core/analyzers/jd_analyzer.py`
 3. ⬜ `core/analyzers/resume_analyzer.py`
 
 ### Medium Term
-4. `prompts/gap_analysis.py`
-5. `core/analyzers/gap_analyzer.py`
-6. `prompts/question_generation.py`
-7. `core/generators/question_generator.py`
+4. `core/analyzers/gap_analyzer.py`
+5. `prompts/question_generation.py`
+6. `core/generators/question_generator.py`
 
 ### Final Push
-8. Streamlit UI (3 pages)
-9. Integration Tests
-10. Documentation + Deployment
+7. Streamlit UI (3 pages)
+8. Integration Tests
+9. Documentation + Deployment
 
 ---
 
 > **Single source of truth** — 每次模块完成时更新。
-> **Last Updated**: v0.4.1 — Schema 修正 + JDInfo 扩展
-> **Next**: `prompts/resume_extraction.py` 🚀
+> **Last Updated**: v0.4.2 — `prompts/resume_extraction.py` + Schema 嵌套模型扩展
+> **Next**: `prompts/gap_analysis.py` 🚀

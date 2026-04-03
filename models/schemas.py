@@ -15,22 +15,34 @@ class DifficultyLevel(str, Enum):
     MID = "mid"
     SENIOR = "senior"
 
+# ========== Resume Related Models ==========
+
 class WorkExperience(BaseModel):
+    """工作经历"""
     company: str
-    role: str
-    duration: str
-    achievements: List[str]
+    title: str
+    start_date: Optional[str] = None      # 原样保留："Jan 2020", "2020-01"
+    end_date: Optional[str] = None        # "Present", "Dec 2023"
+    responsibilities: List[str] = Field(default_factory=list)  # 含未区分的成就
+    achievements: List[str] = Field(default_factory=list)      # 明确的量化成果
+
 
 class Project(BaseModel):
+    """项目经历"""
     name: str
     description: str
-    technologies: List[str]
-    role: str
+    technologies: List[str] = Field(default_factory=list)
+    role: Optional[str] = None
+    link: Optional[str] = None
+
 
 class Education(BaseModel):
-    degree: str
+    """教育背景"""
     institution: str
-    graduation_year: Optional[int] = None
+    degree: str                           # "Bachelor of Science in Computer Science"
+    field_of_study: Optional[str] = None  # 允许与 degree 冗余
+    graduation_date: Optional[str] = None
+    gpa: Optional[str] = None
 
 class JDInfo(BaseModel):
     job_title: str
@@ -43,11 +55,20 @@ class JDInfo(BaseModel):
     industry: Optional[str] = None
     seniority_level: Optional[str] = None
 
+# ========== 修改 ResumeInfo ==========
+
 class ResumeInfo(BaseModel):
-    skills: List[str]
+    """简历信息（增强版本 - v0.4.1）"""
+    # === 核心字段 ===
+    skills: List[str]                     # 带熟练度标记："Python (Expert)", "React"
     experiences: List[WorkExperience]
     projects: List[Project]
     education: List[Education]
+    
+    # === 扩展字段 ===
+    summary: Optional[str] = None         # 职业摘要（2-3 句话）
+    certifications: List[str] = Field(default_factory=list)
+    languages: List[str] = Field(default_factory=list)  # "English (Native)"
     years_of_experience: Optional[int] = None
 
 class GapAnalysis(BaseModel):
