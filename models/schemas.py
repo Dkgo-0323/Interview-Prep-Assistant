@@ -5,15 +5,15 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 class QuestionType(str, Enum):
-    TECHNICAL = "technical"
-    BEHAVIORAL = "behavioral"
-    SCENARIO = "scenario"
-    PROJECT = "project"
+    TECHNICAL = "技术深度"      # 对应 missing_skills / matched_skills
+    PROJECT = "项目经验"        # 对应 resume projects / work_experience
+    SCENARIO = "情景模拟"       # 对应 实际工作场景问题
+    BEHAVIORAL = "行为面试"     # 对应 软技能/团队协作
 
 class DifficultyLevel(str, Enum):
-    JUNIOR = "junior"
-    MID = "mid"
-    SENIOR = "senior"
+    BASIC = "基础"
+    INTERMEDIATE = "进阶"
+    ADVANCED = "高级"
 
 # ========== Resume Related Models ==========
 
@@ -100,12 +100,15 @@ class GapAnalysis(BaseModel):
     overall_match_score: int = Field(ge=0, le=100)  # Python 计算，非 LLM 输出
 
 class Question(BaseModel):
-    question_text: str
-    question_type: QuestionType
-    difficulty: DifficultyLevel
-    focus_area: str
-    reference_answer: str
-    evaluation_criteria: List[str]
+    question_text: str = Field(..., description="具体的面试问题内容")
+    question_type: QuestionType = Field(..., description="问题所属类型")
+    difficulty: DifficultyLevel = Field(..., description="问题难度级别")
+    focus_area: str = Field(..., description="关联的具体技能点或项目名（如：Vue3, 微服务重构项目）")
+    intent: str = Field(..., description="一句话说明考察意图，让用户明白该问题的意义")
+    reference_answer: str = Field(..., description="简短的参考答案或核心得分点（限1-3句话，直击要害）")
+
+class QuestionList(BaseModel):
+    questions: List[Question] = Field(..., description="生成的面试题列表")
 
 __all__ = [
     "QuestionType",
@@ -117,4 +120,5 @@ __all__ = [
     "ResumeInfo",
     "GapAnalysis",
     "Question",
+    "QuestionList"
 ]
