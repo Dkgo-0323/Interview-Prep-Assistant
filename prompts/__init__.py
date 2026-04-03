@@ -15,6 +15,8 @@ from prompts.resume_extraction import (
     get_resume_extraction_prompt,
 )
 
+from prompts.gap_analysis import GAP_SYSTEM_PROMPT, get_gap_analysis_prompt
+
 __all__ = [
     # JD 提取
     "JD_SYSTEM_PROMPT",
@@ -22,4 +24,7 @@ __all__ = [
     # Resume 提取
     "RESUME_SYSTEM_PROMPT",
     "get_resume_extraction_prompt",
+    # Gap Analysis
+    "GAP_SYSTEM_PROMPT",
+    "get_gap_analysis_prompt",
 ]

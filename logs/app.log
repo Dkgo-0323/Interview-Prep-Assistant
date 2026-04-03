@@ -204,3 +204,69 @@
 [2026-04-03 20:03:08] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
 [2026-04-03 20:03:08] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=971, temperature=0.20
 [2026-04-03 20:03:15] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2042, cost=$0.0003, time=7.03s, attempt=1
+[2026-04-03 20:33:41] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:33:42] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=971, temperature=0.20
+[2026-04-03 20:34:18] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2039, cost=$0.0003, time=36.35s, attempt=1
+[2026-04-03 20:34:20] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:34:20] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=757, temperature=0.20
+[2026-04-03 20:34:55] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1576, cost=$0.0002, time=35.39s, attempt=1
+[2026-04-03 20:35:00] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:35:00] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=655, temperature=0.20
+[2026-04-03 20:35:39] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1404, cost=$0.0002, time=39.11s, attempt=1
+[2026-04-03 20:35:49] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:35:49] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=653, temperature=0.30
+[2026-04-03 20:35:54] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1431, cost=$0.0002, time=4.23s, attempt=1
+[2026-04-03 20:35:58] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:35:58] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=717, temperature=0.20
+[2026-04-03 20:36:26] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1510, cost=$0.0002, time=27.64s, attempt=1
+[2026-04-03 20:36:38] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:36:38] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=661, temperature=0.10
+[2026-04-03 20:37:12] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1451, cost=$0.0002, time=33.18s, attempt=1
+[2026-04-03 20:37:16] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:37:16] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=669, temperature=0.10
+[2026-04-03 20:37:20] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1410, cost=$0.0002, time=4.65s, attempt=1
+[2026-04-03 20:37:31] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:37:31] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=646, temperature=0.10
+[2026-04-03 20:37:34] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1344, cost=$0.0002, time=3.47s, attempt=1
+[2026-04-03 20:37:37] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:37:37] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=596, temperature=0.20
+[2026-04-03 20:37:41] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1258, cost=$0.0002, time=3.78s, attempt=1
+[2026-04-03 20:37:42] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:37:42] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=626, temperature=0.20
+[2026-04-03 20:37:46] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1287, cost=$0.0002, time=3.67s, attempt=1
+[2026-04-03 20:37:47] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:37:47] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=971, temperature=0.20
+[2026-04-03 20:38:19] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2048, cost=$0.0003, time=31.38s, attempt=1
+[2026-04-03 20:45:37] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:45:37] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=971, temperature=0.20
+[2026-04-03 20:46:10] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2015, cost=$0.0003, time=32.73s, attempt=1
+[2026-04-03 20:46:11] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:46:11] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=757, temperature=0.20
+[2026-04-03 20:46:16] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1569, cost=$0.0002, time=4.49s, attempt=1
+[2026-04-03 20:46:16] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:46:16] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=655, temperature=0.20
+[2026-04-03 20:46:20] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1405, cost=$0.0002, time=3.53s, attempt=1
+[2026-04-03 20:46:20] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:46:20] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=653, temperature=0.30
+[2026-04-03 20:46:49] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1400, cost=$0.0002, time=29.49s, attempt=1
+[2026-04-03 20:46:52] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:46:52] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=717, temperature=0.20
+[2026-04-03 20:46:56] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1510, cost=$0.0002, time=3.97s, attempt=1
+[2026-04-03 20:46:56] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:46:56] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=661, temperature=0.10
+[2026-04-03 20:47:02] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1449, cost=$0.0002, time=5.92s, attempt=1
+[2026-04-03 20:47:13] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:47:13] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=669, temperature=0.10
+[2026-04-03 20:47:16] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1413, cost=$0.0002, time=3.91s, attempt=1
+[2026-04-03 20:47:23] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:47:23] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=646, temperature=0.10
+[2026-04-03 20:47:27] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1343, cost=$0.0002, time=3.90s, attempt=1
+[2026-04-03 20:47:31] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:47:31] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=596, temperature=0.20
+[2026-04-03 20:47:38] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1597, cost=$0.0002, time=6.82s, attempt=1
+[2026-04-03 20:47:46] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:47:46] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=626, temperature=0.20
+[2026-04-03 20:47:49] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1286, cost=$0.0002, time=2.50s, attempt=1
+[2026-04-03 20:47:54] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-03 20:47:54] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=971, temperature=0.20
+[2026-04-03 20:47:59] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2015, cost=$0.0003, time=5.81s, attempt=1
