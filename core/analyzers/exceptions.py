@@ -15,3 +15,7 @@ class ResumeAnalysisError(AnalyzerError):
 class GapAnalysisError(AnalyzerError):
     """Gap分析失败时抛出的异常"""
     pass
+
+# core/analyzers/exceptions.py 中添加
+class QuestionGenerationError(AnalyzerError):
+    """面试题生成失败时抛出的异常"""

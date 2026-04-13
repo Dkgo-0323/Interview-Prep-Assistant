@@ -1,7 +1,7 @@
 # 📐 ARCHITECTURE.md
 
 > **Project Map & Technical Documentation**  
-> **Version**: 0.4.6 | **Last Updated**: 2025-01-XX
+> **Version**: 0.5.0 | **Last Updated**: 2025-01-XX
 
 ---
 
@@ -31,31 +31,31 @@
 ├── prompts/jd_extraction.py
 ├── prompts/resume_extraction.py
 ├── prompts/gap_analysis.py
-└── prompts/question_generation.py
+└── prompts/question_generation.py (v0.5.0 - 修复字段引用+截断逻辑)
 
 ✅ Analyzers (100%) 🎉 COMPLETED v0.4.6
-├── core/analyzers/exceptions.py
+├── core/analyzers/exceptions.py (v0.5.0 - 新增 QuestionGenerationError)
 ├── core/analyzers/jd_analyzer.py
 ├── core/analyzers/resume_analyzer.py
-└── core/analyzers/gap_analyzer.py ✅ NEW
+└── core/analyzers/gap_analyzer.py
 
-⬜ Generators (0%)
-└── core/generators/question_generator.py
+✅ Generators (100%) 🎉 COMPLETED v0.5.0
+└── core/generators/question_generator.py ✅ NEW
 
 ⬜ Frontend (0%)
 └── app/ (Streamlit pages)
 
-✅ Tests (85%)
+✅ Tests (92%)
 ├── test_jd_analyzer.py ✅
 ├── test_resume_analyzer.py ✅
-├── test_gap_analyzer.py ✅ NEW
+├── test_gap_analyzer.py ✅
 ├── test_llm_service.py ✅
 ├── test_parser_factory.py ✅
-└── [ ] test_question_generator.py
+└── test_question_generator.py ✅ NEW
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Overall: 27/32 modules (84%)
-Next: core/generators/question_generator.py 🚀
+Overall: 30/32 modules (94%)
+Next: app/ (Streamlit Frontend) 🚀
 ```
 
 ---
@@ -73,27 +73,31 @@ def analyze_resume(text: str, llm: LLMService) -> ResumeInfo
 def analyze_gap(jd: JDInfo, resume: ResumeInfo, llm: LLMService) -> GapAnalysis
 ```
 
-### Exceptions (v0.4.5)
+### Generators (v0.5.0)
+
+```python
+from core.generators import generate_questions
+from services.llm_service import LLMService
+
+def generate_questions(
+    gap: GapAnalysis,
+    resume: ResumeInfo,
+    jd: JDInfo,
+    llm: LLMService,
+    num_questions: int = 10
+) -> QuestionList
+```
+
+### Exceptions (v0.5.0)
 
 ```python
 from core.analyzers.exceptions import (
     AnalyzerError,           # Base exception
     JDAnalysisError,         # JD parsing/analysis failures
     ResumeAnalysisError,     # Resume parsing/analysis failures
-    GapAnalysisError         # Gap calculation failures
+    GapAnalysisError,        # Gap calculation failures
+    QuestionGenerationError  # Question generation failures (v0.5.0)
 )
-```
-
-### Pending APIs
-
-```python
-# Question Generator (v0.5.0 - TO BE IMPLEMENTED)
-def generate_questions(
-    gap: GapAnalysis,
-    resume: ResumeInfo,
-    jd: JDInfo,
-    num_questions: int = 20
-) -> QuestionList
 ```
 
 ---
@@ -147,7 +151,17 @@ QuestionList:
 | **异常包装** | 底层错误包装为用户友好的业务异常 |
 | **单一职责** | 仅负责"文本 → 结构化数据"，不做 UI/存储 |
 
-### 2. Gap Analysis Score Calculation (v0.4.6)
+### 2. Generator Layer (v0.5.0)
+
+| Rule | Description |
+|------|-------------|
+| **输入验证** | 前置验证 gap/resume/jd 的必填字段 |
+| **题目数量限制** | 10-50 题，默认 10 题 |
+| **防幻觉策略** | Resume 上下文截断（最近3经历，每经历前3职责） |
+| **去重检查** | Python 层检查完全相同的题目文本 |
+| **结果验证** | 验证题目数量、参考答案完整性 |
+
+### 3. Gap Analysis Score Calculation (v0.4.6)
 
 ```python
 # overall_match_score 由 Python 计算，权重：
@@ -159,36 +173,48 @@ QuestionList:
 # 计算公式：round(skill*0.4 + exp*0.3 + edu*0.2 + proj*0.1)
 ```
 
-### 3. Input Validation Requirements
+### 4. Question Generation Anti-Hallucination (v0.5.0)
 
 ```python
-# JD 必填字段
-- required_skills: 至少 1 个
-- responsibilities: 至少 1 个
+# Resume 截断规则：
+- 保留最近 3 个 WorkExperience
+- 每个 experience 的 responsibilities 只取前 3 条
+- 每条 responsibility 截断到 150 字符
+- 保留所有 Projects，但 description 截断到 200 字符
+- 保留所有 skills（核心匹配依据）
 
-# Resume 必填字段
-- skills: 至少 1 个
-- experiences: 至少 1 个
-- projects: 允许为空 []
-
-# 简历长度限制
-- 最大 20 页（前端需明确提示）
-- 超限抛 ResumeAnalysisError
-```
-
-### 4. Anti-Hallucination Strategy
-
-```python
-# Question Generation 防幻觉设计：
-1. 传入完整 GapAnalysis 结果
-2. 传入精简的 Resume (核心项目+经历，避免超长上下文)
-3. 题目数量/难度分配由 Python 层计算
-4. 强制使用 Enum 约束题型和难度
+# 题目分配策略：
+- 让 LLM 根据匹配度和候选人特点动态分配类型和难度
+- 提供分配指导而非硬编码比例
+- 匹配度 < 60: 侧重基础题（60%）和进阶题（40%）
+- 匹配度 >= 60: 侧重进阶题（40%）和高级题（60%）
 ```
 
 ---
 
 ## 📋 Implementation Notes
+
+### `core/generators/question_generator.py` ✅ v0.5.0
+
+**Key Features**:
+- 前置输入校验（5个必填字段检查 + 题目数量范围）
+- Resume 上下文智能截断（防幻觉关键）
+- 题目去重检查（完全相同的文本）
+- 结果完整性验证（题目数量、参考答案）
+- 异常统一包装为中文用户友好消息
+
+**Error Messages** (用户可见):
+```python
+"能力差距分析缺少匹配度分数"
+"能力差距分析缺少技能信息"
+"简历缺少技能信息"
+"职位描述缺少必备技能信息"
+"简历缺少工作经历信息"
+"生成的题目数量不正确：期望 X，实际 Y"
+"第 X 题缺少参考答案"
+"发现重复的面试题目"
+"面试题生成失败，请稍后重试或联系技术支持"
+```
 
 ### `core/analyzers/gap_analyzer.py` ✅ v0.4.6
 
@@ -198,26 +224,13 @@ QuestionList:
 - Python 层计算 `overall_match_score`（权重加权）
 - 异常统一包装为中文用户友好消息
 
-**Error Messages** (用户可见):
-```python
-"职位描述缺少必要的技能要求信息，无法进行匹配度分析"
-"简历中未找到技能信息，无法进行匹配度分析"
-"无法完成岗位匹配度分析，请稍后重试或联系技术支持"
-"分析结果异常：技能匹配度评分超出有效范围，请重试"
-```
+### `prompts/question_generation.py` ✅ v0.5.0
 
-### `core/analyzers/jd_analyzer.py` ✅ v0.4.5
-
-**Responsibilities**:
-- 调用 `prompts.jd_extraction.get_jd_extraction_prompt()`
-- LLM 调用失败 → 抛 `JDAnalysisError`
-
-### `core/analyzers/resume_analyzer.py` ✅ v0.4.5
-
-**Responsibilities**:
-- 基础校验：空文本、过短内容
-- 防御性校验：超长文本（配合 utils 的 token/page 限制）
-- LLM 提取 `years_of_experience`（暂不做 Python 兜底计算）
+**Key Features**:
+- 修复字段引用错误（work_experience → experiences 等）
+- 实现 Resume 截断函数 `_truncate_resume_context()`
+- 动态分配指导（非硬编码比例）
+- 提供智能分配建议给 LLM
 
 ---
 
@@ -225,7 +238,8 @@ QuestionList:
 
 | Version | Date | Key Changes |
 |---------|------|-------------|
-| **0.4.6** | 2025-01-XX | ✅ **完成 Analyzer Layer (100%)**<br>- 实现 `gap_analyzer.py` + 完整测试<br>- 确认总分计算权重和舍入规则<br>- 统一中文异常消息体系 |
+| **0.5.0** | 2025-01-XX | ✅ **完成 Generator Layer (100%)**<br>- 实现 `question_generator.py` + 完整测试<br>- 修复 `prompts/question_generation.py` 字段引用<br>- 新增 `QuestionGenerationError` 异常<br>- 实现 Resume 截断和防幻觉策略 |
+| 0.4.6 | 2025-01-XX | ✅ **完成 Analyzer Layer (100%)**<br>- 实现 `gap_analyzer.py` + 完整测试<br>- 确认总分计算权重和舍入规则<br>- 统一中文异常消息体系 |
 | 0.4.5 | 2025-01-XX | ✅ `jd_analyzer.py` + `resume_analyzer.py` + `exceptions.py` |
 | 0.4.4 | 2025-01-XX | ✅ `prompts/question_generation.py` + Question Schema |
 | 0.4.3 | 2025-01-XX | ✅ `prompts/gap_analysis.py` + GapAnalysis Schema (12 fields) |
@@ -234,30 +248,29 @@ QuestionList:
 
 ---
 
-## 🚀 Next Milestone: v0.5.0 - Question Generator
+## 🚀 Next Milestone: v0.6.0 - Streamlit Frontend
 
 ### Implementation Checklist
 
 ```python
-# core/generators/question_generator.py
-[ ] 实现 generate_questions() 函数
-[ ] 题目数量按难度分配逻辑 (基础:进阶:高级 = 4:4:2)
-[ ] 题目类型按 Gap 自适应分配
-[ ] Resume 上下文精简（截断至关键项目/经历）
-[ ] 集成 prompts.question_generation
+# app/ (Streamlit Frontend)
+[ ] 页面布局设计 (3页：上传 → 分析 → 题目)
+[ ] 文件上传组件 (JD/Resume PDF/DOCX/TXT)
+[ ] 分析结果可视化 (匹配度雷达图/技能对比)
+[ ] 面试题展示界面 (分类/难度筛选)
+[ ] 状态管理和进度指示
 
-# tests/test_question_generator.py
-[ ] 正常流程测试
-[ ] 数量/难度/类型分布验证
-[ ] 空 projects 场景测试
-[ ] 异常处理测试
+# 集成测试
+[ ] 端到端流程测试
+[ ] 错误处理UI反馈
+[ ] 响应式设计适配
 ```
 
 ### Design Questions to Resolve
 
-1. Resume 截断策略：保留最近 N 个项目？Token 限制？
-2. 题目去重逻辑：需要 Python 层检查重复吗？
-3. 异常类型：新建 `QuestionGenerationError` 还是复用现有？
+1. 分析结果可视化：雷达图 vs 柱状图 vs 进度条？
+2. 题目展示：分页 vs 滚动 vs 折叠面板？
+3. 状态持久化：Session State vs 临时文件？
 
 ---
 
@@ -267,6 +280,7 @@ QuestionList:
 # 典型调用流程
 from services.llm_service import LLMService
 from core.analyzers import analyze_jd, analyze_resume, analyze_gap
+from core.generators import generate_questions
 
 llm = LLMService()
 
@@ -278,12 +292,15 @@ resume = analyze_resume(resume_text, llm)
 gap = analyze_gap(jd, resume, llm)
 print(f"总分: {gap.overall_match_score}")  # Python 计算的加权分
 
-# 3. 生成面试题（待实现）
-# questions = generate_questions(gap, resume, jd, num_questions=20)
+# 3. 生成面试题 (v0.5.0)
+questions = generate_questions(gap, resume, jd, llm, num_questions=15)
+print(f"生成 {len(questions.questions)} 道面试题")
+for q in questions.questions[:3]:
+    print(f"- {q.question_text} ({q.question_type}, {q.difficulty})")
 ```
 
 ---
 
 > **Single Source of Truth** — 每次重大更新必须同步此文档  
-> **Next Target**: `core/generators/question_generator.py` 🎯  
-> **Status**: Analyzer Layer 已完成，进入 Generator 阶段
+> **Next Target**: `app/` (Streamlit Frontend) 🎯  
+> **Status**: Generator Layer 已完成，进入 Frontend 阶段
