@@ -545,3 +545,70 @@
 [2026-04-15 14:03:36] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
 [2026-04-15 14:03:37] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
 [2026-04-15 14:03:37] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符
+[2026-04-15 14:03:49] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 14:03:50] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1086, temperature=0.70
+[2026-04-15 14:03:54] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1571, cost=$0.0002, time=4.52s, attempt=1
+[2026-04-15 14:03:54] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1549, temperature=0.70
+[2026-04-15 14:04:27] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2854, cost=$0.0004, time=33.23s, attempt=1
+[2026-04-15 14:04:27] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=2012, temperature=0.70
+[2026-04-15 14:04:32] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2601, cost=$0.0004, time=4.95s, attempt=1
+[2026-04-15 14:05:45] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 14:05:45] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1677, temperature=0.70
+[2026-04-15 14:05:59] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=3294, cost=$0.0005, time=13.52s, attempt=1
+[2026-04-15 14:06:45] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 14:06:45] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1677, temperature=0.70
+[2026-04-15 14:07:02] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=3376, cost=$0.0005, time=16.94s, attempt=1
+[2026-04-15 14:09:03] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 14:09:03] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 14:09:03] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 14:09:07] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 14:09:07] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 14:09:07] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 14:09:07] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: Dukai_s_resume.pdf (格式: .pdf)
+[2026-04-15 14:09:07] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
+[2026-04-15 14:09:07] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
+[2026-04-15 14:09:07] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符
+[2026-04-15 14:09:14] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 14:09:14] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 14:09:14] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 14:09:14] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: Dukai_s_resume.pdf (格式: .pdf)
+[2026-04-15 14:09:14] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
+[2026-04-15 14:09:15] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
+[2026-04-15 14:09:15] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符
+[2026-04-15 14:09:25] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 14:09:25] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1086, temperature=0.70
+[2026-04-15 14:09:36] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=1550, cost=$0.0002, time=11.09s, attempt=1
+[2026-04-15 14:09:36] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1549, temperature=0.70
+[2026-04-15 14:09:46] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2851, cost=$0.0004, time=10.26s, attempt=1
+[2026-04-15 14:09:46] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1982, temperature=0.70
+[2026-04-15 14:09:57] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2651, cost=$0.0004, time=10.96s, attempt=1
+[2026-04-15 14:11:27] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 14:11:27] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1668, temperature=0.70
+[2026-04-15 14:11:41] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=3476, cost=$0.0005, time=13.35s, attempt=1
+[2026-04-15 15:02:31] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 15:02:31] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 15:02:31] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 15:02:36] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 15:02:36] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 15:02:36] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 15:02:36] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: Dukai_s_resume.pdf (格式: .pdf)
+[2026-04-15 15:02:36] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
+[2026-04-15 15:02:36] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
+[2026-04-15 15:02:36] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符
+[2026-04-15 15:02:40] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 15:02:41] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 15:02:41] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 15:02:41] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: Dukai_s_resume.pdf (格式: .pdf)
+[2026-04-15 15:02:41] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
+[2026-04-15 15:02:41] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
+[2026-04-15 15:02:41] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符
+[2026-04-15 15:02:58] [INFO] [services.llm_service] [llm_service.py:86] LLMService initialized: model=gpt-4o-mini, base_url=https://api.gptsapi.net/v1
+[2026-04-15 15:03:00] [INFO] [services.llm_service] [llm_service.py:132] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1086, temperature=0.70
+[2026-04-15 15:03:21] [INFO] [services.llm_service] [llm_service.py:172] LLM call succeeded: tokens_used=1605, cost=$0.0002, time=21.56s, attempt=1
+[2026-04-15 15:03:21] [INFO] [services.llm_service] [llm_service.py:132] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1549, temperature=0.70
+[2026-04-15 15:03:29] [INFO] [services.llm_service] [llm_service.py:172] LLM call succeeded: tokens_used=2851, cost=$0.0004, time=7.95s, attempt=1
+[2026-04-15 15:03:29] [INFO] [services.llm_service] [llm_service.py:132] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=2041, temperature=0.70
+[2026-04-15 15:03:34] [INFO] [services.llm_service] [llm_service.py:172] LLM call succeeded: tokens_used=2714, cost=$0.0004, time=5.06s, attempt=1
+[2026-04-15 15:04:24] [INFO] [services.llm_service] [llm_service.py:86] LLMService initialized: model=gpt-4o-mini, base_url=https://api.gptsapi.net/v1
+[2026-04-15 15:04:24] [INFO] [services.llm_service] [llm_service.py:132] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=1684, temperature=0.70
+[2026-04-15 15:04:37] [INFO] [services.llm_service] [llm_service.py:172] LLM call succeeded: tokens_used=3330, cost=$0.0005, time=12.54s, attempt=1
