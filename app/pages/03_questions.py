@@ -45,15 +45,13 @@ total_questions = len(questions_list)
 st.markdown(f"""
 <div style="text-align: center; margin: 2rem 0 2.5rem;">
     <h1 style="font-size: 2rem; font-weight: 600; color: #1C1C1E;">个性化面试题</h1>
-    <p style="color: #6C6C70; font-size: 1rem;">共 {total_questions} 题 · 点击按钮翻转查看答案</p>
+    <p style="color: #6C6C70; font-size: 1rem;">共 {total_questions} 题 · 点击卡片任意区域翻转查看答案</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ── 初始化 Session State ────────────────────────────────────────
 if 'current_question_index' not in st.session_state:
     st.session_state.current_question_index = 0
-if 'flipped_states' not in st.session_state:
-    st.session_state.flipped_states = {}
 if 'filter_type' not in st.session_state:
     st.session_state.filter_type = "全部"
 if 'filter_difficulty' not in st.session_state:
@@ -117,12 +115,8 @@ current_idx = st.session_state.current_question_index
 current_question = filtered_questions[current_idx]
 card_key = f"card_{current_idx}"
 
-# 获取当前卡片的翻转状态
-is_flipped = st.session_state.flipped_states.get(card_key, False)
-
-# 渲染闪卡
-new_flip_state = render_flashcard(current_question, is_flipped, card_key)
-st.session_state.flipped_states[card_key] = new_flip_state
+# 渲染闪卡 (不再需要 is_flipped 参数，也不需要接收返回值)
+render_flashcard(current_question, card_key)
 
 # ── 导航控制 ─────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)
@@ -160,6 +154,7 @@ with col1:
 
 with col2:
     if st.button("返回首页", use_container_width=True):
+        # 清除所有状态并返回首页
         for key in list(st.session_state.keys()):
             del st.session_state[key]
         st.switch_page("app/main.py")

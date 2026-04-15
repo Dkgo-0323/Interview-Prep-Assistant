@@ -20,8 +20,8 @@ def apply_apple_style():
         --secondary-gray: #8E8E93;
         --background: #F2F2F7;
         --card-bg: #FFFFFF;
-        --text-primary: #000000;
-        --text-secondary: #6C6C70;
+        --text-primary: #1C1C1E; /* 加深 Apple 默认黑 */
+        --text-secondary: #48484A; /* 加深 Apple 默认灰 */
         --radius-sm: 8px;
         --radius-md: 12px;
         --radius-lg: 16px;
@@ -42,6 +42,27 @@ def apply_apple_style():
     .stApp {
         background-color: #FAFAFA;
     }
+
+    /* ================= 修复浅色主题文字对比度 ================= */
+    /* 加深全局普通文本颜色 */
+    .stMarkdown p, .stText {
+        color: #2C2C2E !important; 
+    }
+    
+    /* 加深文件上传器下方/其他组件的 Caption 提示文字颜色 */
+    .st-emotion-cache-1n76uvr, small {
+        color: #666666 !important;
+    }
+
+    /* ================= 修复提示框 (Alert) 颜色 ================= */
+    /* 针对所有的 st.success, st.error, st.info 提示框，确保浅色背景上文字清晰 */
+    [data-testid="stAlert"] {
+        color: #1C1C1E !important;
+    }
+    [data-testid="stAlert"] p {
+        color: #1C1C1E !important;
+        font-weight: 500 !important; 
+    }
     
     /* 卡片样式 */
     .stCard {
@@ -52,7 +73,7 @@ def apply_apple_style():
         margin-bottom: 1rem;
     }
     
-    /* 按钮样式 */
+    /* ================= 按钮样式 ================= */
     .stButton > button {
         background-color: var(--primary-blue);
         color: white;
@@ -69,6 +90,19 @@ def apply_apple_style():
         background-color: #0051D5;
         box-shadow: var(--shadow-md);
         transform: translateY(-1px);
+    }
+
+    /* 确保主按钮启用时文字为纯白，对比度足够 */
+    button[kind="primary"]:not([disabled]) {
+        color: #FFFFFF !important;
+        font-weight: 600 !important;
+    }
+
+    /* 修复禁用按钮（未上传文件时）在浅色背景下看不清的问题 */
+    button[disabled] {
+        color: #8E8E93 !important;
+        background-color: #E5E5EA !important;
+        border: 1px solid #D1D1D6 !important;
     }
     
     /* 文件上传器样式 */
@@ -330,14 +364,13 @@ def render_skill_comparison(matched: List[str], missing: List[str]):
             st.success("无缺失技能")
 
 
-def render_flashcard(question: Question, is_flipped: bool, card_key: str):
+def render_flashcard(question: Question, card_key: str):
     """
-    渲染闪卡组件 (HTML/CSS 翻转动画)
+    渲染闪卡组件 (纯 HTML/CSS 翻转动画，无需 Streamlit 按钮)
     
     Args:
         question: 面试题对象
-        is_flipped: 是否已翻转
-        card_key: 唯一标识符（用于状态管理）
+        card_key: 唯一标识符
     """
     difficulty_colors = {
         DifficultyLevel.BASIC: "#34C759",
@@ -345,53 +378,72 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
         DifficultyLevel.ADVANCED: "#FF3B30"
     }
     color = difficulty_colors.get(question.difficulty, "#8E8E93")
-    flip_class = "flipped" if is_flipped else ""
     
     st.markdown(f"""
     <style>
-    .flashcard_{card_key} {{
-        perspective: 1000px;
-        width: 100%;
-        height: 380px;
-        margin: 1.5rem 0;
+    /* 隐藏复选框 */
+    .flip-toggle-{card_key} {{
+        display: none;
     }}
-    .flashcard_{card_key} .fc-inner {{
+
+    /* 将整个卡片区域变为可点击的鼠标指针 */
+    .flashcard-wrapper-{card_key} {{
+        display: block;
+        width: 100%;
+        cursor: pointer;
+        perspective: 1000px;
+        margin: 1.5rem 0;
+        -webkit-tap-highlight-color: transparent; /* 去除手机端点击高亮 */
+    }}
+
+    .flashcard-inner-{card_key} {{
         position: relative;
         width: 100%;
-        height: 100%;
-        transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 380px;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         transform-style: preserve-3d;
     }}
-    .flashcard_{card_key}.flipped .fc-inner {{
+
+    /* 核心魔法：当隐藏的复选框被选中时，翻转内部容器 */
+    .flip-toggle-{card_key}:checked + .flashcard-inner-{card_key} {{
         transform: rotateY(180deg);
     }}
+
     .fc-front, .fc-back {{
         position: absolute;
         width: 100%;
         height: 100%;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
-        border-radius: 14px;
+        border-radius: 16px;
         padding: 2.5rem;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         box-sizing: border-box;
+        border: 1px solid #E8E8ED;
+        /* 添加一点默认阴影，并在 hover 时加深，提示可点击 */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: box-shadow 0.3s ease;
     }}
+
+    .flashcard-wrapper-{card_key}:hover .fc-front,
+    .flashcard-wrapper-{card_key}:hover .fc-back {{
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }}
+
     .fc-front {{
         background: #FFFFFF;
-        border: 1px solid #E8E8ED;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }}
+
     .fc-back {{
         background: #F8F9FA;
-        border: 1px solid #E8E8ED;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
         transform: rotateY(180deg);
         justify-content: flex-start;
         padding-top: 2rem;
     }}
+
     .fc-question {{
         font-size: 1.35rem;
         font-weight: 600;
@@ -400,6 +452,21 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
         line-height: 1.65;
         margin-bottom: 2rem;
     }}
+
+    /* 添加一个呼吸动画提示用户点击 */
+    @keyframes pulse-hint {{
+        0% {{ opacity: 0.5; }}
+        50% {{ opacity: 1; }}
+        100% {{ opacity: 0.5; }}
+    }}
+    
+    .fc-hint {{
+        font-size: 0.85rem;
+        color: #8E8E93;
+        margin-bottom: 1.5rem;
+        animation: pulse-hint 2.5s infinite ease-in-out;
+    }}
+
     .fc-meta {{
         display: flex;
         gap: 0.75rem;
@@ -407,23 +474,21 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
         color: #8E8E93;
         margin-top: auto;
     }}
+
     .fc-tag {{
         background: #F2F2F7;
         border-radius: 6px;
-        padding: 3px 10px;
+        padding: 4px 10px;
     }}
+
     .fc-difficulty {{
         background: {color}1A;
         color: {color};
         border-radius: 6px;
-        padding: 3px 10px;
+        padding: 4px 10px;
         font-weight: 500;
     }}
-    .fc-hint {{
-        font-size: 0.8rem;
-        color: #C7C7CC;
-        margin-bottom: 1.5rem;
-    }}
+
     .fc-answer-label {{
         font-size: 0.75rem;
         font-weight: 600;
@@ -433,6 +498,7 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
         margin-bottom: 0.75rem;
         align-self: flex-start;
     }}
+
     .fc-answer {{
         font-size: 1rem;
         color: #3A3A3C;
@@ -443,6 +509,7 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
         max-height: 160px;
         margin-bottom: 1rem;
     }}
+
     .fc-detail {{
         width: 100%;
         background: #FFFFFF;
@@ -455,11 +522,12 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
     }}
     </style>
 
-    <div class="flashcard_{card_key} {flip_class}">
-        <div class="fc-inner">
+    <label class="flashcard-wrapper-{card_key}">
+        <input type="checkbox" class="flip-toggle-{card_key}">
+        <div class="flashcard-inner-{card_key}">
             <div class="fc-front">
                 <div class="fc-question">{question.question_text}</div>
-                <div class="fc-hint">点击下方按钮查看参考答案</div>
+                <div class="fc-hint">👆 点击卡片任意区域翻转</div>
                 <div class="fc-meta">
                     <span class="fc-tag">{question.question_type.value}</span>
                     <span class="fc-difficulty">{question.difficulty.value}</span>
@@ -474,14 +542,8 @@ def render_flashcard(question: Question, is_flipped: bool, card_key: str):
                 </div>
             </div>
         </div>
-    </div>
+    </label>
     """, unsafe_allow_html=True)
-
-    label = "查看答案" if not is_flipped else "返回题目"
-    if st.button(label, key=f"flip_{card_key}", use_container_width=True):
-        return not is_flipped
-    
-    return is_flipped
 
 
 def render_loading_spinner(message: str = "加载中..."):
