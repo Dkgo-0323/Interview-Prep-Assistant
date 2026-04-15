@@ -270,3 +270,22 @@
 [2026-04-03 20:47:54] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
 [2026-04-03 20:47:54] [INFO] [services.llm_service] [llm_service.py:135] LLM call starting: model=gpt-4o-mini, estimated_input_tokens=971, temperature=0.20
 [2026-04-03 20:47:59] [INFO] [services.llm_service] [llm_service.py:175] LLM call succeeded: tokens_used=2015, cost=$0.0003, time=5.81s, attempt=1
+[2026-04-15 12:38:29] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 12:38:38] [INFO] [services.llm_service] [llm_service.py:88] LLMService initialized: model=gpt-4o-mini, temperature=0.70, max_tokens=2000
+[2026-04-15 12:49:47] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 12:49:47] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 12:49:47] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 12:50:02] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 12:50:02] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 12:50:02] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 12:50:02] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: Dukai_s_resume.pdf (格式: .pdf)
+[2026-04-15 12:50:02] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
+[2026-04-15 12:50:03] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
+[2026-04-15 12:50:03] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符
+[2026-04-15 12:50:16] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: JD.docx (格式: .docx)
+[2026-04-15 12:50:16] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 560 -> 560 字符
+[2026-04-15 12:50:16] [INFO] [core.parsers.docx_parser] [docx_parser.py:105] 成功解析 DOCX: JD.docx, 提取 15 个内容块, 560 字符
+[2026-04-15 12:50:16] [INFO] [core.parsers.parser_factory] [parser_factory.py:51] 解析文件: Dukai_s_resume.pdf (格式: .pdf)
+[2026-04-15 12:50:16] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:43] 开始解析 PDF 文件: Dukai_s_resume.pdf
+[2026-04-15 12:50:16] [INFO] [utils.text_cleaner] [text_cleaner.py:166] 文本清洗完成: 1210 -> 1210 字符
+[2026-04-15 12:50:16] [INFO] [core.parsers.pdf_parser] [pdf_parser.py:67] PDF 解析完成: Dukai_s_resume.pdf, 提取 1210 字符

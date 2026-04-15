@@ -54,12 +54,20 @@
 ├── core/generators/question_generator.py (题目生成器)
 └── core/generators/__init__.py
 
-🚧 前端层 (50%) - 进行中
-├── app/main.py (主入口)
+✅ 前端层 (100%) 🎉 完成 v0.6.0 Phase 1
+├── app/main.py (主入口 - 欢迎页)
 ├── app/pages/01_upload.py (上传页面)
 ├── app/pages/02_analysis.py (分析页面)
 ├── app/pages/03_questions.py (题目页面)
-└── app/utils/ui_components.py (UI组件 - 待创建)
+└── app/utils/ui_components.py (UI组件库)
+    ├── apply_apple_style() - 全局CSS样式
+    ├── render_progress_indicator() - 进度指示器
+    ├── render_document_preview() - 文档预览
+    ├── render_match_score_card() - 匹配度卡片
+    ├── render_radar_chart() - 雷达图
+    ├── render_skill_comparison() - 技能对比
+    ├── render_flashcard() - 闪卡组件
+    └── render_loading_spinner() - 加载动画
 
 ✅ 测试层 (92%)
 ├── test_jd_analyzer.py ✅
@@ -76,8 +84,8 @@
 └── test_raw_openai.py ✅
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-总计: 31/33 模块 (94%)
-下一步: 前端UI组件集成 🚀
+总计: 33/33 模块 (100%) ✅
+Phase 1 MVP 已完成 🎉
 ```
 
 ---
@@ -393,7 +401,8 @@ QuestionList:
 
 | Version | Date | Key Changes |
 |---------|------|-------------|
-| **0.5.0** | 2025-01-XX | ✅ **完成 Generator Layer (100%)**<br>- 实现 `question_generator.py` + 完整测试<br>- 修复 `prompts/question_generation.py` 字段引用<br>- 新增 `QuestionGenerationError` 异常<br>- 实现 Resume 截断和防幻觉策略 |
+| **0.6.0** | 2025-01-XX | ✅ **完成 Frontend Layer (100%) - Phase 1 MVP**<br>- 实现 `app/main.py` 欢迎页<br>- 实现 `01_upload.py` 文件上传页面<br>- 实现 `02_analysis.py` 分析报告页面<br>- 实现 `03_questions.py` 面试题库页面<br>- 实现 `ui_components.py` 完整组件库<br>- Apple 风格设计 + 闪卡翻转动画<br>- 添加 plotly 依赖 |
+| 0.5.0 | 2025-01-XX | ✅ **完成 Generator Layer (100%)**<br>- 实现 `question_generator.py` + 完整测试<br>- 修复 `prompts/question_generation.py` 字段引用<br>- 新增 `QuestionGenerationError` 异常<br>- 实现 Resume 截断和防幻觉策略 |
 | 0.4.6 | 2025-01-XX | ✅ **完成 Analyzer Layer (100%)**<br>- 实现 `gap_analyzer.py` + 完整测试<br>- 确认总分计算权重和舍入规则<br>- 统一中文异常消息体系 |
 | 0.4.5 | 2025-01-XX | ✅ `jd_analyzer.py` + `resume_analyzer.py` + `exceptions.py` |
 | 0.4.4 | 2025-01-XX | ✅ `prompts/question_generation.py` + Question Schema |
@@ -403,29 +412,38 @@ QuestionList:
 
 ---
 
-## 🚀 Next Milestone: v0.6.0 - Streamlit Frontend
+## ✅ Phase 1 MVP Completed!
 
 ### Implementation Checklist
 
 ```python
 # app/ (Streamlit Frontend)
-[ ] 页面布局设计 (3页：上传 → 分析 → 题目)
-[ ] 文件上传组件 (JD/Resume PDF/DOCX/TXT)
-[ ] 分析结果可视化 (匹配度雷达图/技能对比)
-[ ] 面试题展示界面 (分类/难度筛选)
-[ ] 状态管理和进度指示
+[✅] 页面布局设计 (3页：上传 → 分析 → 题目)
+[✅] 文件上传组件 (JD/Resume PDF/DOCX/TXT)
+[✅] 分析结果可视化 (匹配度雷达图/技能对比)
+[✅] 面试题展示界面 (分类/难度筛选)
+[✅] 状态管理和进度指示
+[✅] Apple 风格 CSS 设计
+[✅] 闪卡翻转动画
+[✅] UI 组件库封装
 
-# 集成测试
+# 待完成 (Phase 2)
 [ ] 端到端流程测试
-[ ] 错误处理UI反馈
+[ ] 错误处理UI反馈优化
 [ ] 响应式设计适配
+[ ] PDF 报告导出
+[ ] 题库批量导出
 ```
 
-### Design Questions to Resolve
+## 🚀 Next Milestone: v0.7.0 - Phase 2 Enhancements
 
-1. 分析结果可视化：雷达图 vs 柱状图 vs 进度条？
-2. 题目展示：分页 vs 滚动 vs 折叠面板？
-3. 状态持久化：Session State vs 临时文件？
+### Planned Features
+
+1. **PDF 报告导出**：使用 ReportLab/WeasyPrint 生成分析报告
+2. **题库导出**：支持导出所有题目为 PDF/Markdown
+3. **键盘快捷键**：← → 切换题目，Space 翻转卡片
+4. **响应式优化**：移动端适配
+5. **错误处理增强**：更友好的错误提示和恢复机制
 
 ---
 
@@ -457,5 +475,6 @@ for q in questions.questions[:3]:
 ---
 
 > **Single Source of Truth** — 每次重大更新必须同步此文档  
-> **Next Target**: `app/` (Streamlit Frontend) 🎯  
-> **Status**: Generator Layer 已完成，进入 Frontend 阶段
+> **Current Version**: v0.6.0 - Phase 1 MVP ✅  
+> **Status**: 前端核心功能已完成，可运行完整流程  
+> **Next Target**: Phase 2 增强功能 (PDF导出/键盘快捷键/响应式优化)
