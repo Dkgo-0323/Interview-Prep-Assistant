@@ -55,41 +55,38 @@ class LLMService:
         max_retries: int = 3,
         timeout: float = 60.0,
     ):
-        """初始化 LLM 服务
-        
-        Args:
-            api_key: OpenAI API Key（默认从 config 读取）
-            model: 模型名称（默认从 config 读取）
-            temperature: 默认温度（默认从 config 读取）
-            max_tokens: 默认最大 token 数（默认从 config 读取）
-            max_retries: SDK 自动重试次数（网络/429/500 等）
-            timeout: 请求超时时间（秒）
-        
-        Raises:
-            LLMServiceError: API Key 缺失或无效
-        """
+        """初始化 LLM 服务"""
         self.model = model or config.MODEL_NAME
         self.default_temperature = temperature if temperature is not None else config.TEMPERATURE
         self.default_max_tokens = max_tokens or config.MAX_TOKENS
 
         print("--- 正在初始化 OpenAI 客户端 ---")
         _api_key = api_key or config.OPENAI_API_KEY
+        
+        # --- 修改部分开始 ---
+        # 从 config 读取 BASE_URL (如果你在 Streamlit Secrets 里配置了的话)
+        # 如果 config 里没有，默认为 None，OpenAI 会走官方地址
+        _base_url = getattr(config, "OPENAI_BASE_URL", None)
+
         if not _api_key:
             raise LLMServiceError(
-                "OpenAI API Key is required. Set OPENAI_API_KEY in .env or pass to constructor."
+                "OpenAI API Key is required. Set OPENAI_API_KEY in .env or Secrets."
             )
 
         try:
+            # 严格按照 v1.0+ 标准初始化，彻底剔除 proxies 参数
             self.client = OpenAI(
                 api_key=_api_key,
+                base_url=_base_url,  # 确保这里传入你的代理商地址
                 max_retries=max_retries,
                 timeout=timeout,
             )
+            # --- 修改部分结束 ---
+            
             logger.info(
-                "LLMService initialized: model=%s, temperature=%.2f, max_tokens=%d",
+                "LLMService initialized: model=%s, base_url=%s",
                 self.model,
-                self.default_temperature,
-                self.default_max_tokens,
+                _base_url
             )
         except Exception as e:
             raise LLMServiceError(f"Failed to initialize OpenAI client: {e}") from e
