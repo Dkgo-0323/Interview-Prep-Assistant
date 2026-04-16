@@ -61,9 +61,9 @@ class ResumeInfo(BaseModel):
     """简历信息（增强版本 - v0.4.1）"""
     # === 核心字段 ===
     skills: List[str]                     # 带熟练度标记："Python (Expert)", "React"
-    experiences: List[WorkExperience]
+    experiences: List[WorkExperience] = Field(default_factory=list)  # 让它默认变为空列表
     projects: list[Project] = Field(default_factory=list) # 让它默认变为空列表
-    education: List[Education]
+    education: List[Education] = Field(default_factory=list)  # 允许多条教育经历，默认空列表
     
     # === 扩展字段 ===
     summary: Optional[str] = None         # 职业摘要（2-3 句话）

@@ -70,7 +70,7 @@ Please extract the following fields:
 
 **Core Fields** (Required - infer if not explicit):
 - skills: List of skills with proficiency levels in Chinese (e.g., ["Python (精通)", "AWS", "SQL (中级)"])
-- experiences: Work history with company (in Chinese if applicable), title (in Chinese), dates (preserve original format), responsibilities (in Chinese), and achievements (quantifiable results only, in Chinese)
+- experiences: Work history with company (MAY BE EMPTY for fresh graduates or freelancers) (in Chinese if applicable), title (in Chinese), dates (preserve original format), responsibilities (in Chinese), and achievements (quantifiable results only, in Chinese)
 - projects: Project name, description (in Chinese), technologies used, role (in Chinese), and link if available
 - education: Institution (in Chinese), degree (in Chinese), field of study (in Chinese), graduation date, GPA if mentioned
 
