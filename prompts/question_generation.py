@@ -19,6 +19,7 @@ QUESTION_SYSTEM_PROMPT = """你是一个资深且极其严谨的技术面试官�
 4. 参考答案要求：reference_answer 必须简明扼要（1-3句话），直接指出核心得分点或思考框架，不要长篇大论。
 5. 严格遵循输出格式：输出必须是符合给定 JSON Schema 的对象。
 6. 数量精确性：必须严格按照要求的数量生成题目，不能多也不能少。
+7. 题目自增编号验证：在你的内部思考过程中，请为每道题打上序号（如 1/N, 2/N），以确保你严格生成到了指定的数量，不会中途截断。
 """
 
 
@@ -28,54 +29,32 @@ QUESTION_SYSTEM_PROMPT = """你是一个资深且极其严谨的技术面试官�
 def _truncate_resume_context(resume: ResumeInfo) -> str:
     """
     截断简历上下文，防止幻觉并控制 token 数量。
-    
-    截断规则：
-    - 保留最近 3 个 WorkExperience
-    - 每个 experience 的 responsibilities 只取前 3 条
-    - 每条 responsibility 截断到 150 字符
-    - 保留所有 Projects，但 description 截断到 200 字符
-    - 保留所有 skills（核心匹配依据）
-    
-    Args:
-        resume: 简历信息对象
-        
-    Returns:
-        截断后的简历摘要文本
     """
     resume_summary = []
     
-    # 1. 技能列表（核心）
     if resume.skills:
         resume_summary.append("【技能列表】:")
-        for skill in resume.skills[:20]:  # 最多显示 20 个技能
+        for skill in resume.skills[:20]:
             resume_summary.append(f"- {skill}")
-    
-    # 2. 工作经历（截断）
+            
     if resume.experiences:
         resume_summary.append("\n【工作经历摘要】:")
-        # 取最近 3 个经历
         for exp in resume.experiences[-3:]:
-            # 构建日期信息
-            date_info = ""
-            if exp.start_date or exp.end_date:
-                start = exp.start_date or "未知"
-                end = exp.end_date or "至今"
-                date_info = f" ({start} - {end})"
+            start = exp.start_date or "未知"
+            end = exp.end_date or "至今"
+            date_info = f" ({start} - {end})"
             
             resume_summary.append(f"- {exp.company} | {exp.title}{date_info}")
             
-            # 取前 3 条 responsibilities，每条截断到 150 字符
             for i, resp in enumerate(exp.responsibilities[:3]):
                 truncated = resp[:150] + "..." if len(resp) > 150 else resp
                 resume_summary.append(f"  {i+1}. {truncated}")
-            
-            # 如果有 achievements，也显示一些
+                
             if exp.achievements:
                 for i, ach in enumerate(exp.achievements[:2]):
                     truncated = ach[:100] + "..." if len(ach) > 100 else ach
                     resume_summary.append(f"  * 成就: {truncated}")
-    
-    # 3. 项目经历（保留所有，但截断描述）
+                    
     if resume.projects:
         resume_summary.append("\n【核心项目摘要】:")
         for proj in resume.projects:
@@ -84,19 +63,17 @@ def _truncate_resume_context(resume: ResumeInfo) -> str:
             resume_summary.append(f"- 项目: {proj.name}{role_str}")
             resume_summary.append(f"  技术栈: {tech_str}")
             
-            # 描述截断到 200 字符
             if proj.description:
                 truncated_desc = proj.description[:200] + "..." if len(proj.description) > 200 else proj.description
                 resume_summary.append(f"  描述: {truncated_desc}")
-    
-    # 4. 教育背景（简要）
+                
     if resume.education:
         resume_summary.append("\n【教育背景】:")
-        for edu in resume.education[:3]:  # 最多显示 3 个学历
+        for edu in resume.education[:3]:
             gpa_str = f" | GPA: {edu.gpa}" if edu.gpa else ""
             grad_str = f" | 毕业: {edu.graduation_date}" if edu.graduation_date else ""
             resume_summary.append(f"- {edu.institution}: {edu.degree}{gpa_str}{grad_str}")
-    
+            
     return "\n".join(resume_summary) if resume_summary else "无可用简历信息"
 
 
@@ -106,28 +83,20 @@ def _truncate_resume_context(resume: ResumeInfo) -> str:
 def _format_existing_questions(questions: List[Question], max_display: int = 5) -> str:
     """
     格式化已生成的题目，用于提示 LLM 避免重复。
-    
-    Args:
-        questions: 已生成的题目列表
-        max_display: 最多显示多少个题目
-        
-    Returns:
-        格式化后的题目摘要
     """
     if not questions:
         return "（暂无已生成题目）"
-    
+        
     formatted = []
     display_count = min(len(questions), max_display)
     
     for i, q in enumerate(questions[:display_count]):
-        # 显示题目类型和前60个字符
         text_preview = q.question_text[:60] + "..." if len(q.question_text) > 60 else q.question_text
         formatted.append(f"{i+1}. [{q.question_type}] {text_preview}")
-    
+        
     if len(questions) > max_display:
         formatted.append(f"... 还有 {len(questions) - max_display} 道已生成题目")
-    
+        
     return "\n".join(formatted)
 
 
@@ -143,43 +112,25 @@ def get_question_generation_prompt(
 ) -> str:
     """
     构建面试题生成 Prompt，包含精简上下文和智能分配指导。
-    
-    Args:
-        gap: Gap analysis result
-        resume: Candidate's resume information
-        jd: Job description information
-        num_questions: Number of questions to generate (10-50, default 10)
-        batch_info: Batch generation information (optional)
-            - batch_number: Current batch number (1-indexed)
-            - total_batches: Total number of batches
-            - existing_questions: List of already generated questions
-        
-    Returns:
-        Formatted prompt string
     """
-    
-    # 1. 提取 JD 核心要求
     jd_summary = []
     jd_summary.append(f"职位: {jd.job_title}")
     if jd.company:
         jd_summary.append(f"公司: {jd.company}")
-    
+        
     if jd.required_skills:
         jd_summary.append("\n【必备技能】:")
         for skill in jd.required_skills:
             jd_summary.append(f"- {skill}")
-    
+            
     if jd.responsibilities:
         jd_summary.append("\n【岗位职责】:")
-        for i, resp in enumerate(jd.responsibilities[:5]):  # 最多显示 5 条
+        for i, resp in enumerate(jd.responsibilities[:5]):
             jd_summary.append(f"{i+1}. {resp}")
-    
+            
     jd_context = "\n".join(jd_summary)
-    
-    # 2. 提取简历摘要（截断后）
     resume_context = _truncate_resume_context(resume)
     
-    # 3. 构建能力差距摘要
     gap_summary = []
     gap_summary.append(f"匹配度总分: {gap.overall_match_score}/100")
     
@@ -188,71 +139,58 @@ def get_question_generation_prompt(
         if len(gap.matched_skills) > 10:
             matched_display += f"... (共{len(gap.matched_skills)}项)"
         gap_summary.append(f"匹配技能: {matched_display}")
-    
+        
     if gap.missing_skills:
         missing_display = ', '.join(gap.missing_skills[:10])
         if len(gap.missing_skills) > 10:
             missing_display += f"... (共{len(gap.missing_skills)}项)"
         gap_summary.append(f"缺失技能: {missing_display}")
-    
+        
     if gap.strengths:
         strengths_display = ', '.join(gap.strengths[:3])
         if len(gap.strengths) > 3:
             strengths_display += "..."
         gap_summary.append(f"优势: {strengths_display}")
-    
+        
     if gap.weaknesses:
         weaknesses_display = ', '.join(gap.weaknesses[:3])
         if len(gap.weaknesses) > 3:
             weaknesses_display += "..."
         gap_summary.append(f"劣势: {weaknesses_display}")
-    
+        
     gap_context = "\n".join(gap_summary)
     
-    # 4. 构建动态分配指导
     distribution_guidance = f"""
 【题目生成指导】
 请生成总计 {num_questions} 道面试题。
 
 请根据以下信息智能分配题目类型和难度：
-
 1. 职位类型分析：
    - 职位: {jd.job_title}
    - 必备技能: {len(jd.required_skills)} 项
    - 匹配度: {gap.overall_match_score}/100
-
 2. 候选人特点：
    - 技能匹配: {len(gap.matched_skills)}/{len(jd.required_skills)} 项
    - 缺失技能: {len(gap.missing_skills)} 项
    - 工作经历: {len(resume.experiences)} 段
    - 项目经验: {len(resume.projects)} 个
-
-3. 分配建议（请根据实际情况调整）：
+3. 分配建议：
    - 技术深度类：重点考察 missing_skills 和 matched_skills
    - 项目经验类：基于候选人的实际项目追问细节
    - 情景模拟类：结合岗位职责设计实际工作场景
    - 行为面试类：考察软技能和团队协作能力
-
-4. 难度分配建议：
-   - 匹配度 < 60: 侧重基础题（60%）和进阶题（40%）
-   - 匹配度 >= 60: 侧重进阶题（40%）和高级题（60%）
 """
     
-    # 5. 构建数量约束
     quantity_constraint = f"""
 【数量约束 - 必须严格遵守】
-✅ 必须生成精确数量为 {num_questions} 道面试题
-✅ 不允许生成少于或多于 {num_questions} 道题目
-✅ 每道题目必须包含完整的 6 个字段（question_text, question_type, difficulty, focus_area, intent, reference_answer）
-✅ reference_answer 不能为空或过于简短（至少 10 个字符）
+✅ 请在返回的 JSON 列表中，严格确保数组元素的个数精确为 {num_questions} 个！
+✅ 不允许生成少于或多于 {num_questions} 道题目。
+✅ 每道题目必须包含完整的 6 个字段（question_text, question_type, difficulty, focus_area, intent, reference_answer）。
+✅ reference_answer 不能为空或过于简短（至少 10 个字符）。
 
-⚠️  重要提示：
-- 生成过程中请持续计数，确保达到 {num_questions} 道题目后再停止
-- 如果中途停止，会导致整个生成任务失败
-- 宁可多生成几道再删除，也不要生成不足
+⚠️  重要提示：宁可多生成几道再删除，也绝对不要生成不足。如果数组长度不等于 {num_questions}，整个系统将崩溃。
 """
     
-    # 6. 如果是分批生成，添加批次信息
     batch_constraint = ""
     if batch_info:
         batch_number = batch_info.get("batch_number", 1)
@@ -270,10 +208,8 @@ def get_question_generation_prompt(
 ⚠️  分批生成注意事项：
 - 请确保本批次的 {num_questions} 道题目与已有题目不重复
 - 题目的考察角度和侧重点应与已有题目有所区分
-- 如果发现类似主题，请从不同维度或深度进行提问
 """
     
-    # 7. 组装最终 Prompt
     prompt = f"""
 请为候选人生成精确数量为 {num_questions} 道面试题。
 
@@ -310,13 +246,9 @@ def get_question_generation_prompt(
 请严格按照上述要求生成 {num_questions} 道面试题，输出为 JSON 格式。
 确保每道题目都完整、独立、无重复，且参考答案简明扼要。
 """
-    
     return prompt
 
 
-# ==========================================
-# 5. 导出
-# ==========================================
 __all__ = [
     "QUESTION_SYSTEM_PROMPT",
     "get_question_generation_prompt"
