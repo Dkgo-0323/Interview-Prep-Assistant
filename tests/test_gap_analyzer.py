@@ -239,14 +239,6 @@ def test_validate_inputs_resume_missing_skills(valid_jd, resume_missing_skills):
     assert "技能信息" in str(exc_info.value)
 
 
-def test_validate_inputs_resume_missing_experiences(valid_jd, resume_missing_experiences):
-    """Test validation fails when resume has no experiences."""
-    with pytest.raises(GapAnalysisError) as exc_info:
-        _validate_inputs(valid_jd, resume_missing_experiences)
-    
-    assert "简历中未找到工作经历信息" in str(exc_info.value)
-
-
 def test_analyze_gap_input_validation_integration(jd_missing_skills, valid_resume, mock_llm_service):
     """Test that analyze_gap properly validates inputs and raises user-friendly errors."""
     with pytest.raises(GapAnalysisError) as exc_info:
@@ -578,3 +570,205 @@ def test_analyze_gap_full_workflow(valid_jd, valid_resume, mock_llm_service):
     call_args = mock_llm_service.call.call_args
     assert call_args.kwargs["response_model"] == GapAnalysis
     assert call_args.kwargs["system_prompt"] == GAP_SYSTEM_PROMPT
+
+
+# ============================================================================
+# Test: Fresh Graduate Scenarios (Empty Experiences)
+# ============================================================================
+
+def test_validate_inputs_resume_empty_experiences_allowed(valid_jd):
+    """Test that empty experiences list is allowed (fresh graduate scenario)."""
+    resume_fresh_grad = ResumeInfo(
+        skills=["Python", "Django"],
+        experiences=[],  # Empty - fresh graduate
+        projects=[
+            Project(
+                name="E-commerce Platform",
+                description="Built with Django",
+                technologies=["Python", "Django"]
+            )
+        ],
+        education=[
+            Education(
+                institution="University",
+                degree="Bachelor of Science",
+                field_of_study="Computer Science",
+                graduation_date="2024-06"
+            )
+        ]
+    )
+    
+    # Should NOT raise any exception
+    _validate_inputs(valid_jd, resume_fresh_grad)
+
+
+def test_analyze_gap_fresh_graduate(valid_jd, mock_llm_service):
+    """
+    Test gap analysis for fresh graduate with no work experience.
+    
+    This is an integration test validating the complete workflow
+    for a fresh graduate candidate.
+    """
+    # Fresh graduate resume
+    fresh_grad_resume = ResumeInfo(
+        skills=["Python", "Django", "PostgreSQL"],
+        experiences=[],  # No work experience
+        projects=[
+            Project(
+                name="Student Management System",
+                description="Full-stack web application for managing student records",
+                technologies=["Python", "Django", "PostgreSQL", "React"]
+            ),
+            Project(
+                name="ML Image Classifier",
+                description="Built CNN model for image classification",
+                technologies=["Python", "TensorFlow", "Keras"]
+            )
+        ],
+        education=[
+            Education(
+                institution="UC Berkeley",
+                degree="Bachelor of Science",
+                field_of_study="Computer Science",
+                graduation_date="2024-05",
+                gpa="3.9/4.0"
+            )
+        ],
+        certifications=["AWS Cloud Practitioner"],
+        years_of_experience=0
+    )
+    
+    # Mock LLM to return appropriate analysis for fresh graduate
+    mock_llm_service.call.return_value = GapAnalysis(
+        matched_skills=["Python", "Django", "PostgreSQL"],
+        missing_skills=["AWS", "Docker"],
+        skill_score=75,
+        experience_match="应届毕业生，无正式工作经验。基于项目经历评估，候选人有2个相关项目，展示了较强的技术能力。",
+        experience_score=25,  # Low but not zero - projects show potential
+        education_match="计算机科学本科学历符合要求，GPA优秀(3.9/4.0)",
+        education_score=90,
+        project_relevance="学生管理系统项目使用了JD要求的核心技术栈(Python, Django, PostgreSQL)，展示了全栈开发能力",
+        project_score=80,
+        strengths=[
+            "扎实的计算机科学理论基础",
+            "项目经验展示了良好的技术能力",
+            "优秀的学术成绩(GPA 3.9)",
+            "已有AWS认证，展现了学习能力"
+        ],
+        weaknesses=[
+            "缺乏正式工作经验",
+            "缺少微服务架构实践",
+            "未参与过大规模系统开发"
+        ],
+        recommendations=[
+            "积累实习经验，了解企业级开发流程",
+            "深入学习微服务架构和容器化技术",
+            "参与开源项目，积累团队协作经验",
+            "构建更多个人项目展示技术深度"
+        ],
+        overall_match_score=0  # Will be calculated
+    )
+    
+    # Execute gap analysis
+    result = analyze_gap(valid_jd, fresh_grad_resume, mock_llm_service)
+    
+    # Verify result structure
+    assert isinstance(result, GapAnalysis)
+    assert len(result.matched_skills) == 3
+    assert len(result.missing_skills) == 2
+    
+    # Verify scores for fresh graduate scenario
+    assert result.skill_score == 75
+    assert result.experience_score == 25  # Low but evaluated
+    assert result.education_score == 90
+    assert result.project_score == 80
+    
+    # Verify overall score calculation
+    # 75*0.4 + 25*0.3 + 90*0.2 + 80*0.1 = 63.5 → 64
+    assert result.overall_match_score == 64
+    
+    # Verify strengths and weaknesses are appropriate
+    assert any("工作经验" in w for w in result.weaknesses)
+    assert any("实习" in r for r in result.recommendations)
+
+
+def test_analyze_gap_fresh_graduate_entry_level_jd(mock_llm_service):
+    """
+    Test gap analysis for fresh graduate applying to entry-level position.
+    
+    Expected: Higher experience score since JD expectations are lower.
+    """
+    # Entry-level JD
+    entry_level_jd = JDInfo(
+        job_title="Junior Python Developer",
+        company="Startup Inc",
+        required_skills=["Python", "Django"],
+        nice_to_have_skills=["AWS"],
+        responsibilities=[
+            "Develop backend features",
+            "Write clean code",
+            "Learn and grow with the team"
+        ],
+        experience_required="0-1 years",
+        education_required="Bachelor's in CS or related",
+        seniority_level="Junior"
+    )
+    
+    # Fresh graduate resume
+    fresh_grad_resume = ResumeInfo(
+        skills=["Python", "Django", "PostgreSQL"],
+        experiences=[],
+        projects=[
+            Project(
+                name="Portfolio Website",
+                description="Personal website built with Django",
+                technologies=["Python", "Django"]
+            )
+        ],
+        education=[
+            Education(
+                institution="State University",
+                degree="Bachelor of Science",
+                field_of_study="Computer Science",
+                graduation_date="2024-05"
+            )
+        ],
+        years_of_experience=0
+    )
+    
+    # Mock LLM response for entry-level position
+    mock_llm_service.call.return_value = GapAnalysis(
+        matched_skills=["Python", "Django"],
+        missing_skills=["AWS"],
+        skill_score=80,
+        experience_match="应届毕业生，符合初级岗位要求(0-1年)。项目经验展示了基础技术能力。",
+        experience_score=50,  # Higher score for entry-level
+        education_match="计算机科学本科学历完全符合要求",
+        education_score=100,
+        project_relevance="个人网站项目展示了基本的Django开发能力",
+        project_score=70,
+        strengths=[
+            "掌握岗位要求的核心技能",
+            "教育背景完全符合",
+            "适合初级岗位的成长潜力"
+        ],
+        weaknesses=[
+            "缺少云平台经验",
+            "项目复杂度较低"
+        ],
+        recommendations=[
+            "学习AWS基础服务",
+            "参与更多复杂项目开发"
+        ],
+        overall_match_score=0
+    )
+    
+    result = analyze_gap(entry_level_jd, fresh_grad_resume, mock_llm_service)
+    
+    # Verify appropriate scoring for entry-level position
+    assert result.experience_score == 50  # Higher than senior position
+    assert "应届毕业生" in result.experience_match
+    
+    # Overall score should be higher
+    # 80*0.4 + 50*0.3 + 100*0.2 + 70*0.1 = 74
+    assert result.overall_match_score == 74

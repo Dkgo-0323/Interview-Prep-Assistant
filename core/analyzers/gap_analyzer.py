@@ -98,14 +98,8 @@ def _validate_inputs(jd: JDInfo, resume: ResumeInfo) -> None:
             "简历中未找到技能信息，无法进行匹配度分析"
         )
     
-    if not resume.experiences:
-        raise GapAnalysisError(
-            "简历中未找到工作经历信息，无法进行匹配度分析"
-        )
-    
     # Note: resume.projects is allowed to be empty
     # Not all candidates have project experience
-
 
 def _validate_scores(result: GapAnalysis) -> None:
     """

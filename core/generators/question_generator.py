@@ -115,10 +115,6 @@ def _validate_inputs(
     # 5. JD 必须有必备技能
     if not jd.required_skills:
         raise QuestionGenerationError("职位描述缺少必备技能信息")
-    
-    # 6. 简历必须有工作经历（项目经验可以为空）
-    if not resume.experiences:
-        raise QuestionGenerationError("简历缺少工作经历信息")
 
 
 def _check_duplicate_questions(questions: List[Question]) -> None:

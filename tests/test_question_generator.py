@@ -215,19 +215,6 @@ def test_validate_inputs_jd_no_required_skills(valid_gap, valid_resume):
         _validate_inputs(valid_gap, valid_resume, jd_no_skills, num_questions=10)
 
 
-def test_validate_inputs_resume_no_experiences(valid_gap, valid_jd):
-    """Test validation fails when resume has no experiences."""
-    resume_no_exp = ResumeInfo(
-        skills=["Python"],
-        experiences=[],  # No experiences
-        projects=[],
-        education=[]
-    )
-    
-    with pytest.raises(QuestionGenerationError, match="简历缺少工作经历信息"):
-        _validate_inputs(valid_gap, resume_no_exp, valid_jd, num_questions=10)
-
-
 # ============================================================================
 # Test: _check_duplicate_questions()
 # ============================================================================
@@ -497,3 +484,212 @@ def test_generate_questions_default_num_questions(valid_gap, valid_resume, valid
     )
     
     assert len(result.questions) == 10
+
+
+# ============================================================================
+# Test: Fresh Graduate Scenarios
+# ============================================================================
+
+def test_validate_inputs_resume_empty_experiences_allowed(valid_gap, valid_jd):
+    """Test that empty experiences list is allowed (fresh graduate scenario)."""
+    resume_fresh_grad = ResumeInfo(
+        skills=["Python", "FastAPI"],
+        experiences=[],  # Empty - fresh graduate
+        projects=[
+            Project(
+                name="Capstone Project",
+                description="Built a web application",
+                technologies=["Python", "FastAPI"]
+            )
+        ],
+        education=[
+            Education(
+                institution="University",
+                degree="Bachelor of Science",
+                field_of_study="Computer Science",
+                graduation_date="2024-05"
+            )
+        ]
+    )
+    
+    # Should NOT raise any exception
+    _validate_inputs(valid_gap,resume_fresh_grad, valid_jd, num_questions=10)
+
+
+def test_generate_questions_for_fresh_graduate(mock_llm_service):
+    """
+    Test question generation for fresh graduate with no work experience.
+    
+    This validates that the system can generate appropriate questions
+    based on projects and skills when work experience is absent.
+    """
+    # Fresh graduate resume
+    fresh_grad_resume = ResumeInfo(
+        skills=["Python", "Django", "PostgreSQL"],
+        experiences=[],  # No work experience
+        projects=[
+            Project(
+                name="Student Management System",
+                description="Full-stack application for managing student records",
+                technologies=["Python", "Django", "PostgreSQL", "React"],
+                role="Lead Developer"
+            ),
+            Project(
+                name="ML Image Classifier",
+                description="CNN model for image classification",
+                technologies=["Python", "TensorFlow"],
+                role="Sole Developer"
+            )
+        ],
+        education=[
+            Education(
+                institution="UC Berkeley",
+                degree="Bachelor of Science",
+                field_of_study="Computer Science",
+                graduation_date="2024-05",
+                gpa="3.9/4.0"
+            )
+        ],
+        years_of_experience=0
+    )
+    
+    # Entry-level JD
+    entry_level_jd = JDInfo(
+        job_title="Junior Python Developer",
+        required_skills=["Python", "Django"],
+        nice_to_have_skills=["AWS"],
+        responsibilities=[
+            "Develop backend features",
+            "Write clean code"
+        ]
+    )
+    
+    # Gap analysis for fresh graduate
+    fresh_grad_gap = GapAnalysis(
+        matched_skills=["Python", "Django"],
+        missing_skills=["AWS"],
+        skill_score=80,
+        experience_match="应届毕业生，无正式工作经验",
+        experience_score=40,
+        education_match="本科学历符合要求",
+        education_score=100,
+        project_relevance="项目经验展示了基础技术能力",
+        project_score=70,
+        strengths=["掌握核心技术栈", "学习能力强"],
+        weaknesses=["缺少工作经验", "未掌握云服务"],
+        recommendations=["积累实习经验", "学习AWS"],
+        overall_match_score=68
+    )
+    
+    # Mock LLM to return questions appropriate for fresh graduate
+    mock_questions = QuestionList(
+        questions=[
+            Question(
+                question_text=f"请解释Python中的装饰器是什么？请结合你的学生管理系统项目说明如何使用。{i}",
+                question_type=QuestionType.TECHNICAL,
+                difficulty=DifficultyLevel.BASIC,
+                focus_area="Python核心概念",
+                intent="考察基础知识掌握程度",
+                reference_answer=f"装饰器是用于修改函数行为的工具。在项目中用于权限验证等场景。{i}"
+            )
+            for i in range(10)
+        ]
+    )
+    mock_llm_service.call.return_value = mock_questions
+    
+    # Generate questions
+    result = generate_questions(
+        gap=fresh_grad_gap,
+        resume=fresh_grad_resume,
+        jd=entry_level_jd,
+        llm=mock_llm_service,
+        num_questions=10
+    )
+    
+    # Verify questions were generated successfully
+    assert len(result.questions) == 10
+    
+    # Verify LLM was called
+    mock_llm_service.call.assert_called_once()
+    
+    # Verify the prompt contains project information (since no experience)
+    call_args = mock_llm_service.call.call_args
+    prompt = call_args[1]["prompt"]
+    assert "Student Management System" in prompt or "ML Image Classifier" in prompt
+
+
+def test_generate_questions_fresh_graduate_focuses_on_projects(mock_llm_service):
+    """
+    Test that question generation for fresh graduates focuses on projects
+    and skills rather than work experience.
+    """
+    # Fresh graduate with only education and skills
+    minimal_fresh_grad = ResumeInfo(
+        skills=["Python", "Git"],
+        experiences=[],
+        projects=[],  # Even without projects
+        education=[
+            Education(
+                institution="University",
+                degree="Bachelor of Science",
+                field_of_study="Computer Science",
+                graduation_date="2024-05"
+            )
+        ],
+        years_of_experience=0
+    )
+    
+    # Junior position JD
+    junior_jd = JDInfo(
+        job_title="Junior Developer",
+        required_skills=["Python"],
+        responsibilities=["Learn and contribute to development"]
+    )
+    
+    # Gap analysis
+    gap = GapAnalysis(
+        matched_skills=["Python"],
+        missing_skills=[],
+        skill_score=60,
+        experience_match="应届毕业生，无经验",
+        experience_score=20,
+        education_match="符合要求",
+        education_score=100,
+        project_relevance="无项目经验",
+        project_score=0,
+        strengths=["掌握Python基础", "计算机科学背景"],
+        weaknesses=["缺少实践经验"],
+        recommendations=["多动手实践"],
+        overall_match_score=50
+    )
+    
+    # Mock questions focused on basics
+    mock_questions = QuestionList(
+        questions=[
+            Question(
+                question_text=f"Python基础问题 {i}",
+                question_type=QuestionType.TECHNICAL,
+                difficulty=DifficultyLevel.BASIC,
+                focus_area="Python基础",
+                intent="考察基础知识",
+                reference_answer=f"参考答案 {i}"
+            )
+            for i in range(10)
+        ]
+    )
+    mock_llm_service.call.return_value = mock_questions
+    
+    # Should succeed even with minimal information
+    result = generate_questions(
+        gap=gap,
+        resume=minimal_fresh_grad,
+        jd=junior_jd,
+        llm=mock_llm_service,
+        num_questions=10
+    )
+    
+    assert len(result.questions) == 10
+    
+    # Verify questions are basic level (appropriate for fresh graduate)
+    for question in result.questions:
+        assert question.difficulty == DifficultyLevel.BASIC
