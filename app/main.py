@@ -46,7 +46,8 @@ feat1, feat2, feat3 = st.columns(3)
 with feat1:
     st.markdown("""
     <div style="background: white; border-radius: 12px; padding: 1.5rem;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #E8E8ED;">
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #E8E8ED;
+                min-height: 180px; display: flex; flex-direction: column; justify-content: center; height: 100%;">
         <div style="font-weight: 600; margin-bottom: 0.5rem; color: #1C1C1E;">智能解析</div>
         <div style="color: #6C6C70; font-size: 0.9rem; line-height: 1.5;">
             上传 JD 和简历，自动提取关键信息
@@ -57,10 +58,11 @@ with feat1:
 with feat2:
     st.markdown("""
     <div style="background: white; border-radius: 12px; padding: 1.5rem;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #E8E8ED;">
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #E8E8ED;
+                min-height: 180px; display: flex; flex-direction: column; justify-content: center; height: 100%;">
         <div style="font-weight: 600; margin-bottom: 0.5rem; color: #1C1C1E;">匹配分析</div>
         <div style="color: #6C6C70; font-size: 0.9rem; line-height: 1.5;">
-            多维度评估，精准定位差距
+            多维度评估，精准定位差距，提供提升建议
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -68,7 +70,8 @@ with feat2:
 with feat3:
     st.markdown("""
     <div style="background: white; border-radius: 12px; padding: 1.5rem;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #E8E8ED;">
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; border: 1px solid #E8E8ED;
+                min-height: 180px; display: flex; flex-direction: column; justify-content: center; height: 100%;">
         <div style="font-weight: 600; margin-bottom: 0.5rem; color: #1C1C1E;">面试题库</div>
         <div style="color: #6C6C70; font-size: 0.9rem; line-height: 1.5;">
             AI 生成个性化面试题，含参考答案
