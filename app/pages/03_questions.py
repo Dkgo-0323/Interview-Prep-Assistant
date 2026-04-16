@@ -157,4 +157,4 @@ with col2:
         # 清除所有状态并返回首页
         for key in list(st.session_state.keys()):
             del st.session_state[key]
-        st.switch_page("app/main.py")
+        st.switch_page("main.py")
