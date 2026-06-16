@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="zh" className={`${geistSans.variable} ${geistMono.variable} bg-background`}>
+    <html lang="zh" className={`${geistSans.variable} ${geistMono.variable} bg-background`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <SiteNav />
         {children}
