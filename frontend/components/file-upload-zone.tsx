@@ -13,15 +13,17 @@ interface FileUploadZoneProps {
   icon: ReactNode
   file: File | null
   onFileChange: (file: File | null) => void
+  disabled?: boolean
 }
 
-export function FileUploadZone({ title, description, icon, file, onFileChange }: FileUploadZoneProps) {
+export function FileUploadZone({ title, description, icon, file, onFileChange, disabled }: FileUploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [isDragging, setIsDragging] = useState(false)
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
     setIsDragging(false)
+    if (disabled) return
     const dropped = e.dataTransfer.files?.[0]
     if (dropped) onFileChange(dropped)
   }
@@ -49,7 +51,7 @@ export function FileUploadZone({ title, description, icon, file, onFileChange }:
       ) : (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => !disabled && inputRef.current?.click()}
           onDragOver={(e) => {
             e.preventDefault()
             setIsDragging(true)
@@ -61,6 +63,7 @@ export function FileUploadZone({ title, description, icon, file, onFileChange }:
             isDragging
               ? "border-primary bg-primary/5"
               : "border-border bg-secondary/30 hover:border-primary/50 hover:bg-secondary/60",
+            disabled && "pointer-events-none opacity-50",
           )}
         >
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -79,6 +82,7 @@ export function FileUploadZone({ title, description, icon, file, onFileChange }:
         ref={inputRef}
         type="file"
         accept={ACCEPTED}
+        disabled={disabled}
         className="hidden"
         onChange={(e) => onFileChange(e.target.files?.[0] ?? null)}
       />
