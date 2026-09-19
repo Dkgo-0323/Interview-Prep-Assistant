@@ -26,7 +26,7 @@ type LoadStatus = "idle" | "loading" | "success" | "error"
 export default function QuestionsPage() {
   // ── 数据状态 ───────────────────────────────────────────────
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
-  const [loadStatus, setLoadStatus]     = useState<LoadStatus>("idle")
+  const [loadStatus, setLoadStatus]     = useState<LoadStatus>("loading")
   const [errorMsg, setErrorMsg]         = useState("")
   const [numToGenerate, setNumToGenerate] = useState(10)
 
@@ -39,10 +39,7 @@ export default function QuestionsPage() {
   const [onlyBookmarked, setOnlyBookmarked] = useState(false)
 
   // ── 加载题目（优先读缓存，没有再生成）─────────────────────
-  async function loadQuestions(forceNew = false) {
-    setLoadStatus("loading")
-    setErrorMsg("")
-
+  async function fetchQuestions(forceNew = false) {
     try {
       let response
 
@@ -76,9 +73,20 @@ export default function QuestionsPage() {
   }
 
   // 页面挂载时自动加载
+  function loadQuestions(forceNew = false) {
+    setLoadStatus("loading")
+    setErrorMsg("")
+    void fetchQuestions(forceNew)
+  }
+
   useEffect(() => {
-    loadQuestions()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    async function loadInitialQuestions() {
+      await Promise.resolve()
+      await fetchQuestions()
+    }
+
+    void loadInitialQuestions()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- initialize once; later generation is user-triggered.
 
   // ── 筛选逻辑 ───────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -99,7 +107,11 @@ export default function QuestionsPage() {
   function toggleBookmark(id: number) {
     setBookmarks((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       return next
     })
   }

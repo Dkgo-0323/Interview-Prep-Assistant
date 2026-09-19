@@ -45,7 +45,7 @@ function toAnalysisResult(gap: GapAnalysis): AnalysisResult {
 type Phase = "idle" | "analyzing" | "done" | "error"
 
 export default function AnalyzePage() {
-  const [phase, setPhase]         = useState<Phase>("idle")
+  const [phase, setPhase]         = useState<Phase>("analyzing")
   const [current, setCurrent]     = useState(0)
   const [statusMsg, setStatusMsg] = useState("")
   const [result, setResult]       = useState<AnalysisResult | null>(null)
@@ -91,9 +91,9 @@ export default function AnalyzePage() {
 
   // 页面加载时自动开始（与原版行为一致）
   useEffect(() => {
-    startAnalyzing()
+    closeRef.current = startAnalysis(handleEvent, handleError)
     return () => closeRef.current?.()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── 渲染 ───────────────────────────────────────────────────
   return (
