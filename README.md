@@ -1,236 +1,127 @@
-# 📋 Interview Prep Assistant
+# Interview Prep Assistant
 
-AI-powered interview preparation tool. Upload JD + Resume → Get personalized interview questions + Mock interview practice.
+面向求职者的 AI 面试准备工具。用户上传职位描述（JD）和简历后，系统提取结构化信息、分析岗位匹配度，并生成可筛选的个性化面试题与参考回答。
 
----
+本项目以一条完整的产品链路展示如何把大模型能力接入可交互的 Web 应用：**文件解析 → 结构化抽取 → 能力差距分析 → 流式反馈 → 面试题生成**。
 
-## 🎯 What It Does
+## 项目亮点
 
-```
-1. Upload job description (JD) and your resume
-2. AI analyzes the gap between JD requirements and your skills
-3. Generates personalized interview questions
-4. (Phase 2) Conduct mock interview with AI interviewer
-5. (Phase 3) Get evaluation report and track progress
-```
+- **端到端真实链路**：Next.js 前端直接调用 FastAPI，上传、分析和题目生成均接入真实后端，而非仅展示静态页面。
+- **结构化 LLM 输出**：以 Pydantic 模型约束 JD、简历、差距分析和面试题的数据契约，降低自由文本输出进入业务层的风险。
+- **流式用户体验**：分析过程通过 Server-Sent Events（SSE）分阶段返回 JD、简历与差距分析进度，避免长时间请求无反馈。
+- **面试题质量控制**：按题量分批生成，对空答案与高相似题去重；当题量不足时会补充生成。
+- **工程化边界清晰**：文件类型与大小校验、临时文件清理、错误映射、LLM 重试、日志和 token/cost 统计均位于明确的基础设施边界内。
 
----
+## 已实现功能
 
-## 🚀 Quick Start
+| 能力 | 状态 | 说明 |
+| --- | --- | --- |
+| JD / 简历上传 | 已实现 | 支持 PDF、DOCX、TXT，单文件最大 10 MB。 |
+| 文本解析 | 已实现 | 根据文件类型分派 PDF、DOCX、TXT 解析器。 |
+| 岗位与简历结构化抽取 | 已实现 | 提取岗位技能、职责、经历、项目、教育背景等信息。 |
+| 匹配度与差距分析 | 已实现 | 输出技能、经验、教育、项目维度的分数、优势、短板与建议。 |
+| 流式分析进度 | 已实现 | 通过 SSE 依次推送 JD、简历与差距分析阶段。 |
+| 个性化面试题 | 已实现 | 支持生成 10–50 题，包含类型、难度、考察点与参考回答。 |
+| 题库交互 | 已实现 | 支持筛选、搜索、翻转卡片、收藏（收藏仅保留在当前前端会话）。 |
+| 求职画像页面 | 部分实现 | 页面与接口已接通；后端当前返回占位数据，不应视为正式分析能力。 |
 
-```bash
-# 1. Clone
-git clone https://github.com/yourusername/interview-prep-assistant.git
-cd interview-prep-assistant
+## 技术栈
 
-# 2. Setup
+| 层次 | 技术 |
+| --- | --- |
+| 前端 | Next.js 16、React 19、TypeScript、Tailwind CSS、Recharts |
+| 后端 | FastAPI、Pydantic v2、Uvicorn |
+| 大模型 | Qwen（DashScope OpenAI-compatible API），通过 OpenAI Python SDK 调用 |
+| 文档解析 | pdfplumber、PyPDF2、python-docx、chardet |
+| 测试 | pytest、FastAPI TestClient、前端 ESLint |
+
+## 本地运行
+
+### 1. 准备后端
+
+需要 Python 3.10+。在项目根目录执行：
+
+```powershell
 python -m venv venv
-source venv/bin/activate          # Mac/Linux
-# .\venv\Scripts\Activate.ps1     # Windows
-
-# 3. Install
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-
-# 4. Config
-cp .env.example .env
-# Add your OPENAI_API_KEY to .env
-
-# 5. Run
-streamlit run app/main.py
+Copy-Item .env.example .env
 ```
 
----
+在 `.env` 中填写 DashScope 兼容接口配置，至少包括：
 
-## 🛠️ Tech Stack
-
-- **Frontend**: Streamlit
-- **LLM**: OpenAI GPT-4o-mini
-- **Parser**: pdfplumber, python-docx
-- **Validation**: Pydantic
-
----
-
-## 📊 Development Progress
-
-### ✅ Phase 0: Setup (Completed)
-```
-[✓] Project structure created
-[✓] Git initialized
-[✓] Dependencies configured
-[✓] Environment setup completed
+```dotenv
+DASHSCOPE_API_KEY=your-api-key
+LLM_BASE_URL=https://your-workspace-id.cn-beijing.maas.aliyuncs.com/compatible-mode/v1
+LLM_DEFAULT_MODEL=qwen3.7-plus
 ```
 
-### 🚧 Phase 1: MVP - Question Generator (In Progress)
-**Target**: Upload files → AI generates personalized questions
+启动 API：
 
-**Core Features**:
-- [⬜] File upload (PDF/DOCX/TXT)
-- [⬜] Text extraction from files
-- [⬜] JD analysis (extract required skills, responsibilities)
-- [⬜] Resume analysis (extract experience, skills)
-- [⬜] Gap analysis (JD vs Resume matching)
-- [⬜] Question generation (10 personalized questions)
-- [⬜] Display questions with difficulty & reference answers
-
-**Files to Complete** (in order):
-```
-1. [ ] config.py                          - Global config
-2. [ ] models/schemas.py                   - Data models
-3. [ ] utils/logger.py                     - Logging
-4. [ ] core/parsers/                       - File parsing
-   [ ] pdf_parser.py
-   [ ] docx_parser.py
-   [ ] txt_parser.py
-   [ ] parser_factory.py
-5. [ ] services/llm_service.py             - LLM wrapper
-6. [ ] prompts/                            - Prompt templates
-   [ ] jd_extraction.py
-   [ ] resume_extraction.py
-   [ ] gap_analysis.py
-   [ ] question_generation.py
-7. [ ] core/analyzers/                     - Analysis logic
-   [ ] jd_analyzer.py
-   [ ] resume_analyzer.py
-   [ ] gap_analyzer.py
-8. [ ] core/generators/                    - Question generator
-   [ ] question_generator.py
-9. [ ] app/main.py                         - App entry
-10. [ ] app/pages/                         - UI pages
-    [ ] 01_upload.py
-    [ ] 02_analysis.py
-    [ ] 03_questions.py
+```powershell
+uvicorn api.main:app --reload --port 8000
 ```
 
-**Estimated Time**: 3-5 days  
-**Commit Strategy**: One commit per file/module completed
+服务启动后可访问 [Swagger UI](http://localhost:8000/docs)，健康检查地址为 `http://localhost:8000/api/health`。
 
----
+### 2. 准备前端
 
-### 📅 Phase 2: Mock Interview (Planned)
-**Target**: Interactive AI interviewer with follow-up questions
+需要 Node.js 20+。新开一个终端：
 
-**Features**:
-- [ ] Chat-based interview interface
-- [ ] AI interviewer persona (system prompt)
-- [ ] Real-time answer evaluation
-- [ ] Follow-up questions based on answers
-- [ ] Session state management (conversation memory)
-- [ ] Interview completion report
-
-**New Files Needed**:
-```
-- core/interview/interviewer.py
-- core/interview/answer_evaluator.py
-- core/interview/session_manager.py
-- prompts/interviewer_system.py
-- prompts/answer_evaluation.py
-- app/pages/04_mock_interview.py
-- app/pages/05_report.py
+```powershell
+Set-Location frontend
+npm install
+npm run dev
 ```
 
-**Estimated Time**: 3-5 days
+打开 `http://localhost:3000`。默认前端会连接 `http://localhost:8000`；如需覆盖，可设置 `NEXT_PUBLIC_API_URL`。
 
----
+## 使用流程
 
-### 📅 Phase 3: History & Analytics (Planned)
-**Target**: Track progress and build personal question bank
+1. 在首页分别上传 JD 与简历。
+2. 进入分析页，查看 SSE 推送的解析进度及最终匹配报告。
+3. 进入题库页，生成或读取缓存的个性化面试题。
+4. 使用题型、难度、关键词与收藏筛选进行练习。
 
-**Features**:
-- [ ] SQLite database integration
-- [ ] Save interview sessions
-- [ ] View history & re-practice
-- [ ] Wrong answer notebook
-- [ ] Bookmark questions
-- [ ] Export reports to PDF
-- [ ] Progress tracking dashboard
+## API 概览
 
-**New Files Needed**:
-```
-- models/database.py
-- services/db_service.py
-- services/export_service.py
-- app/pages/06_history.py
-- utils/pdf_generator.py
-```
+| 方法 | 路径 | 用途 |
+| --- | --- | --- |
+| `POST` | `/api/upload/jd` | 上传并解析 JD。 |
+| `POST` | `/api/upload/resume` | 上传并解析简历。 |
+| `GET` | `/api/analyze/stream` | 以 SSE 执行三阶段分析。 |
+| `GET` | `/api/analyze/result` | 读取当前内存会话中的分析结果。 |
+| `POST` | `/api/questions/generate` | 根据分析结果生成 10–50 道题。 |
+| `GET` | `/api/questions/cached` | 读取当前内存会话中的题目缓存。 |
+| `DELETE` | `/api/upload/clear` | 清空当前服务进程的演示会话。 |
 
-**Estimated Time**: 3-5 days
+完整接口契约以运行中的 Swagger 文档为准。
 
----
+## 验证
 
-## 📁 Project Structure
+```powershell
+pytest
 
-```
-interview-prep-assistant/
-│
-├── .env                          # API keys (DO NOT COMMIT)
-├── .env.example                  # Template
-├── .gitignore
-├── requirements.txt
-├── README.md
-├── config.py
-│
-├── app/                          # Streamlit UI
-│   ├── main.py
-│   ├── pages/
-│   │   ├── 01_upload.py
-│   │   ├── 02_analysis.py
-│   │   ├── 03_questions.py
-│   │   ├── 04_mock_interview.py      # Phase 2
-│   │   ├── 05_report.py              # Phase 2
-│   │   └── 06_history.py             # Phase 3
-│   └── components/
-│
-├── core/                         # Business logic
-│   ├── parsers/                  # File parsing
-│   ├── analyzers/                # AI analysis
-│   ├── generators/               # Question generation
-│   └── interview/                # Mock interview (Phase 2)
-│
-├── prompts/                      # LLM prompts
-├── models/                       # Data models
-├── services/                     # Services (LLM, DB, Export)
-├── utils/                        # Utilities
-├── data/                         # Data storage
-│   └── uploads/
-└── tests/                        # Tests
+Set-Location frontend
+npm run lint
 ```
 
----
+测试目录覆盖文件解析、LLM 服务、结构化抽取、差距分析、题目生成及 API 冒烟场景。
 
-## 🔄 Git Workflow
+## 面试展示建议
 
-```bash
-# After completing each file/module:
-git add .
-git commit -m "feat: add [module_name] - [brief description]"
-git push
+可以围绕以下设计决策展开：
 
-# Example commits:
-# git commit -m "feat: add config.py - global settings"
-# git commit -m "feat: add PDF parser - extract text from PDF"
-# git commit -m "feat: add JD analyzer - LLM-based extraction"
-```
+1. 为什么用 Pydantic 约束大模型输出，而不是直接消费自然语言？
+2. 为什么把同步 LLM 调用放入线程，并用 SSE 把阶段性结果反馈给浏览器？
+3. 为什么题目生成需要分批、补足与相似度去重？
+4. 如何将当前内存会话替换为 Redis/数据库，使其支持多用户、持久化和横向扩展？
 
----
+## 当前边界
 
-## 📝 Current Sprint
+- 后端使用进程内全局字典保存演示会话，重启服务、多人同时使用或多实例部署都会丢失/混用状态；不适用于生产环境。
+- 未实现登录、持久化历史、报告导出和模拟面试。
+- 题库页在接口失败时会显示前端示例题，仅用于演示 UI；不能将该降级内容视为模型生成结果。
+- 求职画像接口当前为占位实现，需补充真实的分析服务后再作为产品能力发布。
 
-**Now Working On**: Phase 1 - File Upload & Question Generation  
-**Next File**: `config.py`  
-**Last Updated**: 2025-01-XX
-
----
-
-## 📄 License
-
-MIT
-
----
-
-## 🤝 Contributing
-
-This is a personal learning project. Feedback welcome!
-
----
-
-**Note**: Update this README after completing each module to track progress.
+更多设计与运行时边界见 [Architecture.md](Architecture.md)。
