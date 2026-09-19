@@ -2,9 +2,9 @@
 Token计数和管理工具模块
 
 功能：
-- 计算文本的token数量（基于tiktoken）
+- 在请求前粗略估算文本 token 数量
 - 截断超长文本到指定token限制
-- 估算API调用成本
+- 根据供应商返回的实际 token 数估算API调用成本
 
 依赖：
 - tiktoken: OpenAI官方token计数库
@@ -12,12 +12,16 @@ Token计数和管理工具模块
 - utils.logger: 日志记录
 """
 
-import tiktoken
+import math
 from typing import Optional, Dict
 from functools import lru_cache
 
-from config import MODEL_NAME
+import tiktoken
+
+import config
 from utils.logger import get_logger
+
+MODEL_NAME = config.MODEL_NAME
 
 # ============================================
 # 配置
@@ -25,8 +29,7 @@ from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-# OpenAI模型定价表（2024年1月数据，单位：美元/1M tokens）
-# 来源：https://openai.com/pricing
+# 单位：美元/1M tokens。Qwen 价格不写死在仓库中，而是读取本地环境配置。
 MODEL_PRICING: Dict[str, Dict[str, float]] = {
     "gpt-4o-mini": {
         "input": 0.150,   # $0.150 per 1M input tokens
@@ -45,6 +48,15 @@ MODEL_PRICING: Dict[str, Dict[str, float]] = {
         "output": 1.50,
     },
 }
+
+if (
+    config.LLM_INPUT_COST_USD_PER_MILLION_TOKENS is not None
+    and config.LLM_OUTPUT_COST_USD_PER_MILLION_TOKENS is not None
+):
+    MODEL_PRICING[config.LLM_DEFAULT_MODEL] = {
+        "input": config.LLM_INPUT_COST_USD_PER_MILLION_TOKENS,
+        "output": config.LLM_OUTPUT_COST_USD_PER_MILLION_TOKENS,
+    }
 
 # 默认使用输入价格进行估算（保守估计）
 DEFAULT_COST_TYPE = "input"
@@ -67,7 +79,8 @@ def _get_encoding(model: str) -> tiktoken.Encoding:
         
     Note:
         - 使用lru_cache避免重复创建编码器
-        - 若模型不存在，fallback到cl100k_base（GPT-4系列通用）
+        - Qwen 不使用 tiktoken；未知模型只使用 cl100k_base 做请求前粗略估算
+        - 实际计费与日志以供应商响应中的 usage 为准
     """
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -75,7 +88,8 @@ def _get_encoding(model: str) -> tiktoken.Encoding:
         return encoding
     except KeyError:
         logger.warning(
-            f"模型 '{model}' 无对应编码器，使用默认编码器 'cl100k_base'"
+            f"模型 '{model}' 无精确的本地编码器，使用 'cl100k_base' 粗略估算；"
+            "实际用量以供应商 usage 为准"
         )
         return tiktoken.get_encoding("cl100k_base")
 
@@ -114,6 +128,18 @@ def count_tokens(text: str, model: str = MODEL_NAME) -> int:
     if not text:
         logger.debug("空文本，返回0 tokens")
         return 0
+
+    if model.lower().startswith("qwen"):
+        # Qwen does not use an OpenAI tiktoken vocabulary. This intentionally
+        # avoids downloading an unrelated tokenizer and is used only for
+        # pre-request logging; provider-reported usage remains authoritative.
+        token_count = max(1, math.ceil(len(text.encode("utf-8")) / 3))
+        logger.debug(
+            "Qwen token粗略估算: %d tokens (模型: %s); 实际用量以 usage 为准",
+            token_count,
+            model,
+        )
+        return token_count
     
     # 获取编码器并计算
     encoding = _get_encoding(model)
@@ -167,6 +193,23 @@ def truncate_text(
     
     if not text:
         return text
+
+    if model.lower().startswith("qwen"):
+        # Conservative character-based fallback for a tokenizer that is not
+        # available locally. Business inputs also have their own length guards.
+        available_chars = max_tokens - len(suffix)
+        if available_chars <= 0:
+            raise ValueError(
+                f"Suffix占用 {len(suffix)} 字符，超过限制 {max_tokens}"
+            )
+        if len(text) <= max_tokens:
+            return text
+        logger.warning(
+            "Qwen 文本按字符保守截断: %d -> %d; token限制为粗略值",
+            len(text),
+            available_chars,
+        )
+        return text[:available_chars] + suffix
     
     # 获取编码器
     encoding = _get_encoding(model)
@@ -217,7 +260,7 @@ def estimate_cost(
     num_tokens: int,
     model: str = MODEL_NAME,
     cost_type: str = DEFAULT_COST_TYPE
-) -> float:
+) -> float | None:
     """
     估算API调用成本
     
@@ -227,7 +270,7 @@ def estimate_cost(
         cost_type: 价格类型（"input" 或 "output"）
         
     Returns:
-        预估成本（美元）
+        预估成本（美元）；没有对应价格配置时返回 None
         
     Examples:
         >>> estimate_cost(1000, model="gpt-4o-mini")  # 1k tokens
@@ -238,7 +281,7 @@ def estimate_cost(
         
     Note:
         - 返回值单位为美元（USD）
-        - 未知模型使用gpt-4o-mini价格（保守估计）
+        - 未知模型不会套用其他模型价格
         - cost_type默认为"input"（通常input更便宜）
     """
     # 输入验证
@@ -252,10 +295,8 @@ def estimate_cost(
     if model in MODEL_PRICING:
         price_per_million = MODEL_PRICING[model][cost_type]
     else:
-        logger.warning(
-            f"未知模型 '{model}'，使用 gpt-4o-mini 价格进行估算"
-        )
-        price_per_million = MODEL_PRICING["gpt-4o-mini"][cost_type]
+        logger.warning("模型 '%s' 未配置价格，成本记为 unknown", model)
+        return None
     
     # 计算成本（tokens / 1,000,000 * 单价）
     cost = (num_tokens / 1_000_000) * price_per_million

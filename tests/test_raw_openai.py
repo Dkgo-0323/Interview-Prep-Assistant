@@ -1,17 +1,15 @@
-# test_raw_openai.py
-import os
-from openai import OpenAI
+"""Manual Qwen text-call diagnostic with no import-time network side effects."""
 
-# 直接把你的 key 写在这里测试（测完删掉）
-client = OpenAI(api_key="")
+from services.llm_service import LLMService
 
-try:
-    completion = client.chat.completions.create(
-      model="gpt-4o-mini",
-      messages=[
-        {"role": "user", "content": "Hello!"}
-      ]
+
+def main() -> None:
+    response = LLMService(max_tokens=64).call_simple(
+        prompt="请回复：Qwen 连接成功",
+        temperature=0.0,
     )
-    print("原生调用成功！AI回复：", completion.choices[0].message.content)
-except Exception as e:
-    print("原生调用也失败了，错误是：", e)
+    print(response)
+
+
+if __name__ == "__main__":
+    main()

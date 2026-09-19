@@ -1,6 +1,6 @@
-"""LLM Service — 与 OpenAI API 交互的统一封装
+"""LLM Service — 通过 OpenAI-compatible 协议调用 Qwen。
 
-提供结构化的 LLM 调用接口，处理所有与 OpenAI API 相关的细节：
+提供结构化的 LLM 调用接口，处理所有与模型供应商相关的细节：
 - 自动重试（网络错误、限流）
 - 解析失败重试
 - 错误处理和日志记录
@@ -17,6 +17,7 @@
 
 import time
 from typing import Type, TypeVar
+from urllib.parse import urlparse
 
 from openai import OpenAI
 from pydantic import BaseModel
@@ -40,7 +41,7 @@ class LLMService:
     线程安全，可在应用启动时创建单例复用。
     
     Attributes:
-        client: OpenAI 客户端（自动重试网络错误和限流）
+        client: OpenAI-compatible 客户端（自动重试网络错误和限流）
         model: 使用的模型名称
         default_temperature: 默认温度
         default_max_tokens: 默认最大 token 数
@@ -53,43 +54,44 @@ class LLMService:
         temperature: float | None = None,
         max_tokens: int | None = None,
         max_retries: int = 3,
-        timeout: float = 60.0,
+        timeout: float | None = None,
     ):
         """初始化 LLM 服务"""
         self.model = model or config.MODEL_NAME
         self.default_temperature = temperature if temperature is not None else config.TEMPERATURE
         self.default_max_tokens = max_tokens or config.MAX_TOKENS
 
-        print("--- 正在初始化 OpenAI 客户端 ---")
-        _api_key = api_key or config.OPENAI_API_KEY
-        
-        # --- 修改部分开始 ---
-        # 从 config 读取 BASE_URL (如果你在 Streamlit Secrets 里配置了的话)
-        # 如果 config 里没有，默认为 None，OpenAI 会走官方地址
-        _base_url = getattr(config, "OPENAI_BASE_URL", None)
+        _api_key = api_key or config.DASHSCOPE_API_KEY
+        _base_url = config.LLM_BASE_URL
 
         if not _api_key:
             raise LLMServiceError(
-                "OpenAI API Key is required. Set OPENAI_API_KEY in .env or Secrets."
+                "DashScope API Key is required. Set DASHSCOPE_API_KEY in .env."
+            )
+        if not _base_url:
+            raise LLMServiceError(
+                "Qwen base URL is required. Set LLM_BASE_URL or "
+                "DASHSCOPE_BASE_URL in .env."
             )
 
         try:
-            # 严格按照 v1.0+ 标准初始化，彻底剔除 proxies 参数
             self.client = OpenAI(
                 api_key=_api_key,
-                base_url=_base_url,  # 确保这里传入你的代理商地址
+                base_url=_base_url,
                 max_retries=max_retries,
-                timeout=timeout,
+                timeout=timeout or config.LLM_TIMEOUT_SECONDS,
             )
-            # --- 修改部分结束 ---
-            
+
             logger.info(
-                "LLMService initialized: model=%s, base_url=%s",
+                "LLMService initialized: provider=%s, model=%s, "
+                "base_url_host=%s, thinking=%s",
+                config.LLM_PROVIDER,
                 self.model,
-                _base_url
+                urlparse(_base_url).hostname or "invalid",
+                config.LLM_ENABLE_THINKING,
             )
         except Exception as e:
-            raise LLMServiceError(f"Failed to initialize OpenAI client: {e}") from e
+            raise LLMServiceError(f"Failed to initialize Qwen client: {e}") from e
 
     def call(
         self,
@@ -125,8 +127,6 @@ class LLMService:
             'Software Engineer'
         """
         _temperature = temperature if temperature is not None else self.default_temperature
-        _max_tokens = max_tokens or self.default_max_tokens
-
         # 估算输入 token（仅用于日志）
         estimated_input_tokens = count_tokens(system_prompt + prompt, self.model)
         logger.info(
@@ -146,12 +146,23 @@ class LLMService:
             try:
                 start_time = time.time()
 
-                response = self.client.beta.chat.completions.parse(
+                # Qwen JSON Schema structured output should not be constrained
+                # with max_tokens: a truncated response is invalid JSON. Keep the
+                # public max_tokens argument for backward compatibility, but do
+                # not send it for structured calls.
+                if max_tokens is not None:
+                    logger.debug(
+                        "Ignoring max_tokens=%d for structured output to avoid "
+                        "truncated JSON",
+                        max_tokens,
+                    )
+
+                response = self.client.chat.completions.parse(
                     model=self.model,
                     messages=messages,
                     response_format=response_model,
                     temperature=_temperature,
-                    max_tokens=_max_tokens,
+                    extra_body={"enable_thinking": config.LLM_ENABLE_THINKING},
                 )
 
                 elapsed = time.time() - start_time
@@ -166,13 +177,16 @@ class LLMService:
 
                 # 记录使用情况
                 usage = response.usage
-                total_tokens = usage.total_tokens if usage else 0
-                cost = estimate_cost(total_tokens, self.model)
+                prompt_tokens, completion_tokens, total_tokens = _usage_counts(usage)
+                cost = _usage_cost(prompt_tokens, completion_tokens, self.model)
 
                 logger.info(
-                    "LLM call succeeded: tokens_used=%d, cost=$%.4f, time=%.2fs, attempt=%d",
+                    "LLM call succeeded: prompt_tokens=%d, completion_tokens=%d, "
+                    "total_tokens=%d, cost_usd=%s, time=%.2fs, attempt=%d",
+                    prompt_tokens,
+                    completion_tokens,
                     total_tokens,
-                    cost,
+                    _format_cost(cost),
                     elapsed,
                     attempt,
                 )
@@ -234,7 +248,8 @@ class LLMService:
                 model=self.model,
                 messages=messages,
                 temperature=_temperature,
-                max_tokens=_max_tokens,
+                max_completion_tokens=_max_tokens,
+                extra_body={"enable_thinking": config.LLM_ENABLE_THINKING},
             )
 
             elapsed = time.time() - start_time
@@ -248,13 +263,16 @@ class LLMService:
 
             # 记录使用情况
             usage = response.usage
-            total_tokens = usage.total_tokens if usage else 0
-            cost = estimate_cost(total_tokens, self.model)
+            prompt_tokens, completion_tokens, total_tokens = _usage_counts(usage)
+            cost = _usage_cost(prompt_tokens, completion_tokens, self.model)
 
             logger.info(
-                "LLM simple call succeeded: tokens_used=%d, cost=$%.4f, time=%.2fs",
+                "LLM simple call succeeded: prompt_tokens=%d, completion_tokens=%d, "
+                "total_tokens=%d, cost_usd=%s, time=%.2fs",
+                prompt_tokens,
+                completion_tokens,
                 total_tokens,
-                cost,
+                _format_cost(cost),
                 elapsed,
             )
 
@@ -263,3 +281,33 @@ class LLMService:
         except Exception as e:
             logger.error("LLM simple call failed: %s", str(e))
             raise LLMServiceError(f"LLM simple call failed: {e}") from e
+
+
+def _usage_counts(usage: object | None) -> tuple[int, int, int]:
+    """Return provider-reported token counts without estimating them."""
+    if usage is None:
+        return 0, 0, 0
+
+    prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+    completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+    total_tokens = int(
+        getattr(usage, "total_tokens", prompt_tokens + completion_tokens)
+        or prompt_tokens + completion_tokens
+    )
+    return prompt_tokens, completion_tokens, total_tokens
+
+
+def _usage_cost(
+    prompt_tokens: int,
+    completion_tokens: int,
+    model: str,
+) -> float | None:
+    input_cost = estimate_cost(prompt_tokens, model, "input")
+    output_cost = estimate_cost(completion_tokens, model, "output")
+    if input_cost is None or output_cost is None:
+        return None
+    return input_cost + output_cost
+
+
+def _format_cost(cost: float | None) -> str:
+    return f"{cost:.6f}" if cost is not None else "unknown"

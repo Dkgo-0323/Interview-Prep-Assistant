@@ -7,8 +7,40 @@ from models.schemas import (
     GapAnalysis, ResumeInfo, JDInfo, QuestionList, Question,
     QuestionType, DifficultyLevel, WorkExperience, Project, Education
 )
-from core.generators.question_generator import generate_questions, _validate_inputs, _check_duplicate_questions
+from core.generators.question_generator import (
+    _is_duplicate_question,
+    _validate_inputs,
+    generate_questions,
+)
 from core.analyzers.exceptions import QuestionGenerationError
+
+
+UNIQUE_QUESTION_TEXTS = [
+    "请解释 Python GIL 对 CPU 密集型并发的影响。",
+    "如何使用 FastAPI 依赖注入管理数据库会话？",
+    "PostgreSQL 查询出现全表扫描时你会如何定位？",
+    "Docker 镜像体积过大时有哪些优化手段？",
+    "微服务之间如何保证最终一致性？",
+    "请设计一个支持幂等性的 REST 创建接口。",
+    "Kubernetes Pod 反复重启时如何排查？",
+    "Redis 缓存穿透应该如何防护？",
+    "代码审查中发现高并发竞态条件时如何处理？",
+    "如何为后端服务制定可观测性指标？",
+    "数据库连接池耗尽时应检查哪些环节？",
+    "如何为异步任务设计失败重试和死信机制？",
+    "API 延迟突然升高时你会怎样分层定位？",
+    "请说明蓝绿部署与金丝雀发布的差异。",
+    "如何验证一次索引优化确实改善了性能？",
+    "团队对技术方案有分歧时你会如何推进决策？",
+    "如何避免分布式锁失效造成重复执行？",
+    "请设计敏感配置的安全加载与轮换流程。",
+    "如何测试第三方服务超时后的降级策略？",
+    "请描述一次生产事故复盘应包含哪些内容。",
+]
+
+
+def unique_question_text(index: int) -> str:
+    return UNIQUE_QUESTION_TEXTS[index % len(UNIQUE_QUESTION_TEXTS)]
 
 
 # ============================================================================
@@ -216,13 +248,13 @@ def test_validate_inputs_jd_no_required_skills(valid_gap, valid_resume):
 
 
 # ============================================================================
-# Test: _check_duplicate_questions()
+# Test: _is_duplicate_question()
 # ============================================================================
 
 def test_check_duplicate_questions_no_duplicates(sample_questions):
     """Test no duplicates in valid question list."""
-    # Should not raise any exception
-    _check_duplicate_questions(sample_questions.questions)
+    first, second = sample_questions.questions
+    assert _is_duplicate_question(second, [first]) is False
 
 
 def test_check_duplicate_questions_with_duplicates():
@@ -237,7 +269,7 @@ def test_check_duplicate_questions_with_duplicates():
             reference_answer="答案"
         ),
         Question(
-            question_text="不同的问题",
+            question_text="相同的问题",
             question_type=QuestionType.TECHNICAL,
             difficulty=DifficultyLevel.BASIC,
             focus_area="测试",
@@ -254,8 +286,7 @@ def test_check_duplicate_questions_with_duplicates():
         )
     ]
     
-    with pytest.raises(QuestionGenerationError, match="发现重复的面试题目"):
-        _check_duplicate_questions(questions)
+    assert _is_duplicate_question(questions[1], [questions[0]]) is True
 
 
 # ============================================================================
@@ -268,7 +299,7 @@ def test_generate_questions_success(valid_gap, valid_resume, valid_jd, mock_llm_
     mock_questions = QuestionList(
         questions=[
             Question(
-                question_text=f"请解释Python中的概念 {i}",
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.INTERMEDIATE,
                 focus_area="Python核心知识",
@@ -302,7 +333,7 @@ def test_generate_questions_success(valid_gap, valid_resume, valid_jd, mock_llm_
     
     # Verify result
     assert len(result.questions) == 10
-    assert result.questions[0].question_text == "请解释Python中的概念 0"
+    assert result.questions[0].question_text == unique_question_text(0)
 
 
 def test_generate_questions_custom_num_questions(valid_gap, valid_resume, valid_jd, mock_llm_service):
@@ -311,7 +342,7 @@ def test_generate_questions_custom_num_questions(valid_gap, valid_resume, valid_
     mock_questions = QuestionList(
         questions=[
             Question(
-                question_text=f"问题 {i}",
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.BASIC,
                 focus_area="测试",
@@ -343,7 +374,7 @@ def test_generate_questions_wrong_number_returned(valid_gap, valid_resume, valid
     # Mock LLM returns 2 questions but we requested 10
     mock_llm_service.call.return_value = sample_questions
     
-    with pytest.raises(QuestionGenerationError, match="生成的题目数量不正确：期望 10，实际 2"):
+    with pytest.raises(QuestionGenerationError, match="仍未能生成足够数量的题目"):
         generate_questions(
             gap=valid_gap,
             resume=valid_resume,
@@ -359,7 +390,7 @@ def test_generate_questions_empty_reference_answer(valid_gap, valid_resume, vali
     questions_with_empty_answer = QuestionList(
         questions=[
             Question(
-                question_text=f"问题 {i+1}",
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.BASIC,
                 focus_area="测试",
@@ -371,7 +402,7 @@ def test_generate_questions_empty_reference_answer(valid_gap, valid_resume, vali
     )
     mock_llm_service.call.return_value = questions_with_empty_answer
     
-    with pytest.raises(QuestionGenerationError, match="第 5 题缺少参考答案"):
+    with pytest.raises(QuestionGenerationError, match="仍未能生成足够数量的题目"):
         generate_questions(
             gap=valid_gap,
             resume=valid_resume,
@@ -385,7 +416,7 @@ def test_generate_questions_llm_failure(valid_gap, valid_resume, valid_jd, mock_
     """Test error handling when LLM call fails."""
     mock_llm_service.call.side_effect = Exception("OpenAI API timeout")
     
-    with pytest.raises(QuestionGenerationError, match="面试题生成失败，请稍后重试或联系技术支持"):
+    with pytest.raises(QuestionGenerationError, match="仍未能生成足够数量的题目"):
         generate_questions(
             gap=valid_gap,
             resume=valid_resume,
@@ -434,7 +465,7 @@ def test_generate_questions_resume_without_projects(valid_gap, valid_jd, mock_ll
     mock_questions = QuestionList(
         questions=[
             Question(
-                question_text=f"测试问题 {i}",  # Make each question unique
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.BASIC,
                 focus_area="测试",
@@ -463,7 +494,7 @@ def test_generate_questions_default_num_questions(valid_gap, valid_resume, valid
     mock_questions = QuestionList(
         questions=[
             Question(
-                question_text=f"问题 {i}",
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.BASIC,
                 focus_area="测试",
@@ -585,7 +616,7 @@ def test_generate_questions_for_fresh_graduate(mock_llm_service):
     mock_questions = QuestionList(
         questions=[
             Question(
-                question_text=f"请解释Python中的装饰器是什么？请结合你的学生管理系统项目说明如何使用。{i}",
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.BASIC,
                 focus_area="Python核心概念",
@@ -667,7 +698,7 @@ def test_generate_questions_fresh_graduate_focuses_on_projects(mock_llm_service)
     mock_questions = QuestionList(
         questions=[
             Question(
-                question_text=f"Python基础问题 {i}",
+                question_text=unique_question_text(i),
                 question_type=QuestionType.TECHNICAL,
                 difficulty=DifficultyLevel.BASIC,
                 focus_area="Python基础",

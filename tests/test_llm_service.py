@@ -2,11 +2,13 @@
 
 import os
 from typing import Literal
+from unittest.mock import MagicMock
 
 import pytest
 from pydantic import BaseModel, Field
 
 from services.llm_service import LLMService, LLMServiceError
+import config
 
 
 # Test models
@@ -33,9 +35,11 @@ class Classification(BaseModel):
 # Fixtures
 @pytest.fixture
 def llm_service():
-    """创建 LLM 服务实例"""
-    if not os.getenv("OPENAI_API_KEY"):
-        pytest.skip("OPENAI_API_KEY not set")
+    """Create a real provider client only for explicit legacy integration runs."""
+    if os.getenv("RUN_LEGACY_LLM_INTEGRATION") != "1":
+        pytest.skip("Set RUN_LEGACY_LLM_INTEGRATION=1 for legacy live tests")
+    if not config.DASHSCOPE_API_KEY:
+        pytest.fail("DASHSCOPE_API_KEY not set")
     return LLMService()
 
 
@@ -44,9 +48,10 @@ class TestLLMServiceInit:
 
     def test_init_with_defaults(self, monkeypatch):
         """测试使用默认配置初始化"""
-        monkeypatch.setenv("OPENAI_API_KEY", "sk-test123")
+        monkeypatch.setattr(config, "DASHSCOPE_API_KEY", "test-key")
+        monkeypatch.setattr(config, "MODEL_NAME", "qwen3.7-plus")
         service = LLMService()
-        assert service.model == "gpt-4o-mini"
+        assert service.model == "qwen3.7-plus"
         assert service.default_temperature == 0.7
         assert service.default_max_tokens == 2000
 
@@ -63,9 +68,8 @@ class TestLLMServiceInit:
         assert service.default_max_tokens == 1000
 
     def test_init_without_api_key(self, monkeypatch):
-        import config # 确保导入了 config
-        monkeypatch.setattr(config, "OPENAI_API_KEY", None) # 强制把缓存的 key 抹掉
-        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        monkeypatch.setattr(config, "DASHSCOPE_API_KEY", None)
+        monkeypatch.delenv("DASHSCOPE_API_KEY", raising=False)
         
         with pytest.raises(LLMServiceError, match="API Key is required"):
             LLMService()
@@ -155,10 +159,11 @@ class TestLLMServiceCallSimple:
 class TestLLMServiceErrorHandling:
     """测试错误处理"""
 
-    def test_invalid_api_key(self):
-        """测试无效 API Key"""
-        # 这个测试会因为 API key 验证在初始化时进行而通过
-        # 实际调用时才会失败，但 OpenAI SDK 会重试
+    def test_invalid_api_key(self, monkeypatch):
+        """Provider authentication errors are wrapped without a real request."""
+        client = MagicMock()
+        client.chat.completions.parse.side_effect = Exception("Unauthorized")
+        monkeypatch.setattr("services.llm_service.OpenAI", MagicMock(return_value=client))
         service = LLMService(api_key="sk-invalid")
         
         with pytest.raises(LLMServiceError):

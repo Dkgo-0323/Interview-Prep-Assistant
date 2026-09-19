@@ -28,16 +28,42 @@ UPLOAD_DIR = PROJECT_ROOT / "data/uploads"
 # ============================================================
 # 第四步：定义 LLM 相关配置
 # ============================================================
-# OPENAI_API_KEY: 从环境变量读取 "OPENAI_API_KEY"，无默认值（必填项）
-# OPENAI_BASE_URL: 从环境变量读取 "OPENAI_BASE_URL"，默认值为 "https://api.openai.com/v1"
-# MODEL_NAME: 从环境变量读取 "MODEL_NAME"，默认值为 "gpt-4o-mini"
-# TEMPERATURE: 从环境变量读取 "TEMPERATURE"，默认值为 0.7，注意要转换为 float 类型
-# MAX_TOKENS: 从环境变量读取 "MAX_TOKENS"，默认值为 2000，注意要转换为 int 类型
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
+# 百炼提供 OpenAI-compatible API。本项目仍使用 OpenAI Python SDK 作为协议
+# 客户端，但认证、服务地址和默认模型全部来自 Qwen/DashScope 配置。
+DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY")
+LLM_BASE_URL = (
+    os.getenv("LLM_BASE_URL")
+    or os.getenv("DASHSCOPE_BASE_URL")
+)
+LLM_DEFAULT_MODEL = (
+    os.getenv("LLM_DEFAULT_MODEL")
+    or "qwen3.7-plus"
+)
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "qwen")
+LLM_TIMEOUT_SECONDS = float(os.getenv("LLM_TIMEOUT_SECONDS", "120"))
+LLM_ENABLE_THINKING = os.getenv("LLM_ENABLE_THINKING", "false").lower() == "true"
+
 TEMPERATURE = float(os.getenv("TEMPERATURE", "0.7"))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", "2000"))
+
+
+def _optional_float(name: str) -> float | None:
+    value = os.getenv(name)
+    return float(value) if value else None
+
+
+LLM_INPUT_COST_USD_PER_MILLION_TOKENS = _optional_float(
+    "LLM_INPUT_COST_USD_PER_MILLION_TOKENS"
+)
+LLM_OUTPUT_COST_USD_PER_MILLION_TOKENS = _optional_float(
+    "LLM_OUTPUT_COST_USD_PER_MILLION_TOKENS"
+)
+
+# Backward-compatible aliases for modules and local scripts that import the
+# original names. New provider code uses the neutral/DashScope names above.
+OPENAI_API_KEY = DASHSCOPE_API_KEY
+OPENAI_BASE_URL = LLM_BASE_URL
+MODEL_NAME = LLM_DEFAULT_MODEL
 
 # ============================================================
 # 第五步：定义文件上传限制
