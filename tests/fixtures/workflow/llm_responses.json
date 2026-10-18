@@ -1,0 +1,131 @@
+{
+  "JDInfo": {
+    "job_title": "AI 工程师",
+    "company": "示例智能",
+    "required_skills": [
+      "Python",
+      "FastAPI",
+      "RAG"
+    ],
+    "responsibilities": [
+      "开发模型应用 API"
+    ]
+  },
+  "ResumeInfo": {
+    "skills": [
+      "Python",
+      "FastAPI"
+    ],
+    "years_of_experience": 3
+  },
+  "GapAnalysis": {
+    "matched_skills": [
+      "Python",
+      "FastAPI"
+    ],
+    "missing_skills": [
+      "RAG"
+    ],
+    "skill_score": 80,
+    "experience_score": 70,
+    "education_score": 90,
+    "project_score": 60,
+    "experience_match": "基本匹配",
+    "education_match": "本科匹配",
+    "project_relevance": "API 相关经验",
+    "strengths": [
+      "后端开发"
+    ],
+    "weaknesses": [
+      "检索经验不足"
+    ],
+    "recommendations": [
+      "补充 RAG 项目"
+    ],
+    "overall_match_score": 0
+  },
+  "QuestionList": {
+    "questions": [
+      {
+        "question_text": "解释 Python 生成器的执行与内存特征",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "如何设计 FastAPI 的依赖注入",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "检索增强生成怎样评估召回率",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "数据库索引失效有哪些原因",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "描述容器镜像的分层构建过程",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "异步任务如何处理取消和超时",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "向量相似度有哪些计算方法",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "设计 API 请求限流的方案",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "遇到团队技术分歧如何推进",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      },
+      {
+        "question_text": "生产系统故障如何定位及复盘",
+        "question_type": "技术深度",
+        "difficulty": "进阶",
+        "focus_area": "AI 应用工程",
+        "intent": "检查工程实践",
+        "reference_answer": "解释原理，结合项目说明实现步骤与验证指标。"
+      }
+    ]
+  }
+}

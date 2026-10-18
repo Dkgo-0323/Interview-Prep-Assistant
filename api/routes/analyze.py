@@ -36,6 +36,10 @@ async def _stream_analysis():
     """
     session = get_session()
 
+    # 新一轮分析开始即让旧结果失效，失败时不能恢复旧报告或基于旧报告生成题目。
+    for key in ("jd", "resume", "gap", "questions"):
+        session.pop(key, None)
+
     # ── 前置检查 ─────────────────────────────────────────────────
     if "jd_text" not in session:
         yield _sse("error", "请先上传职位描述 (JD) 文件")

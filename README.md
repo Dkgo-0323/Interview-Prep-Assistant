@@ -100,13 +100,17 @@ npm run dev
 ## 验证
 
 ```powershell
-pytest
+.\venv\Scripts\python.exe -m pytest tests/test_api_workflow.py tests/test_api_smoke.py -v -p no:cacheprovider
 
 Set-Location frontend
 npm run lint
 ```
 
 测试目录覆盖文件解析、LLM 服务、结构化抽取、差距分析、题目生成及 API 冒烟场景。
+
+上述命令是无需 API Key、不会产生模型费用的 API 链路回归：使用固定虚构 JD / 简历和 Mock LLM 返回值，真实执行上传解析、分析业务逻辑、SSE 序列、题目生成与缓存恢复。它不验证外部模型质量、网络连通性或浏览器逐帧接收 SSE 的时序。请勿将整个 `pytest` 测试目录视为离线测试，其中包含外部 API 测试。
+
+2026-10-18 验证：26 项通过。复现问题、最小修复和完整契约见 [API 链路测试记录](docs/api-workflow-test-record.md)。真实 Qwen 验证可另行按 `tests/test_qwen_integration.py` 中的说明显式启用，会产生 API 用量。
 
 ## 面试展示建议
 
