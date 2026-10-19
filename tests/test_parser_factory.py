@@ -23,22 +23,24 @@ class TestParseFileRouting:
     
     def test_routes_to_pdf_parser(self, tmp_path: Path):
         """PDF 文件路由到 pdf_parser。"""
-        with patch("core.parsers.parser_factory.parse_pdf") as mock_parse:
-            mock_parse.return_value = "PDF content"
+        mock_parse = MagicMock(return_value="PDF content")
+        # The registry holds the function reference captured at import time.
+        # Replace the registry entry used by parse_file, not the module name.
+        with patch.dict("core.parsers.parser_factory._PARSER_MAP", {".pdf": mock_parse}):
             
             result = parse_file(tmp_path / "test.pdf")
             
-            mock_parse.assert_called_once()
+            mock_parse.assert_called_once_with(tmp_path / "test.pdf")
             assert result == "PDF content"
     
     def test_routes_to_docx_parser(self, tmp_path: Path):
         """DOCX 文件路由到 docx_parser。"""
-        with patch("core.parsers.parser_factory.parse_docx") as mock_parse:
-            mock_parse.return_value = "DOCX content"
+        mock_parse = MagicMock(return_value="DOCX content")
+        with patch.dict("core.parsers.parser_factory._PARSER_MAP", {".docx": mock_parse}):
             
             result = parse_file(tmp_path / "test.docx")
             
-            mock_parse.assert_called_once()
+            mock_parse.assert_called_once_with(tmp_path / "test.docx")
             assert result == "DOCX content"
 
 
@@ -47,21 +49,21 @@ class TestCaseInsensitiveExtension:
     
     def test_uppercase_pdf(self, tmp_path: Path):
         """.PDF 大写后缀正常识别。"""
-        with patch("core.parsers.parser_factory.parse_pdf") as mock_parse:
-            mock_parse.return_value = "content"
+        mock_parse = MagicMock(return_value="content")
+        with patch.dict("core.parsers.parser_factory._PARSER_MAP", {".pdf": mock_parse}):
             
             parse_file(tmp_path / "resume.PDF")
             
-            mock_parse.assert_called_once()
+            mock_parse.assert_called_once_with(tmp_path / "resume.PDF")
     
     def test_uppercase_docx(self, tmp_path: Path):
         """.DOCX 大写后缀正常识别。"""
-        with patch("core.parsers.parser_factory.parse_docx") as mock_parse:
-            mock_parse.return_value = "content"
+        mock_parse = MagicMock(return_value="content")
+        with patch.dict("core.parsers.parser_factory._PARSER_MAP", {".docx": mock_parse}):
             
             parse_file(tmp_path / "resume.DOCX")
             
-            mock_parse.assert_called_once()
+            mock_parse.assert_called_once_with(tmp_path / "resume.DOCX")
     
     def test_mixed_case_txt(self, tmp_path: Path):
         """.TxT 混合大小写正常识别。"""
@@ -113,13 +115,15 @@ class TestErrorPropagation:
     
     def test_parse_error_propagates(self, tmp_path: Path):
         """解析失败时，FileParseError 从解析器传递。"""
-        with patch("core.parsers.parser_factory.parse_pdf") as mock_parse:
-            mock_parse.side_effect = FileParseError("PDF 损坏")
+        error = FileParseError("PDF 损坏")
+        mock_parse = MagicMock(side_effect=error)
+        with patch.dict("core.parsers.parser_factory._PARSER_MAP", {".pdf": mock_parse}):
             
             with pytest.raises(FileParseError) as exc_info:
                 parse_file(tmp_path / "bad.pdf")
             
-            assert "损坏" in str(exc_info.value)
+            assert exc_info.value is error
+            mock_parse.assert_called_once_with(tmp_path / "bad.pdf")
 
 
 class TestPathHandling:
