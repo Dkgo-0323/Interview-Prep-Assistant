@@ -1,13 +1,9 @@
 import type { Metadata, Viewport } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { GeistSans } from "geist/font/sans"
+import { GeistMono } from "geist/font/mono"
 import { SiteNav } from "@/components/site-nav"
 import "./globals.css"
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
 export const metadata: Metadata = {
   title: 'Interview Prep Assistant',
   description: '上传职位描述和简历，开始你的面试准备',
@@ -26,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="zh" className={`${geistSans.variable} ${geistMono.variable} bg-background`} suppressHydrationWarning>
+    <html lang="zh" className={`${GeistSans.variable} ${GeistMono.variable} bg-background`} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <SiteNav />
         {children}
