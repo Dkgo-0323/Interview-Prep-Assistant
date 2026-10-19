@@ -99,6 +99,21 @@ npm run dev
 
 ## 验证
 
+日常质量门禁使用固定依赖与经过审阅的离线测试集合（无需模型密钥）：
+
+```powershell
+python -m pip install -r requirements-ci.txt
+python scripts/check_backend.py
+
+Set-Location frontend
+npm ci
+npm run check
+```
+
+`check` 包含 lint、显式类型检查和生产构建。后端入口遇到本地回环权限受限时快速报环境错误；请使用允许本机回环的终端。覆盖范围、跳过项及 CI 说明见 [质量门禁](docs/development/quality-gates.md)。长期开发交接见 [协作入口](docs/development/README.md)。
+
+仅复查 API 链路时，也可在已安装依赖的项目 venv 中执行：
+
 ```powershell
 .\venv\Scripts\python.exe -m pytest tests/test_api_workflow.py tests/test_api_smoke.py -v -p no:cacheprovider
 
