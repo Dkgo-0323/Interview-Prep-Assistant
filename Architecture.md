@@ -106,7 +106,7 @@ LLM 服务通过 OpenAI SDK 的 `chat.completions.parse` 解析到这些 Pydanti
 | `/` | 上传 JD 与简历并展示文件反馈 | `POST /api/upload/*` |
 | `/analyze` | 展示 SSE 进度及匹配结果 | `GET /api/analyze/stream`、`GET /api/analyze/result` |
 | `/questions` | 生成、筛选、搜索与收藏题目 | `POST /api/questions/generate`、`GET /api/questions/cached` |
-| `/profile` | 求职画像页面 | `POST /api/profile/generate`（当前为后端占位数据） |
+| `/profile` | 画像尚未开放说明，提供分析/题库入口 | 不调用画像 API；`POST /api/profile/generate` 仍为未接入页面的历史占位接口 |
 
 前端默认连接 `http://localhost:8000`，可通过 `NEXT_PUBLIC_API_URL` 覆盖。题库页在 API 失败时展示内置示例题以保证页面可演示；这是 UI 降级策略，不是服务端缓存。
 
