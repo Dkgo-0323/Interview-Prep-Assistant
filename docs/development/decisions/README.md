@@ -1,6 +1,6 @@
 # 经确认的技术决策
 
-已确认：[0001 先建立可复现回归与 CI](0001-offline-quality-baseline.md)。用户随后明确确认 S1，但尚未选择存储、部署或其他产品方案。
+已确认：[0001 先建立可复现回归与 CI](0001-offline-quality-baseline.md)、[0002 画像入口如实标记尚未开放](0002-profile-unavailable.md)。用户已确认 S1 和 B-006a 方案 A；会话/存储、真实画像分析、部署等后续范围仍待讨论。
 
 候选方案放在 daily/backlog；只有经用户明确确认的重要技术选择，才创建 `NNNN-short-title.md`。跨天沿用编号，后续取代时关联旧记录，不改写旧决策历史。
 
