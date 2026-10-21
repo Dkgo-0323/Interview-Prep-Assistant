@@ -1,5 +1,7 @@
 # 可复现质量门禁
 
+现行计划见 [plan](plan.md)，新的实际执行结果记 [journal](journal.md)。本文件是技术手册，按检查实现变化更新，不承担另一份每日状态；下文涉及旧daily的语句/链接是历史验收来源，不是继续生成逐日文件的要求。
+
 ## 2026-10-21 B-006b 验证增量
 
 前端 `npm run check` 现按 lint → typecheck → **test:api** → build 执行；CI 原调用同一入口，因此无需改 workflow。`npm run test:api` 等同根目录的 `node --test scripts/test_frontend_api.cjs`，使用已安装 TypeScript 编译器和 VM/fetch 替身，验证 404/502/503/422/网络错误与成功载荷，不联网、不读取本地环境配置。完整类型正确性由 typecheck 负责。

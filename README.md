@@ -110,7 +110,7 @@ npm ci
 npm run check
 ```
 
-`check` 包含 lint、显式类型检查、离线 API 客户端契约测试和生产构建。后端入口遇到本地回环权限受限时快速报环境错误；请使用允许本机回环的终端。覆盖范围、跳过项及 CI 说明见 [质量门禁](docs/development/quality-gates.md)。长期开发交接见 [协作入口](docs/development/README.md)。
+`check` 包含 lint、显式类型检查、离线 API 客户端契约测试和生产构建。后端入口遇到本地回环权限受限时快速报环境错误；请使用允许本机回环的终端。覆盖范围、跳过项及 CI 说明见 [质量门禁](docs/development/quality-gates.md)。
 
 仅复查 API 链路时，也可在已安装依赖的项目 venv 中执行：
 
@@ -144,3 +144,11 @@ npm run lint
 - 求职画像页面当前明确标注尚未开放；后端画像接口仍为历史占位实现，需补充真实分析服务和验收后再开放。
 
 更多设计与运行时边界见 [Architecture.md](Architecture.md)。
+
+## 开发与交接导航
+
+- [当前计划](docs/development/plan.md)：唯一动态计划入口，包含已完成/已确认/候选与待决、验收和依赖。
+- [按周记录](docs/development/journal.md)：周一研究、每日交付、真实验证和必要决策。阶段确认后自主连续推进，重要取舍采用 interview；用户每天约10–15分钟理解主线。
+- [架构说明](Architecture.md)、[质量门禁](docs/development/quality-gates.md)、[文档索引及历史](docs/development/README.md)：按需参考。旧状态表、每日文件和模板只保留历史，不再重复日常维护。
+
+根 README 仅在用途/运行/演示/入口变化时更新；plan 与 journal 承担日常计划和记录，不要求每天写 prompt 或用户逐文件阅读。
