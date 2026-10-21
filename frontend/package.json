@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit --incremental false",
-    "check": "npm run lint && npm run typecheck && npm run build"
+    "test:api": "node --test ../scripts/test_frontend_api.cjs",
+    "check": "npm run lint && npm run typecheck && npm run test:api && npm run build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

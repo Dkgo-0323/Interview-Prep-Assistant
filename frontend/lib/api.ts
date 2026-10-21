@@ -90,11 +90,21 @@ export interface ProfileResponse {
 // 工具函数
 // ─────────────────────────────────────────────────────────────
 
+export class APIError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message)
+    this.name = "APIError"
+  }
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     // FastAPI 的错误格式是 { detail: string }
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }))
-    throw new Error(err.detail ?? "请求失败")
+    throw new APIError(
+      res.status,
+      typeof err?.detail === "string" ? err.detail : `HTTP ${res.status}`,
+    )
   }
   return res.json() as Promise<T>
 }

@@ -11,7 +11,7 @@ import {
   mapBackendQuestions,
   type Question,
 } from "@/lib/questions"
-import { generateQuestions, getCachedQuestions } from "@/lib/api"
+import { APIError, generateQuestions, getCachedQuestions } from "@/lib/api"
 import { Flashcard } from "@/components/flashcard"
 import {
   QuestionFilterBar,
@@ -22,12 +22,21 @@ import {
 const PAGE_SIZE = 10
 
 type LoadStatus = "idle" | "loading" | "success" | "error"
+type QuestionSource = "cached" | "generated" | "example"
+
+const SOURCE_LABELS: Record<QuestionSource, { title: string; description: string }> = {
+  cached: { title: "后端缓存", description: "已有的生成结果，当前演示暂不支持多用户隔离。" },
+  generated: { title: "本次生成", description: "基于服务端现有岗位分析结果生成。" },
+  example: { title: "固定示例，非个性化", description: "仅用于体验题库，不基于本次上传的简历或职位描述。" },
+}
 
 export default function QuestionsPage() {
   // ── 数据状态 ───────────────────────────────────────────────
   const [allQuestions, setAllQuestions] = useState<Question[]>([])
   const [loadStatus, setLoadStatus]     = useState<LoadStatus>("loading")
   const [errorMsg, setErrorMsg]         = useState("")
+  const [source, setSource] = useState<QuestionSource | null>(null)
+  const [requestKind, setRequestKind] = useState<"cached" | "generated">("cached")
   const [numToGenerate, setNumToGenerate] = useState(10)
 
   // ── 筛选 & UI 状态 ─────────────────────────────────────────
@@ -40,26 +49,34 @@ export default function QuestionsPage() {
 
   // ── 加载题目（优先读缓存，没有再生成）─────────────────────
   async function fetchQuestions(forceNew = false) {
+    let operation: "cached" | "generated" = forceNew ? "generated" : "cached"
     try {
       let response
+      let shouldGenerate = forceNew
 
       if (!forceNew) {
         // 先尝试拿缓存
         try {
           response = await getCachedQuestions()
-        } catch {
-          // 404 = 没有缓存，继续走生成流程
-          response = null
+        } catch (err) {
+          // 只有 404 表示无缓存；网络/服务错误不能悄悄触发模型生成。
+          if (!(err instanceof APIError) || err.status !== 404) throw err
+          shouldGenerate = true
         }
       }
 
       // 没有缓存 或 强制重新生成
-      if (!response) {
+      if (shouldGenerate) {
+        operation = "generated"
+        setRequestKind("generated")
         response = await generateQuestions(numToGenerate)
       }
 
+      if (!response) throw new Error("题目响应无效")
       const mapped = mapBackendQuestions(response.questions)
       setAllQuestions(mapped)
+      setSource(operation)
+      setBookmarks(new Set())
       setLoadStatus("success")
       setVisible(PAGE_SIZE)   // 重置分页
     } catch (err) {
@@ -67,7 +84,9 @@ export default function QuestionsPage() {
 
       // 降级：用 mock 数据，至少能看到页面
       setAllQuestions(fallbackQuestions)
-      setErrorMsg(msg)
+      setSource("example")
+      setBookmarks(new Set())
+      setErrorMsg(`${operation === "cached" ? "读取缓存失败" : "生成失败"}：${msg}`)
       setLoadStatus("error")
     }
   }
@@ -75,6 +94,8 @@ export default function QuestionsPage() {
   // 页面挂载时自动加载
   function loadQuestions(forceNew = false) {
     setLoadStatus("loading")
+    setSource(null)
+    setRequestKind(forceNew ? "generated" : "cached")
     setErrorMsg("")
     void fetchQuestions(forceNew)
   }
@@ -183,10 +204,10 @@ export default function QuestionsPage() {
           <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-border bg-card py-20 text-center">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm font-medium text-foreground">
-              正在生成个性化面试题…
+              {requestKind === "cached" ? "正在读取题目缓存…" : "正在生成面试题…"}
             </p>
             <p className="text-xs text-muted-foreground">
-              基于你的简历与岗位差距，预计 15-30 秒
+              {requestKind === "cached" ? "缓存不存在时将根据已有分析生成题目" : "基于现有岗位分析，请稍候"}
             </p>
           </div>
         )}
@@ -196,7 +217,6 @@ export default function QuestionsPage() {
           <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
             <div className="flex-1 text-sm">
-              <span className="font-medium text-destructive">生成失败：</span>
               <span className="text-muted-foreground">{errorMsg}</span>
               <span className="ml-1 text-muted-foreground">（以下为示例题目）</span>
             </div>
@@ -205,7 +225,7 @@ export default function QuestionsPage() {
               onClick={() => loadQuestions(true)}
               className="shrink-0 text-sm font-medium text-primary hover:underline"
             >
-              重试
+              重新生成
             </button>
           </div>
         )}
@@ -213,6 +233,13 @@ export default function QuestionsPage() {
         {/* ── 题目内容区（加载完成后显示）── */}
         {(loadStatus === "success" || loadStatus === "error") && (
           <>
+            {source && (
+              <div role="status" className="rounded-xl border border-border bg-card px-4 py-3 text-sm">
+                <p className="font-semibold text-foreground">题目来源：{SOURCE_LABELS[source].title}</p>
+                <p className="mt-1 text-muted-foreground">{SOURCE_LABELS[source].description}</p>
+              </div>
+            )}
+
             {/* 筛选栏 */}
             <QuestionFilterBar
               category={category}
@@ -233,7 +260,7 @@ export default function QuestionsPage() {
                 道题目
                 {loadStatus === "success" && (
                   <span className="ml-1 text-xs">
-                    （来自岗位分析，共 {allQuestions.length} 题）
+                    （共 {allQuestions.length} 题）
                   </span>
                 )}
               </p>

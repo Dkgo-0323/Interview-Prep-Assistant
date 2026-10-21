@@ -1,5 +1,13 @@
 # 可复现质量门禁
 
+## 2026-10-21 B-006b 验证增量
+
+前端 `npm run check` 现按 lint → typecheck → **test:api** → build 执行；CI 原调用同一入口，因此无需改 workflow。`npm run test:api` 等同根目录的 `node --test scripts/test_frontend_api.cjs`，使用已安装 TypeScript 编译器和 VM/fetch 替身，验证 404/502/503/422/网络错误与成功载荷，不联网、不读取本地环境配置。完整类型正确性由 typecheck 负责。
+
+生产页面另有 `scripts/check_questions_ui.cjs`，需要已可用的 Playwright 与浏览器，不在此脚本内安装依赖。先在 frontend 启动 `npm run start -- --hostname 127.0.0.1 --port 3168`，再在项目根目录执行 `node scripts/check_questions_ui.cjs http://127.0.0.1:3168 <本次独立产物目录>`。若 Playwright 位于外部依赖目录，给该终端设置对应 NODE_PATH；浏览器默认已安装的 Edge，可通过 PLAYWRIGHT_CHANNEL 指定。脚本只接受本机页面，全部 /api/ 请求使用固定合成响应并计数，阻止其他外部资源；产出 JSON 与桌面/移动截图。无后端或真实模型调用，不能替代真实供应商/多人/部署验收。用完停止自己启动的服务器。
+
+覆盖缓存成功、404、非 JSON 404、500、断网、非 JSON 502、200 空/畸形响应、显式重试失败后成功、首次生成失败共十场景；检查来源、生成请求次数、刷新/筛选/翻卡/收藏、换题集清空收藏与移动溢出。实际运行结果见当天 daily。以下保留 S1 的原始环境与机制说明。
+
 适用主链路：FastAPI + Next.js。日期：2026-10-19。对应 S1 / B-001–B-003，用户确认出处见当天 daily。
 
 ## 后端离线入口

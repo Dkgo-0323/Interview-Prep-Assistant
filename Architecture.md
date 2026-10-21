@@ -108,7 +108,7 @@ LLM 服务通过 OpenAI SDK 的 `chat.completions.parse` 解析到这些 Pydanti
 | `/questions` | 生成、筛选、搜索与收藏题目 | `POST /api/questions/generate`、`GET /api/questions/cached` |
 | `/profile` | 画像尚未开放说明，提供分析/题库入口 | 不调用画像 API；`POST /api/profile/generate` 仍为未接入页面的历史占位接口 |
 
-前端默认连接 `http://localhost:8000`，可通过 `NEXT_PUBLIC_API_URL` 覆盖。题库页在 API 失败时展示内置示例题以保证页面可演示；这是 UI 降级策略，不是服务端缓存。
+前端默认连接 `http://localhost:8000`，可通过 `NEXT_PUBLIC_API_URL` 覆盖。API 适配层的 `APIError` 保留 HTTP status，并继续继承 Error，既有调用者仍可读取 message。题库仅在缓存返回 404 时进入既有自动生成流程；网络/其他 HTTP 错误转为明确的读取失败，不自动 POST。页面将加载/错误状态和内容来源分开，区分后端缓存、本次生成与固定非个性化示例；显式“重新生成”可重新请求。换题集时清空仅按数字 ID 保存的收藏，避免跨题集错配。示例是 UI 降级，不是服务端缓存；缓存也不代表已实现用户隔离。
 
 ## 7. 当前仓库结构
 
