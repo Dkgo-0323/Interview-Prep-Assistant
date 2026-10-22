@@ -108,3 +108,10 @@
 - 验收产物在本聊天visualization下`sessions-ui-final`（最终真实本机HTTP/替身模型）、`sessions-ui`（早期失败/修复）、`questions-ui`（十场景全拦截）；不会纳入Git。所有本轮启动的前端/合成API进程已用各自session停止，端口8000/8001/3168查询无监听；Ctrl+C会使工具进程返回1，不是业务检查失败。
 - S2完整已确认范围的实现和本地验收完成。后端90/5/1为本次真实离线结果，不沿用旧62；Qwen真实质量/预算、正式发布、跨站域名/代理/多实例仍未验证。下面Git/文档交付按最终收据规则处理，不再增加无关功能或例行调研。
 - 交付检查：独立`validate_delivery.py` exit0，7份当前文档的35个本地链接有效、12份改动Python源码AST语法通过，4个用户原有文件SHA256与启动基线一致；三个相关CJS脚本`node --check`通过。`git diff --check`通过（只有LF/CRLF提示），旧status/roadmap/backlog/daily/templates无改动；提交前实时远端仍为`63c32203035d847953e6819ee43209e8acf3d996`，当前分支/既有origin未变，关联开放PR列表为空。准备一次连贯功能提交和普通推送，最终自身SHA/推送/CI见本聊天和memory，下轮归档。
+
+#### 18:35 定时时间与每日解释要求调整
+
+- 用户本聊天明确要求改为每日北京时间14:00、GPT-6.1 sol中等推理，并进一步要求每日复盘详细、明确解释当天实际推进的任务。先读当前memory/持久化任务和plan/journal/git状态；本地HEAD仍为下面已交付功能提交，文档干净，只有原有四类用户文件，未发现可见文档冲突，外部编辑活动未知。
+- 通过`automation_update mode=update`更新既有任务；18:31:59持久化核验时间14:00/模型gpt-6.1-sol/medium，提示词开头由旧12:00对齐14:00。随后将每日交付要求改为具体任务与前后场景、核心调用链/状态/防错理由、真实验证与证据边界、阶段剩余及下一步的充分解释；完整读回3037字符，后一轮仅prompt/updated_at变化，其余字段逐项保留。没有新建任务、修改通知或其他项目，不将保存当作未来准点触发验收。
+- plan同步当前设置和说明深度，不新建每日模板/prompt；本次仅必要规则文档/本机任务与memory，未新增业务代码，不重复运行无关业务测试或真实模型。文档检查/普通提交推送收据按本轮交接规则记录，当前提交自身SHA不预填。
+- 归档今天S2真实交付：`6d561419588ef2d04b9769dc01eea389dbd9a6e4`已普通推送`origin/codex/qwen-provider-migration`；[CI39722459728](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/39722459728)对应精确SHA，12:28:02北京时间completed/success，Ubuntu后端、Windows后端、前端三job全部成功。本节是已有交付收据，不是18:35重新开发或重跑的成绩。
