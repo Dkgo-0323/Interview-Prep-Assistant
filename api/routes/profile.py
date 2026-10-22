@@ -1,17 +1,18 @@
 # api/routes/profile.py
 # Day 2 上午完整实现，今天先确保服务能启动
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from api.main import get_session
+from api.session import Session
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.post("/generate", summary="生成求职画像（Day 2 实现）")
-async def generate_profile():
+async def generate_profile(current: Session = Depends(get_session)):
     """求职画像生成 - Day 2 上午实现"""
-    session = get_session()
+    session = current.snapshot()
     if "resume_text" not in session:
         raise HTTPException(status_code=400, detail="请先上传简历")
 

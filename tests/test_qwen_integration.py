@@ -15,7 +15,9 @@ from fastapi.testclient import TestClient
 from pydantic import BaseModel
 
 import config
-from api.main import app, get_session
+from api import main
+from api.main import app
+from api.session import COOKIE_NAME
 from models.schemas import GapAnalysis, JDInfo, Question, ResumeInfo
 from services.llm_service import LLMService
 
@@ -92,6 +94,7 @@ def _parse_sse_events(response) -> list[dict]:
 def analyzed_application():
     _assert_real_qwen_configuration()
     client = TestClient(app)
+    assert client.post("/api/session").status_code == 200
     client.delete("/api/upload/clear")
 
     jd_upload = client.post(
@@ -119,7 +122,7 @@ def analyzed_application():
     assert not error_events, error_events
     assert events[-1]["step"] == "complete"
 
-    yield client, events, get_session()
+    yield client, events, main.session_store.resolve(client.cookies.get(COOKIE_NAME)).snapshot()
 
     client.delete("/api/upload/clear")
 

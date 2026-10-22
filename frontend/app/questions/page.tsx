@@ -25,7 +25,7 @@ type LoadStatus = "idle" | "loading" | "success" | "error"
 type QuestionSource = "cached" | "generated" | "example"
 
 const SOURCE_LABELS: Record<QuestionSource, { title: string; description: string }> = {
-  cached: { title: "后端缓存", description: "已有的生成结果，当前演示暂不支持多用户隔离。" },
+  cached: { title: "后端缓存", description: "当前匿名会话已有的生成结果；闲置过期或服务重启后需重新上传分析。" },
   generated: { title: "本次生成", description: "基于服务端现有岗位分析结果生成。" },
   example: { title: "固定示例，非个性化", description: "仅用于体验题库，不基于本次上传的简历或职位描述。" },
 }

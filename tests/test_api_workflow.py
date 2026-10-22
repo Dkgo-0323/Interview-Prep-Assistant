@@ -6,7 +6,9 @@ from unittest.mock import Mock
 import pytest
 from fastapi.testclient import TestClient
 
-from api.main import app, get_session
+from api import main
+from api.main import app
+from api.session import SessionStore
 from api.routes import analyze, questions
 from models.schemas import GapAnalysis, JDInfo, QuestionList, ResumeInfo
 
@@ -15,11 +17,11 @@ STEPS = ["jd_start", "jd_done", "resume_start", "resume_done", "gap_start", "com
 
 
 @pytest.fixture
-def client():
-    get_session().clear()
+def client(monkeypatch):
+    monkeypatch.setattr(main, "session_store", SessionStore())
     with TestClient(app) as test_client:
+        assert test_client.post("/api/session").status_code == 200
         yield test_client
-    get_session().clear()
 
 
 @pytest.fixture

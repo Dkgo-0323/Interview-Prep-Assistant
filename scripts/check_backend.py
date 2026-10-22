@@ -19,6 +19,7 @@ OFFLINE_TESTS = (
     "tests/test_qwen_provider.py",
     "tests/test_api_workflow.py",
     "tests/test_api_smoke.py",
+    "tests/test_api_sessions.py",
 )
 
 

@@ -1,10 +1,14 @@
 # api/main.py
 import logging
+import os
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.datastructures import MutableHeaders
+from api.session import COOKIE_NAME, Session, SessionExpired, SessionStore
 
 # ── 日志配置（最先执行）────────────────────────────────────────
 logging.basicConfig(
@@ -15,22 +19,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# ── Session 存储（单用户演示版）─────────────────────────────────
-# 存储结构：
-#   jd_text: str              原始JD文本
-#   resume_text: str          原始简历文本
-#   jd: JDInfo                结构化JD
-#   resume: ResumeInfo        结构化简历
-#   gap: GapAnalysis          差距分析结果
-#   questions: QuestionList   生成的题目
-#   profile: UserProfile      求职画像
-# ⚠️ 生产环境替换为 Redis
-_session_store: dict = {}
+session_store = SessionStore(
+    ttl=float(os.getenv("SESSION_TTL_SECONDS", "1800")),
+    capacity=int(os.getenv("SESSION_MAX_COUNT", "100")),
+)
 
 
-def get_session() -> dict:
-    """全局 session 访问入口"""
-    return _session_store
+def get_session(request: Request) -> Session:
+    return session_store.resolve(request.cookies.get(COOKIE_NAME))
 
 
 # ── 生命周期 ────────────────────────────────────────────────────
@@ -49,6 +45,43 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+
+class PrivateAPIResponses:
+    """Add privacy headers without buffering StreamingResponse bodies."""
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        async def private_send(message):
+            if message["type"] == "http.response.start" and scope["path"].startswith("/api/"):
+                MutableHeaders(scope=message)["Cache-Control"] = "no-store"
+            await send(message)
+        await self.app(scope, receive, private_send)
+
+
+app.add_middleware(PrivateAPIResponses)
+
+
+@app.exception_handler(SessionExpired)
+async def expired_session(request: Request, exc: SessionExpired):
+    response = JSONResponse({"detail": exc.detail}, status_code=410)
+    response.delete_cookie(COOKIE_NAME)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.post("/api/session", tags=["会话"])
+async def initialize_session(request: Request):
+    token = request.cookies.get(COOKIE_NAME)
+    session = session_store.resolve(token) if token else session_store.create()
+    response = JSONResponse({"success": True, "idle_timeout_seconds": session_store.ttl})
+    response.set_cookie(
+        COOKIE_NAME, session.token, httponly=True, samesite="lax",
+        secure=os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true",
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -73,11 +106,9 @@ app.include_router(profile.router,   prefix="/api/profile",   tags=["求职画�
 # ── 系统路由 ────────────────────────────────────────────────────
 @app.get("/api/health", tags=["系统"])
 async def health_check():
-    """服务健康检查 + session 状态查看"""
-    session = get_session()
+    """不访问或创建访客资料的公共健康检查。"""
     return {
         "status": "ok",
-        "session_keys": list(session.keys()),
     }
 
 

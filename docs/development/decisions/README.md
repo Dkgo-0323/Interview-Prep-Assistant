@@ -2,9 +2,11 @@
 
 现行记录入口：候选与待决在 [plan](../plan.md)，普通实施细节与决定在 [journal](../journal.md)。以下既有ADR保留有效确认与历史；以后仅长期有效的重要架构决定另立ADR，不把每个小实现或工作流调整都写成ADR。
 
-2026-10-21 新增：[0003 题库来源与缓存错误分流](0003-question-provenance-and-cache-errors.md)，用户在当日独立聊天确认 B-006b。会话/存储、真实模型用量与发布仍待决。
+2026-10-22 新增：[0004 匿名内存会话与旧结果写回保护](0004-anonymous-memory-sessions.md)，用户集中interview三题均选A，确认完整S2、短期内存与重复任务提示；真实用量、持久化/多实例和发布仍待决。
 
-已确认：[0001 先建立可复现回归与 CI](0001-offline-quality-baseline.md)、[0002 画像入口如实标记尚未开放](0002-profile-unavailable.md)。用户已确认 S1 和 B-006a 方案 A；会话/存储、真实画像分析、部署等后续范围仍待讨论。
+2026-10-21：[0003 题库来源与缓存错误分流](0003-question-provenance-and-cache-errors.md)，用户在当日独立聊天确认 B-006b。
+
+已确认：[0001 先建立可复现回归与 CI](0001-offline-quality-baseline.md)、[0002 画像入口如实标记尚未开放](0002-profile-unavailable.md)。用户已确认S1和B-006a方案A；真实画像分析和部署等后续范围仍待讨论。
 
 只有经用户明确确认的长期重要架构选择，才创建 `NNNN-short-title.md`。跨天沿用编号，取代时关联旧记录，不改写历史。
 

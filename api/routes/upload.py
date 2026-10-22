@@ -4,9 +4,10 @@ import os
 import tempfile
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from api.main import get_session
+from api.session import Session
 from api.schemas import UploadResponse
 from core.parsers.parser_factory import parse_file
 from core.parsers.exceptions import UnsupportedFileError
@@ -72,20 +73,16 @@ async def _read_and_parse(file: UploadFile) -> str:
 
 
 @router.post("/jd", response_model=UploadResponse, summary="上传职位描述 (JD)")
-async def upload_jd(file: UploadFile = File(...)):
+async def upload_jd(file: UploadFile = File(...), session: Session = Depends(get_session)):
     """
     上传 JD 文件（PDF / DOCX / TXT），解析后存入 session。
     重复上传会覆盖，并自动清除下游的分析缓存。
     """
     logger.info(f"收到 JD 上传请求: {file.filename}")
 
+    ticket = session.upload_ticket("jd_text")
     text = await _read_and_parse(file)
-
-    session = get_session()
-    session["jd_text"] = text
-    # 清除依赖 JD 的下游缓存，防止数据不一致
-    for key in ("jd", "gap", "questions"):
-        session.pop(key, None)
+    session.replace_input("jd_text", text, ticket)
 
     logger.info(f"JD 解析成功，字符数: {len(text)}")
     return UploadResponse(
@@ -96,20 +93,16 @@ async def upload_jd(file: UploadFile = File(...)):
 
 
 @router.post("/resume", response_model=UploadResponse, summary="上传简历")
-async def upload_resume(file: UploadFile = File(...)):
+async def upload_resume(file: UploadFile = File(...), session: Session = Depends(get_session)):
     """
     上传简历文件（PDF / DOCX / TXT），解析后存入 session。
     重复上传会覆盖，并自动清除下游的分析缓存。
     """
     logger.info(f"收到简历上传请求: {file.filename}")
 
+    ticket = session.upload_ticket("resume_text")
     text = await _read_and_parse(file)
-
-    session = get_session()
-    session["resume_text"] = text
-    # 清除依赖简历的下游缓存
-    for key in ("resume", "gap", "questions", "profile"):
-        session.pop(key, None)
+    session.replace_input("resume_text", text, ticket)
 
     logger.info(f"简历解析成功，字符数: {len(text)}")
     return UploadResponse(
@@ -120,9 +113,9 @@ async def upload_resume(file: UploadFile = File(...)):
 
 
 @router.get("/status", summary="查看上传状态")
-async def upload_status():
+async def upload_status(current: Session = Depends(get_session)):
     """检查哪些文件已上传，前端用于判断是否可以开始分析"""
-    session = get_session()
+    session = current.snapshot()
     return {
         "jd_uploaded": "jd_text" in session,
         "resume_uploaded": "resume_text" in session,
@@ -133,9 +126,8 @@ async def upload_status():
 
 
 @router.delete("/clear", summary="清空 session（重新开始）")
-async def clear_session():
+async def clear_session(session: Session = Depends(get_session)):
     """清空所有上传文件和分析缓存，用于演示重置"""
-    session = get_session()
     session.clear()
     logger.info("Session 已清空")
     return {"success": True, "message": "已重置，可重新上传文件"}

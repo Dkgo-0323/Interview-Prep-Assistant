@@ -27,6 +27,9 @@ async function main() {
       await context.route('**/*', async route => {
         const url = new URL(route.request().url())
         if (url.pathname.startsWith('/api/')) {
+          if (url.pathname === '/api/session' && route.request().method() === 'POST') {
+            return route.fulfill({ json: { success: true, idle_timeout_seconds: 1800 } })
+          }
           if (url.pathname === '/api/questions/cached' && route.request().method() === 'GET') {
             calls.cached++
             if (mode === 'network') return route.abort('failed')

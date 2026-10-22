@@ -10,7 +10,7 @@
 flowchart TB
   UI["Next.js 16 / React 19\n浏览器端页面"]
   API["FastAPI API Adapter\nCORS · 请求校验 · SSE"]
-  Session["进程内演示会话\n_session_store"]
+  Session["匿名内存会话\nCookie · TTL · revision guard"]
   Core["Core Domain\nparsers · analyzers · generators"]
   Models["Pydantic Contracts\nJDInfo · ResumeInfo · GapAnalysis · QuestionList"]
   LLM["LLMService\nOpenAI-compatible client"]
@@ -31,7 +31,7 @@ flowchart TB
 | 体验层 | `frontend/app`、`frontend/components` | 首页上传、分析报告、题库与求职画像界面。 |
 | 前端适配层 | `frontend/lib/api.ts` | 统一 REST / SSE 客户端、类型映射与 API 地址配置。 |
 | API 层 | `api/main.py`、`api/routes` | 注册路由、CORS、输入校验、HTTP 错误映射与流式响应。 |
-| 会话层 | `api/main.py::_session_store` | 暂存文本、结构化分析与题目；仅用于单进程演示。 |
+| 会话层 | `api/session.py::SessionStore / Session / Operation` | 隔离访客、限制容量和闲置生命周期；输入快照及版本校验阻止晚到写回，仍为单进程内存。 |
 | 领域层 | `core/parsers`、`core/analyzers`、`core/generators` | 解析文件、抽取信息、完成差距分析、生成并去重题目。 |
 | 契约层 | `models/schemas.py`、`api/schemas.py` | 定义 LLM 结构化输出与 HTTP 请求/响应模型。 |
 | 基础设施层 | `services/llm_service.py`、`utils`、`config.py` | Qwen 客户端、重试、日志、token/cost 记录与环境配置。 |
@@ -46,7 +46,9 @@ sequenceDiagram
   participant L as LLMService / Qwen
   participant S as In-memory session
 
-  B->>A: POST /api/upload/jd and /api/upload/resume
+  B->>A: POST /api/session
+  A-->>B: HttpOnly opaque session cookie
+  B->>A: POST /api/upload/jd and /api/upload/resume (cookie)
   A->>A: Validate extension and 10 MB limit
   A->>P: Write temporary file and parse text
   P-->>A: Extracted text
@@ -59,11 +61,11 @@ sequenceDiagram
   A->>L: Extract resume into ResumeInfo
   A-->>B: SSE: resume_done
   A->>L: Analyze gap into GapAnalysis
-  A->>S: Cache JD, resume and gap
+  A->>S: Check session and input revision, then cache results
   A-->>B: SSE: complete
   B->>A: POST /api/questions/generate
   A->>L: Generate QuestionList
-  A->>S: Cache questions
+  A->>S: Check same revision, then cache questions
   A-->>B: Questions with answers and metadata
 ```
 
@@ -74,6 +76,10 @@ sequenceDiagram
 ### 流式分析
 
 `/api/analyze/stream` 按 **JD 抽取 → 简历抽取 → 差距分析** 顺序执行。领域分析器是同步调用，因此路由使用 `asyncio.to_thread` 避免阻塞 FastAPI 事件循环，并在每一阶段通过 SSE 发送事件。前端 `EventSource` 在 `complete` 或 `error` 后关闭连接。
+
+各路由通过请求依赖获得同一个匿名会话。`Session.begin`捕获输入与revision，重传/清除/重分析会使旧revision失效；`Operation.run/publish`在线程返回后校验存活与版本，防止旧报告/题目恢复。分析使用本次局部JD/简历结果，不从可能已变更的共享字段拼装输入。同类任务冲突明确提示，不排队。连接取消后同步线程可能继续运行，忙槽保留到实际线程结束；不承诺中止供应商调用。上传的分文件序号还阻止较早上传覆盖清除或较新输入。
+
+Cookie只含随机ID，HttpOnly、SameSite=Lax；HTTPS时可启用Secure。默认闲置1800秒/100会话，`SESSION_TTL_SECONDS`/`SESSION_MAX_COUNT`可配置；有效会话满额返回503，不驱逐活跃数据。过期在后续访问/创建时清理，返回410并删除Cookie，显式后续操作可建立空会话。重启丢失全部资料；健康检查不创建会话/暴露数据键，API响应no-store。重要取舍见[ADR0004](docs/development/decisions/0004-anonymous-memory-sessions.md)。
 
 ### 题目生成
 
@@ -108,7 +114,7 @@ LLM 服务通过 OpenAI SDK 的 `chat.completions.parse` 解析到这些 Pydanti
 | `/questions` | 生成、筛选、搜索与收藏题目 | `POST /api/questions/generate`、`GET /api/questions/cached` |
 | `/profile` | 画像尚未开放说明，提供分析/题库入口 | 不调用画像 API；`POST /api/profile/generate` 仍为未接入页面的历史占位接口 |
 
-前端默认连接 `http://localhost:8000`，可通过 `NEXT_PUBLIC_API_URL` 覆盖。API 适配层的 `APIError` 保留 HTTP status，并继续继承 Error，既有调用者仍可读取 message。题库仅在缓存返回 404 时进入既有自动生成流程；网络/其他 HTTP 错误转为明确的读取失败，不自动 POST。页面将加载/错误状态和内容来源分开，区分后端缓存、本次生成与固定非个性化示例；显式“重新生成”可重新请求。换题集时清空仅按数字 ID 保存的收藏，避免跨题集错配。示例是 UI 降级，不是服务端缓存；缓存也不代表已实现用户隔离。
+前端默认连接`http://localhost:8000`，可通过`NEXT_PUBLIC_API_URL`覆盖。REST通过共享初始化Promise建立Cookie，再以credentials发送；EventSource使用withCredentials。首页刷新读取上传状态，分析页先恢复当前会话报告，仅404才启动新分析；缓存错误/410不会自动重放分析。APIError保留HTTP status；题库仍仅在缓存404时进入既有自动生成，其他失败显示固定示例。区分本会话缓存、本次生成与固定非个性化示例，显式重试可再次请求；换题集清空收藏。过期/无资料时引导返回首页重新上传。
 
 ## 7. 当前仓库结构
 
@@ -134,13 +140,13 @@ interview-prep-assistant/
 
 ## 8. 测试与可观测性
 
-`tests/` 覆盖解析器、分析器、题目生成器、LLM 服务和 API 冒烟场景。运行 `pytest` 执行后端测试；在 `frontend/` 运行 `npm run lint` 执行前端静态检查。应用日志由 `utils/logger.py` 统一配置，LLM 调用会记录模型、耗时、token 与可选成本。
+`tests/`包含外部模型测试，日常只用已审阅的`python scripts/check_backend.py`；前端用`npm run check`。会话测试以可控时钟、线程阻塞点和合成资料验证隔离/交错；生产浏览器使用合成模型服务，详见[质量门禁](docs/development/quality-gates.md)。应用日志由`utils/logger.py`配置，LLM调用记录模型、耗时、token与可选成本。
 
 ## 9. 已知限制与演进边界
 
 以下限制是当前实现的真实边界，不是已交付能力：
 
-- 会话数据位于单个 Python 进程的全局字典中，不具备多用户隔离、持久化、重启恢复或多实例扩展能力。
+- 会话已按匿名Cookie隔离，数据仍只在一个Python进程内；没有持久化、重启恢复、多实例/多worker共享或账号跨设备能力。
 - CORS 仅允许本地 `localhost:3000` / `127.0.0.1:3000` 开发来源。
 - 无认证、授权、对象存储、速率限制或敏感信息脱敏流程。
 - 求职画像路由返回占位数据；模拟面试、历史记录和报告导出尚未实现。

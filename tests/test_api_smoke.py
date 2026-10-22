@@ -6,6 +6,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from api.main import app
+from api import main
+from api.session import SessionStore
 
 client = TestClient(app)
 
@@ -13,6 +15,9 @@ client = TestClient(app)
 def setup_function():
     """每个测试前清空 session"""
     client.delete("/api/upload/clear")
+    main.session_store = SessionStore()
+    client.cookies.clear()
+    assert client.post("/api/session").status_code == 200
 
 
 # ── 系统接口 ─────────────────────────────────────────────────────
@@ -28,8 +33,9 @@ def test_health():
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert "session_keys" in body
-    print(f"✅ 健康检查通过，session keys: {body['session_keys']}")
+    assert body == {"status": "ok"}
+    assert "session_keys" not in body
+    print("✅ 健康检查不暴露访客状态")
 
 
 def test_docs():

@@ -77,3 +77,34 @@
 - 实际检查命令：项目venv Python运行本聊天独立产物目录workflow-migration/validate.py（Windows/Python3.12.7），exit0；18份Markdown本地链接有效，8份历史payload逐字节哈希一致，4个原有用户文件哈希不变，配置字段保留且无通知覆盖，memory现行规则在首部，无业务实现文件变更。git diff --check -- README.md docs/development通过，仅既有LF/CRLF转换提示。首轮校验的关键词断言过窄，修正为文档实际“不设置提交数量”后通过，不是补造规则或业务测试。
 - 验证产物在本聊天visualization/workflow-migration下，含preservation-baseline.json、validate.py、validation.json；不纳入仓库。没有新JD调研、业务测试、真实模型调用、浏览器或部署验证；旧测试数字仅作为有日期的历史归档，未来12:00新流程触发尚未验证。
 - 文档/memory/配置本地工作已完成，仅待本次文档Git提交/普通推送及最终收据；提交前没有自己的新SHA，绝不提前写已推送。最终交接自身完整SHA/push/CI见本聊天和memory，下轮再归档journal，不再为此单独拆碎提交。没有启动下一业务阶段，交接后释放本轮文档编辑范围。
+
+### 2026-10-22 可信会话：确认、实现与本地验收
+
+**上轮收据归档**：迁移提交`63c32203035d847953e6819ee43209e8acf3d996`已普通推送`origin/codex/qwen-provider-migration`；[CI39624896935](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/39624896935)三job成功。本轮实时ls-remote仍为同一SHA，工具复核该CI三job；它是10-21历史CI，不是本次功能的新CI。GitHub deployments返回空数组，只能说明未取得平台记录/线上验收地址。迁移后已观察到本次新聊天执行，不能由11:54首次读取时间证明12:00准点触发。
+
+**范围/并行核对**：启动时仅日志、两份未跟踪分析材料及test-results为原有改动，plan/journal干净、暂存为空；分支/HEAD/上游/origin及单checkout已核对。上轮相关聊天idle，其他可见历史聊天notLoaded，外部编辑器/其他机器活动未知；只读核查相关聊天，没有向其发消息。本轮负责`api/session.py`及API路由、前端API/上传/分析/题库状态、相关离线和浏览器验收脚本、README/Architecture/plan/journal/质量手册/ADR0004。用户四类原有文件仅核对路径和SHA256，不读正文；未读取环境文件或真实简历。
+
+**必要确认**：本聊天`01a161bc-9751-7071-9f00-b1a1ea1ceae4`三题均明确选A：完整可信会话；HttpOnly匿名Cookie、单进程短期内存、闲置30分钟/最多100会话且可配置、重启丢失/满额拒绝新访客；旧结果作废、同类任务忙时提示，不自动排队。确认前只做核查/验收设计，确认后开始业务实现。长期取舍见[ADR0004](decisions/0004-anonymous-memory-sessions.md)。真实用量/Q-003和正式发布未获授权。
+
+**为何现在做/实际链路**：公开演示前，A上传的资料必须不能被B读取；A重传或清除后，旧分析/题目不能回到新资料。前端共享初始化Promise → POST会话取得随机Cookie → REST/EventSource带同一身份 → FastAPI依赖解析独立Session → Operation捕获输入快照/revision → 线程返回与发布时再次检查存活/版本 → 本访客报告/题目。输入变更和重分析使旧结果失效；分文件上传序号阻止较早上传晚到覆盖，清除保留身份但作废旧任务。关闭等待不会停止供应商线程，忙槽等待线程实际完成再释放。健康检查不创建/暴露会话，API响应no-store。首页刷新恢复上传状态，分析页刷新优先恢复报告，只有404才启动分析；过期/容量失败不自动重放模型工作，提供恢复提示和清除入口。画像占位仍未开放，只接入身份依赖。
+
+**针对实现的资料核验，非例行JD研究**：北京时间10-22实读[FastAPI Cookie](https://fastapi.tiangolo.com/advanced/response-cookies/)、[CORS](https://fastapi.tiangolo.com/tutorial/cors/)、[MDN Fetch credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)、[EventSource credentials](https://developer.mozilla.org/en-US/docs/Web/API/EventSource/withCredentials)。明确默认跨源请求不自动携带凭证、直接返回Response需在实际响应设置Cookie；REST/SSE均处理。按frontend/AGENTS读取已安装Next16.2.9的use-client和Server/Client Components指南。没有新库、Redis/数据库或VOC成果迁移。
+
+**已运行验证/失败修复**：Windows、Python3.12.7、Node22.15.0/npm10.9.2、Next16.2.9。
+
+- `.\venv\Scripts\python.exe scripts/check_backend.py`：沙箱socketpair失败，未跑业务测试；允许回环环境首轮82通过/8失败/5跳过/1警告。8失败是新交错用例的合成JD太短，被已有分析器校验提前拒绝、没有到达阻塞点；换用现有合成fixture后同一审阅入口**90通过/5跳过/1既有弃用警告，4.98s，exit0**。新增28项，七个文件仍阻止外部连接且禁dotenv；保留原缺少PDF/DOCX样例skip，不盲跑全tests。
+- `frontend/npm.cmd run check`：允许本机worker通信环境通过lint、typegen/tsc、**12项客户端测试**、七页production build；首页恢复/视觉修复后再次运行，实际结果在下面最终核验补记。未跳过错误或修改用户环境文件。真实Qwen验收fixture仅适配新Cookie接口，未运行也不宣称通过。
+- `scripts/check_questions_ui.cjs`：生产页headless Edge，API全部合成拦截，**原十场景exit0**，无意外请求/pageerror；补充bootstrap响应，来源/404/非404/示例/收藏等行为保留。
+- `scripts/check_sessions_ui.cjs`：生产前端+真实本机FastAPI/解析/业务逻辑，LLM仅合成替身；首轮上传按钮等待失败，诊断为构建实际请求`127.0.0.1:8001`而测试服务在8000，且起初页面使用localhost。未读/改环境文件，从浏览器只观察本机host/port后，把合成服务对齐8001、两端统一127.0.0.1并允许确切3168 origin，五组场景exit0。包括首次双上传共用初始化、HttpOnly不可被JS读取、真实REST/SSE、首页/报告/题库刷新、独立访客、第三访客满额不生成、清除仅影响自己。过期UI单独拦截410；真实TTL/重启由后端可控时钟/替换store测试，非浏览器等待30分钟。初次服务启动GBK输出emoji报日志编码错误，合成脚本在导入应用前切UTF-8后消失；原服务已停。
+- 初次截图复查发现过期错误页标题仍“正在分析中”，已改为“暂时无法完成分析”，并新增返回首页重新上传链接，正在最终生产页复验。失败JSON/截图保留于本聊天独立产物目录，不入仓库。
+
+**演示/剩余边界**：可用两个独立浏览器上下文分别走上传→SSE报告→题库，刷新保留各自内容，A清除不影响B；全部模型效果为替身，不能证明真实Qwen质量/耗时/费用。闲置在访问时惰性清理，单worker、重启丢失符合已选方案；跨站/HTTPS/public代理、持久化、多实例和正式上线未验收。下一阶段建议先讨论可审阅部署目标/平台/费用及真实用量边界，再准备或发布；不默认扩展授权。
+
+**交付状态**：代码和本轮本地验收已产生；待最后UI复验/文档与保留性检查后，只暂存本轮具体路径，核验当时分支/远程并普通推送。新交接提交自身完整SHA/push/最终CI收据按规则写本聊天和memory，下轮再归档，不提前虚填已推送，也不创建补自身SHA的空价值提交。
+
+#### 12:24 最终实现核验
+
+- 最后`npm.cmd run check` exit0：lint/typecheck、12项API客户端测试、七页build全部通过。最终合成服务`python scripts/serve_offline_demo.py --port 8001 --capacity 2 --frontend-origin http://127.0.0.1:3168`配合生产前端3168及`node scripts/check_sessions_ui.cjs http://127.0.0.1:3168 <本聊天独立目录>/sessions-ui-final`，五组场景exit0、无pageerror/外部请求。最终移动截图已目视确认错误标题与重新上传链接正确、390px无横溢出；题库桌面截图来源与排版正确。
+- 验收产物在本聊天visualization下`sessions-ui-final`（最终真实本机HTTP/替身模型）、`sessions-ui`（早期失败/修复）、`questions-ui`（十场景全拦截）；不会纳入Git。所有本轮启动的前端/合成API进程已用各自session停止，端口8000/8001/3168查询无监听；Ctrl+C会使工具进程返回1，不是业务检查失败。
+- S2完整已确认范围的实现和本地验收完成。后端90/5/1为本次真实离线结果，不沿用旧62；Qwen真实质量/预算、正式发布、跨站域名/代理/多实例仍未验证。下面Git/文档交付按最终收据规则处理，不再增加无关功能或例行调研。
+- 交付检查：独立`validate_delivery.py` exit0，7份当前文档的35个本地链接有效、12份改动Python源码AST语法通过，4个用户原有文件SHA256与启动基线一致；三个相关CJS脚本`node --check`通过。`git diff --check`通过（只有LF/CRLF提示），旧status/roadmap/backlog/daily/templates无改动；提交前实时远端仍为`63c32203035d847953e6819ee43209e8acf3d996`，当前分支/既有origin未变，关联开放PR列表为空。准备一次连贯功能提交和普通推送，最终自身SHA/推送/CI见本聊天和memory，下轮归档。

@@ -80,13 +80,14 @@ export default function AnalyzePage() {
 
   // ── 启动分析 ───────────────────────────────────────────────
   function startAnalyzing() {
+    closeRef.current?.()
     setCurrent(0)
     setStatusMsg("")
     setResult(null)
     setErrorMsg("")
     setPhase("analyzing")
 
-    closeRef.current = startAnalysis(handleEvent, handleError)
+    closeRef.current = startAnalysis(handleEvent, handleError, true)
   }
 
   // 页面加载时自动开始（与原版行为一致）
@@ -107,11 +108,12 @@ export default function AnalyzePage() {
             分析结果
           </div>
           <h1 className="text-balance text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {phase === "done" ? "你的匹配度分析报告" : "正在分析中…"}
+            {phase === "done" ? "你的匹配度分析报告" : phase === "error" ? "暂时无法完成分析" : "正在分析中…"}
           </h1>
           <p className="max-w-lg text-pretty leading-relaxed text-muted-foreground">
             {phase === "done"
               ? "以下是基于职位描述与简历生成的匹配度评估和面试准备建议。"
+              : phase === "error" ? "请根据提示重试，或返回首页重新上传资料。"
               : statusMsg || "请稍候，我们正在对比职位描述与你的简历。"}
           </p>
         </header>
@@ -141,6 +143,9 @@ export default function AnalyzePage() {
               <RotateCcw className="h-4 w-4" />
               重新分析
             </button>
+            <Link href="/" className="text-sm text-primary underline">
+              返回首页重新上传
+            </Link>
           </div>
         )}
 

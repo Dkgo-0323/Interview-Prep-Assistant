@@ -97,8 +97,30 @@ export class APIError extends Error {
   }
 }
 
+let sessionInitialization: Promise<void> | null = null
+
+// Both first uploads await the same cookie response before sending their files.
+async function ensureSession(): Promise<void> {
+  if (!sessionInitialization) {
+    const pending = fetch(`${API_BASE}/api/session`, {
+      method: "POST", credentials: "include", cache: "no-store",
+    }).then(async res => { await handleResponse(res) })
+    sessionInitialization = pending
+    void pending.catch(() => {
+      if (sessionInitialization === pending) sessionInitialization = null
+    })
+  }
+  await sessionInitialization
+}
+
+async function sessionFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  await ensureSession()
+  return fetch(`${API_BASE}${path}`, { ...options, credentials: "include", cache: "no-store" })
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
+    if (res.status === 410) sessionInitialization = null
     // FastAPI 的错误格式是 { detail: string }
     const err = await res.json().catch(() => ({ detail: `HTTP ${res.status}` }))
     throw new APIError(
@@ -116,7 +138,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
 export async function uploadJD(file: File): Promise<UploadResponse> {
   const form = new FormData()
   form.append("file", file)
-  const res = await fetch(`${API_BASE}/api/upload/jd`, {
+  const res = await sessionFetch("/api/upload/jd", {
     method: "POST",
     body: form,
   })
@@ -126,7 +148,7 @@ export async function uploadJD(file: File): Promise<UploadResponse> {
 export async function uploadResume(file: File): Promise<UploadResponse> {
   const form = new FormData()
   form.append("file", file)
-  const res = await fetch(`${API_BASE}/api/upload/resume`, {
+  const res = await sessionFetch("/api/upload/resume", {
     method: "POST",
     body: form,
   })
@@ -134,12 +156,13 @@ export async function uploadResume(file: File): Promise<UploadResponse> {
 }
 
 export async function getUploadStatus(): Promise<UploadStatus> {
-  const res = await fetch(`${API_BASE}/api/upload/status`)
+  const res = await sessionFetch("/api/upload/status")
   return handleResponse<UploadStatus>(res)
 }
 
 export async function clearSession(): Promise<void> {
-  await fetch(`${API_BASE}/api/upload/clear`, { method: "DELETE" })
+  const res = await sessionFetch("/api/upload/clear", { method: "DELETE" })
+  await handleResponse(res)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -157,35 +180,57 @@ export async function clearSession(): Promise<void> {
 export function startAnalysis(
   onEvent: (event: SSEEvent) => void,
   onError: (message: string) => void,
+  forceNew = false,
 ): () => void {
-  const es = new EventSource(`${API_BASE}/api/analyze/stream`)
-
-  es.onmessage = (raw) => {
+  let closed = false
+  let es: EventSource | null = null
+  void (async () => {
     try {
-      const event = JSON.parse(raw.data) as SSEEvent
-      onEvent(event)
-      if (event.step === "complete" || event.step === "error") {
-        es.close()
+      if (!forceNew) {
+        try {
+          const report = await getAnalysisResult()
+          if (!closed) onEvent({ step: "complete", message: "已恢复本会话的分析报告", data: { ...report } })
+          return
+        } catch (err) {
+          if (!(err instanceof APIError) || err.status !== 404) throw err
+        }
       }
-    } catch {
-      onError("解析服务器响应失败")
-      es.close()
+      const status = await getUploadStatus()
+      if (!status.ready_to_analyze) throw new Error("请返回首页重新上传 JD 和简历")
+      if (closed) return
+      es = new EventSource(`${API_BASE}/api/analyze/stream`, { withCredentials: true })
+      es.onmessage = (raw) => {
+        if (closed) return
+        try {
+          const event = JSON.parse(raw.data) as SSEEvent
+          if (event.step === "error" && event.data?.status === 410) sessionInitialization = null
+          onEvent(event)
+          if (event.step === "complete" || event.step === "error") {
+            closed = true
+            es?.close()
+          }
+        } catch {
+          onError("解析服务器响应失败")
+          closed = true
+          es?.close()
+        }
+      }
+      es.onerror = () => {
+        if (closed || es?.readyState === EventSource.CLOSED) return
+        onError("与分析服务的连接中断，请重试；资料过期时请返回首页重新上传")
+        closed = true
+        es?.close()
+      }
+    } catch (err) {
+      if (!closed) onError(err instanceof Error ? err.message : "分析服务暂不可用，请稍后重试")
     }
-  }
-
-  es.onerror = () => {
-    // onerror 在连接正常关闭后也会触发，需判断 readyState
-    if (es.readyState === EventSource.CLOSED) return
-    onError("与分析服务的连接中断，请重试")
-    es.close()
-  }
-
-  return () => es.close()
+  })()
+  return () => { closed = true; es?.close() }
 }
 
 // 获取已缓存的分析结果（用于页面刷新恢复）
 export async function getAnalysisResult(): Promise<GapAnalysis> {
-  const res = await fetch(`${API_BASE}/api/analyze/result`)
+  const res = await sessionFetch("/api/analyze/result")
   const body = await handleResponse<{ success: boolean; data: GapAnalysis }>(res)
   return body.data
 }
@@ -197,7 +242,7 @@ export async function getAnalysisResult(): Promise<GapAnalysis> {
 export async function generateQuestions(
   numQuestions = 10,
 ): Promise<QuestionsResponse> {
-  const res = await fetch(`${API_BASE}/api/questions/generate`, {
+  const res = await sessionFetch("/api/questions/generate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ num_questions: numQuestions }),
@@ -206,7 +251,7 @@ export async function generateQuestions(
 }
 
 export async function getCachedQuestions(): Promise<QuestionsResponse> {
-  const res = await fetch(`${API_BASE}/api/questions/cached`)
+  const res = await sessionFetch("/api/questions/cached")
   return handleResponse<QuestionsResponse>(res)
 }
 
@@ -215,7 +260,7 @@ export async function getCachedQuestions(): Promise<QuestionsResponse> {
 // ─────────────────────────────────────────────────────────────
 
 export async function generateProfile(): Promise<ProfileResponse> {
-  const res = await fetch(`${API_BASE}/api/profile/generate`, {
+  const res = await sessionFetch("/api/profile/generate", {
     method: "POST",
   })
   return handleResponse<ProfileResponse>(res)
