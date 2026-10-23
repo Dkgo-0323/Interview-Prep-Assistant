@@ -124,3 +124,18 @@
 - 失败与恢复：沙箱gh网络连接失败、SSH进程权限失败；连接工具核验main和CI成功，但编码分支路径/deployments端点不支持。随后经允许的沙箱外只读命令成功读取两ref/CI/deployments（空数组）；不据此宣称线上已部署。
 - S3 interview一次三题：部署包或同时公开演示；保留短期匿名单进程或增加长期存储；合成验收或另议真实模型评估。各题提供推荐和成本边界；尚未收到明确选择，推荐不能视作确认。未实施部署包、购买资源、调用真实模型或发布。现有README部署说明不等于可复现部署包或公网验收。
 - 本轮验证仅Git状态/远端收据/文档diff及本地链接；不重复运行业务回归，无本轮新浏览器、构建、真实模型或部署成绩。历史90通过/5跳过和合成HTTP验收仍是各自日期证据。下一步收到三题选择后细化S3验收并连续开发；新平台/费用/凭据/发布必要时另行确认。
+
+#### S3第一组决策已收到：B / B / A
+
+- 用户本聊天明确选择：本阶段同时推进公开演示；需要长期保存与多设备恢复，先设计存储与身份；部署验收继续合成模型，真实Qwen范围/预算另议Q-003。覆盖上文“待回复”，不再把原推荐A/A/A当作选定方向。
+- 第二组集中interview已发出，解释电脑上传后手机恢复的身份问题、最新数据与多份历史的范围差别、托管资源/费用/发布边界。分别提供账号/恢复码、最新一组/多份历史、先方案审批/既有资源选项及代价；仍待回复，未选择具体供应商或实施依赖设计。
+- 本次仅记录目标与待决，未新增业务代码、付费资源或真实调用。plan/journal限定diff检查；原有用户文件不动。本次决策记录暂为本地未提交，待明确设计后随有意义增量交付；不冒称已推送。
+
+#### S3第二组决策与具体托管提案
+
+- 用户明确A/B/A：账号登录且首次一种方式，多份历史记录并主动删除，先调研具体托管/费用再确认资源，最终发布前再确认。覆盖上节第二组待回复；无供应商、费用或发布批准。负责仍为plan/journal/memory，延续本聊天未提交决策记录；当前开发分支/远端为`6a213fd2c041d17a316795a018c87dd35619c3b0`，暂存空，其他用户路径不动，外部并行未知。
+- 本轮实读现有Architecture、session.py、frontend/lib/api.ts和依赖：数据仍为匿名进程内存；现有REST和原生EventSource共用Cookie，不能直接假设跨域Bearer头可用于原生EventSource。候选方案需同一鉴权边界、服务端身份验证、数据库owner/record/revision条件写入，保留S2防串数据语义；尚未更改代码。
+- 北京时间2026-10-23针对性官方资料（非例行JD/同类项目研究）：[Supabase价格](https://supabase.com/pricing)正文明确Free 0美元、500MB数据库、5万MAU、闲置一周暂停；Pro起价25美元/月、首项目含在内及7天每日备份，额度/超额另计。[Render免费限制](https://render.com/docs/free)明确闲置15分钟休眠，不用免费层宣称稳定常驻。[Render Web Services](https://render.com/docs/web-services)支持FastAPI/Node及平台子域名；未实测本项目SSE或中国大陆访问。[Supabase GitHub登录](https://supabase.com/docs/guides/auth/social-sign-in/auth-github)及[SSR身份验证](https://supabase.com/docs/guides/auth/server-side/creating-a-client)支持托管OAuth与验证claims，不能只信未经验证的cookie/session字段。
+- 提案（未选定）：Render两个应用+Supabase身份/PostgreSQL，先单worker。常驻预算约39美元/月=应用约14+Supabase Pro起价25；14来自[Render官方示例仓库QUICKSTART](https://github.com/render-examples/web-research-agent-template/blob/main/QUICKSTART.md)的两服务估算，不是本项目报价/实测容量。Render动态[价格页](https://render.com/pricing)本次正文未取得计算费表，不能将示例金额当实时精确价格；开通前必须核价，税/流量超额/域名不含，Qwen未计也未批准。[Vercel Hobby条款](https://vercel.com/docs/limits/fair-use-guidelines)限个人非商业，作为备选未采用；没有为了部署替换Next/FastAPI业务主线。
+- 第三组集中确认已发：GitHub或邮箱验证码入口；20份可命名/重命名/选择/删除、保留文本与结果但不保留原文件或扩展原文件存储；托管组合本地/免费准备、常驻预算研究或改查大陆方案。推荐不当作批准。计划给出身份所有权→记录CRUD→条件写回→合成/数据库/浏览器→部署验收切片与明确证据边界，不先实现依赖供应商的代码。
+- 上次交接`6a213fd2c041d17a316795a018c87dd35619c3b0`普通推送已核验；本轮`gh run view 39909440644`显示精确SHA completed/success，覆盖此前排队状态。此为前次文档提交的CI。当前仅文档检查，无新业务回归/构建/OAuth/数据库/浏览器或公网结果，无资源开通、真实调用、发布。
