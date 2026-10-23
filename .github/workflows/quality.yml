@@ -54,3 +54,35 @@ jobs:
         run: npm ci
       - name: Lint, typecheck and build
         run: npm run check
+
+  history-postgres:
+    name: History PostgreSQL and backup restore
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: history_test
+          POSTGRES_PASSWORD: synthetic-local-only
+          POSTGRES_DB: history_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U history_test -d history_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      HISTORY_TEST_DSN: postgresql://history_test:synthetic-local-only@127.0.0.1:5432/history_test
+      PYTEST_DISABLE_PLUGIN_AUTOLOAD: '1'
+      PYTEST_ADDOPTS: ''
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install persistence test dependencies
+        run: python -m pip install -r requirements-history.txt pytest==8.3.4
+      - name: Verify PostgreSQL client tools
+        run: /usr/lib/postgresql/16/bin/pg_dump --version
+      - name: Exercise real database and backup restore (synthetic data only)
+        run: python -m pytest tests/test_history_postgres.py -q -p no:cacheprovider

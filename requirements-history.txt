@@ -1,0 +1,2 @@
+# Optional S3 persistence dependencies. Existing anonymous demo is unchanged.
+psycopg[binary]==3.3.5

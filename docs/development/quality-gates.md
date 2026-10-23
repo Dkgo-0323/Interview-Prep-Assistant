@@ -77,3 +77,7 @@ npm run check
 工作流权限为 `contents: read`，不配置模型密钥，不部署、不发布。push/PR 的并发新运行会取消同一引用的旧运行。工作流本身不强制分支保护，是否设为合并必需检查另行确认；不把“已写 YAML”当作“远程 CI 已通过”。本次实际运行结果、SHA 与远程 run 链接见 daily。
 
 实现参考（访问：2026-10-19）：[GitHub Python CI](https://docs.github.com/en/actions/tutorials/build-and-test-code/python)、[GitHub Node.js CI](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs)、[官方 Geist 字体包](https://github.com/vercel/geist-font)。Next.js 配置另核对安装版本 `node_modules/next/dist/docs/` 的 TypeScript、CLI 和字体指南。
+
+## S3独立数据库门禁
+
+新增`History PostgreSQL and backup restore` job：Ubuntu临时PostgreSQL16、合成身份/文本/报告，运行`tests/test_history_postgres.py`，真实并发连接及pg_dump/pg_restore。它独立于无数据库的七文件离线集合，不把模型调用加入默认tests。安装`requirements-history.txt`；CI缺数据库或客户端工具必须失败。范围/本地命令/恢复边界见[history-storage](history-storage.md)。当前历史模块未接入HTTP和页面，数据库测试不等于OAuth/端到端/生产恢复验收。

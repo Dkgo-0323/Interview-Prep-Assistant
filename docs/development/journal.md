@@ -139,3 +139,20 @@
 - 提案（未选定）：Render两个应用+Supabase身份/PostgreSQL，先单worker。常驻预算约39美元/月=应用约14+Supabase Pro起价25；14来自[Render官方示例仓库QUICKSTART](https://github.com/render-examples/web-research-agent-template/blob/main/QUICKSTART.md)的两服务估算，不是本项目报价/实测容量。Render动态[价格页](https://render.com/pricing)本次正文未取得计算费表，不能将示例金额当实时精确价格；开通前必须核价，税/流量超额/域名不含，Qwen未计也未批准。[Vercel Hobby条款](https://vercel.com/docs/limits/fair-use-guidelines)限个人非商业，作为备选未采用；没有为了部署替换Next/FastAPI业务主线。
 - 第三组集中确认已发：GitHub或邮箱验证码入口；20份可命名/重命名/选择/删除、保留文本与结果但不保留原文件或扩展原文件存储；托管组合本地/免费准备、常驻预算研究或改查大陆方案。推荐不当作批准。计划给出身份所有权→记录CRUD→条件写回→合成/数据库/浏览器→部署验收切片与明确证据边界，不先实现依赖供应商的代码。
 - 上次交接`6a213fd2c041d17a316795a018c87dd35619c3b0`普通推送已核验；本轮`gh run view 39909440644`显示精确SHA completed/success，覆盖此前排队状态。此为前次文档提交的CI。当前仅文档检查，无新业务回归/构建/OAuth/数据库/浏览器或公网结果，无资源开通、真实调用、发布。
+
+#### S3第三组已确认A/A/C：产品规则确定，拒绝原托管组合
+
+- 用户明确GitHub登录和20份历史方案（命名/重命名/选择/主动删除、不保留原文件、满额先删不淘汰）；不采用Render/Supabase组合，要求先比较大陆访问更合适的托管方案，身份/存储供应商暂不锁定。前节原组合和约39美元只是已拒绝提案，不是实施依据。
+- 北京时间10-23官方定向核验：[腾讯云Lighthouse产品页](https://cloud.tencent.com/product/lighthouse)正文取得内地2核2GB 45元/月、2核4GB 100元/月套餐，后者含100GB盘/7Mbps/1000GB月流量；页面另有新客109元年广告，未将其当常规价。香港tab未取得可靠报价；[阿里云轻量产品页](https://www.alibabacloud.com/en/product/simple-application-server)工具访问失败，不补造价格。地区本身不证明GitHub或本项目可达性，全部无实测。
+- [阿里云备案流程](https://help.aliyun.com/en/icp-filing/basic-icp-service/user-guide/icp-filing-application-overview)官方正文说明内地服务器需接入商备案、香港/境外无需该备案；部署选内地时作为发布依赖，不替用户处理身份材料，不宣称已备案。[GitHub OAuth官方流程](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)支持浏览器授权码流程，可由应用直接接入；不意味着已批准自行运维身份/数据库。
+- 比较：内地单机候选Next+FastAPI+PostgreSQL+同源反向代理，费用可读、需要备案和数据库备份维护；香港单机同样可自管但报价/大陆可达性待实测；国内托管身份/数据库可减运维但GitHub兼容/价格待核验，暂不选服务。推荐内地2核4GB作初始预算而非容量保证，不在最小机器上宣称生产性能。
+- 已发第四组两题：地区/备案路线；直接GitHub+自管PostgreSQL或托管身份/数据库。仅这些架构/维护选择待确认，不重问GitHub登录、20份历史和合成模型。没有新增代码或资源；本次修订先本地保留，等待选择后随下一实质增量交付。
+- 前次提案文档提交`adfacc6d4b8fe770ea33c0b9842c2503f0d35f17`已普通推送原开发分支；其自身CI未核验，不能用较早39909440644成功替代。
+
+#### S3第四组A/A确认，开始历史存储基础实现
+
+- 用户确认腾讯云内地单机本地部署准备（100元月候选预算，购买/备案材料/发布另行确认），应用直接GitHub登录+同机PostgreSQL，承担维护和备份恢复。四组决策完毕，不再日常重问。ADR0005记录长期取舍；前节第四组待决已被覆盖。负责范围新增api/history.py、db迁移、requirements-history、显式迁移脚本、数据库测试/CI和相关手册，未编辑前端或用户原有路径。
+- 实现：accounts以GitHub稳定数字ID关联内部UUID；preparations含owner/title/revision/输入文本/JSON结果和时间。全部访问按owner过滤；创建锁账号行后计数，20份上限覆盖不同连接并发；列表只返回元信息。输入替换按期望版本更新并清结果，发布按账号/记录/版本条件写入，重传/删除后旧任务不能恢复结果。无公开身份注入接口，登录尚未实现，调用方必须提供已验证身份。每次短事务独立连接，不持锁等待模型。
+- 显式幂等迁移001与脚本不读dotenv、不自动运行于应用启动；可选psycopg依赖独立，不让默认匿名演示依赖数据库。新CI PostgreSQL16服务只用合成数据，九项真实数据库用例含并发20份/隔离/不同连接恢复/改名/分记录/版本与删除写回/名称/迁移，另有真实pg_dump→删除自建schema→pg_restore内容恢复。测试仅删除自己唯一命名schema，非用户数据库；不是生产备份计划。
+- 本地Windows/Python3.12.7：AST解析通过；`.\venv\Scripts\python.exe scripts/check_backend.py`在允许回环环境exit0，90 passed/5 skipped/1既有Starlette warning，6.45s。缺PDF/DOCX样本skip保留。Docker CLI存在但Linux engine管道不存在，真实本地PostgreSQL与备份恢复未执行，不用替身冒充通过；交由新增远端临时数据库job验证。没有本轮前端改动，不重复前端门禁/浏览器；没有真实模型/资源/发布。
+- 下一步：取得真实数据库CI收据并修复失败；再实现GitHub回调/安全会话、记录API与现有SSE/分析/题库绑定、重启中断/同版本重复任务保护和历史UI。数据库基础不等于用户已可登录或跨设备使用。备份异机目的地、调度/保留/恢复演练仍待部署落实，不宣称数据持久化已上线。
