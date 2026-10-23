@@ -1,5 +1,7 @@
 # Interview Prep Assistant
 
+> Next.js + FastAPI 主链路已实现；当前为单进程演示应用。文档更新：2026-10-23。
+
 面向求职者的 AI 面试准备工具。用户上传职位描述（JD）和简历后，系统提取结构化信息、分析岗位匹配度，并生成可筛选的个性化面试题与参考回答。
 
 本项目以一条完整的产品链路展示如何把大模型能力接入可交互的 Web 应用：**文件解析 → 结构化抽取 → 能力差距分析 → 流式反馈 → 面试题生成**。
@@ -36,11 +38,74 @@
 | 文档解析 | pdfplumber、PyPDF2、python-docx、chardet |
 | 测试 | pytest、FastAPI TestClient、前端 ESLint |
 
+## 系统架构
+
+```mermaid
+flowchart LR
+    Browser["浏览器 · Next.js 16 / React 19"]
+    API["FastAPI · REST / SSE"]
+    Sessions["匿名 Cookie 会话 · TTL / 版本校验
+单进程内存：上传文本、报告、题目缓存"]
+    Parsers["文件解析
+PDF / DOCX / TXT"]
+    Domain["JD / 简历抽取 → 差距分析 → 面试题生成"]
+    Contracts["Pydantic v2 数据契约"]
+    LLM["LLMService · OpenAI SDK
+重试 / token 与成本统计"]
+    Qwen["Qwen · DashScope 兼容接口"]
+    Browser -->|"上传 / 查询 / 生成（携带 Cookie）"| API
+    API -->|"阶段进度 SSE"| Browser
+    API <--> Sessions
+    API --> Parsers
+    API --> Domain
+    Domain --> Contracts
+    Domain --> LLM
+    LLM --> Qwen
+```
+
+上传先解析文本，再通过三阶段 SSE 完成 JD 抽取、简历抽取与差距分析。题目基于分析结果分批生成、去重并补足；重新上传或清除资料会使旧任务结果失效。数据不写入持久化数据库。
+
+```text
+api/                  FastAPI 路由、HTTP 模型、匿名会话
+frontend/             Next.js 页面、组件和 REST / SSE 客户端
+core/parsers/         PDF、DOCX、TXT 解析
+core/analyzers/       JD、简历和岗位差距分析
+core/generators/      面试题生成、补足与去重
+models/ + prompts/    Pydantic 领域模型与提示词
+services/             LLM 调用与用量统计
+scripts/ + tests/     离线验证、浏览器验收与合成数据
+```
+
+`app/` 和 `run_app.py` 是早期 Streamlit 原型；当前 Web 应用使用下方的 Next.js + FastAPI 启动方式。完整设计见 [Architecture.md](Architecture.md)。
+
+## 运行截图
+
+以下截图于 **2026-10-23** 从本地生产构建页面采集。使用仓库 `tests/fixtures/workflow/` 中的合成 JD、简历及固定模型响应，真实执行上传解析、HTTP 会话、SSE 和题目业务流程；评分与回答仅用于演示，不代表真实 Qwen 生成质量。
+
+### 上传 JD 与简历
+
+![上传页面：JD 与简历上传完成](docs/images/upload.png)
+
+### 岗位匹配分析
+
+![分析报告：匹配度、维度评分及改进建议](docs/images/analysis.png)
+
+### 个性化面试题库
+
+![题库：题型、难度、搜索和参考回答卡片](docs/images/questions.png)
+
 ## 本地运行
 
 ### 1. 准备后端
 
-需要 Python 3.10+。在项目根目录执行：
+建议与 CI 保持一致：Python 3.12、Node.js 22、npm。首次获取仓库：
+
+```powershell
+git clone https://github.com/Dkgo-0323/Interview-Prep-Assistant.git
+Set-Location Interview-Prep-Assistant
+```
+
+在项目根目录执行：
 
 ```powershell
 python -m venv venv
@@ -57,6 +122,8 @@ LLM_BASE_URL=https://your-workspace-id.cn-beijing.maas.aliyuncs.com/compatible-m
 LLM_DEFAULT_MODEL=qwen3.7-plus
 ```
 
+密钥仅放在后端 `.env`，不要提交该文件或写入 `NEXT_PUBLIC_*`。`LLM_BASE_URL` 和模型名应填写自己账号实际可用的配置；上面的工作空间地址需替换。各分析阶段可通过 `.env.example` 中的 `LLM_MODEL_*` 分别配置。
+
 启动 API：
 
 ```powershell
@@ -67,17 +134,61 @@ uvicorn api.main:app --reload --port 8000
 
 ### 2. 准备前端
 
-需要 Node.js 20+。新开一个终端：
+新开一个终端，在项目根目录执行：
 
 ```powershell
 Set-Location frontend
-npm install
+npm ci
 npm run dev
 ```
 
 打开 `http://localhost:3000`。默认前端会连接 `http://localhost:8000`；如需覆盖，可设置 `NEXT_PUBLIC_API_URL`。
 
 前端与API请统一使用`localhost`，或统一使用`127.0.0.1`，避免跨站Cookie策略影响会话；不同端口仍需CORS允许确切前端origin。后端默认仅允许本机3000端口。匿名会话默认闲置1800秒、最多100个，可通过进程环境变量`SESSION_TTL_SECONDS`、`SESSION_MAX_COUNT`调整；满额时新访客收到503，已有有效会话保留。HTTPS部署需评估`SESSION_COOKIE_SECURE=true`，正式发布另行验收。仅支持单进程/单worker，重启丢失资料。
+
+## 部署步骤（单机演示）
+
+仓库目前没有 Docker / Compose 或一键部署配置。先按上节安装依赖并配置后端 `.env`，再使用生产构建启动两个进程。以下 PowerShell 命令适用于本机演示：
+
+```powershell
+# 终端一：仓库根目录，仅一个 worker
+.\venv\Scripts\python.exe -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --workers 1
+```
+
+```powershell
+# 终端二：仓库根目录
+Set-Location frontend
+$env:NEXT_PUBLIC_API_URL = "http://localhost:8000"
+npm ci
+npm run build
+npm run start -- --hostname 127.0.0.1 --port 3000
+```
+
+访问 [应用](http://localhost:3000)、[健康检查](http://localhost:8000/api/health) 和 [接口文档](http://localhost:8000/docs)。健康检查应返回 `{"status":"ok"}`，再用合成资料检查上传、分析与题库。`NEXT_PUBLIC_API_URL` 会在构建时写入前端产物，修改后需要重新构建。
+
+如需域名与 HTTPS，可在这两个回环服务前配置 Nginx。以下 `interview.example.com` 是部署示例域名，应替换为自己的域名，并自行配置证书及 HTTPS server：
+
+```nginx
+# 放入已配置 TLS 的 server 块
+location /api/ {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_buffering off;
+    proxy_cache off;
+    proxy_read_timeout 600s;
+    client_max_body_size 11m;
+}
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_set_header Host $host;
+}
+```
+
+域名部署时，在构建前将 `NEXT_PUBLIC_API_URL` 设为 `https://interview.example.com`（不带 `/api` 后缀），将 `api/main.py` 的 `allow_origins` 加入确切的 HTTPS 前端来源，并在**后端启动进程环境**设置 `SESSION_COOKIE_SECURE=true`。会话配置由 `os.getenv` 读取，应在启动前设置；不要只依赖 `.env` 的加载时序。由服务管理器保持两个进程运行，API 保持单 worker。
+
+代理需保留 `/api/` 路径、Cookie 与 SSE，并关闭流式响应缓冲；应用仍限制每个文件 10 MB。上线后需要在实际 HTTPS 域名验证 Cookie、SSE 逐阶段到达、刷新恢复和会话过期。当前没有账号认证、限流、持久化或多实例共享，公网生产部署尚未验收；服务重启会丢失全部访客资料。
 
 ## 使用流程
 
@@ -138,7 +249,7 @@ npm run lint
 1. 为什么用 Pydantic 约束大模型输出，而不是直接消费自然语言？
 2. 为什么把同步 LLM 调用放入线程，并用 SSE 把阶段性结果反馈给浏览器？
 3. 为什么题目生成需要分批、补足与相似度去重？
-4. 如何将当前内存会话替换为 Redis/数据库，使其支持多用户、持久化和横向扩展？
+4. 如何将当前内存会话替换为 Redis/数据库，使其支持跨进程会话共享、持久化和横向扩展？
 
 ## 当前边界
 
