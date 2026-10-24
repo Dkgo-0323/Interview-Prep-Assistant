@@ -156,3 +156,20 @@
 - 显式幂等迁移001与脚本不读dotenv、不自动运行于应用启动；可选psycopg依赖独立，不让默认匿名演示依赖数据库。新CI PostgreSQL16服务只用合成数据，九项真实数据库用例含并发20份/隔离/不同连接恢复/改名/分记录/版本与删除写回/名称/迁移，另有真实pg_dump→删除自建schema→pg_restore内容恢复。测试仅删除自己唯一命名schema，非用户数据库；不是生产备份计划。
 - 本地Windows/Python3.12.7：AST解析通过；`.\venv\Scripts\python.exe scripts/check_backend.py`在允许回环环境exit0，90 passed/5 skipped/1既有Starlette warning，6.45s。缺PDF/DOCX样本skip保留。Docker CLI存在但Linux engine管道不存在，真实本地PostgreSQL与备份恢复未执行，不用替身冒充通过；交由新增远端临时数据库job验证。没有本轮前端改动，不重复前端门禁/浏览器；没有真实模型/资源/发布。
 - 下一步：取得真实数据库CI收据并修复失败；再实现GitHub回调/安全会话、记录API与现有SSE/分析/题库绑定、重启中断/同版本重复任务保护和历史UI。数据库基础不等于用户已可登录或跨设备使用。备份异机目的地、调度/保留/恢复演练仍待部署落实，不宣称数据持久化已上线。
+
+#### 用户启动Docker后补充本机真实数据库验收
+
+- 用户告知已启动本机Docker。本轮沙箱访问Docker命名管道被拒绝，允许的沙箱外检查成功（Engine29.1.3）；发现已有interview-prep-postgres，未操作该容器。另建本任务标记的ipa-history-check-20261023临时容器，PostgreSQL数据仅tmpfs，不挂载用户目录/数据库。
+- 仅复制api/__init__.py、api/history.py、迁移001和已审阅的test_history_postgres.py，容器内安装独立测试依赖；使用合成loopback DSN运行同一组测试：`python -m pytest tests/test_history_postgres.py -q -p no:cacheprovider`，9 passed，0.58s，exit0。实际容器Python3.14.8、PostgreSQL/pg_dump16.15、psycopg3.3.5/pytest8.3.4；不是Windows主机Python3.12，也不是此前远端CI成绩。真实dump/删除自建schema/restore及内容核对包含在9项中。
+- 核验本轮容器ID与任务label后删除，仅本轮容器被清理，原interview-prep-postgres仍运行。无真实OAuth、业务HTTP/页面、模型调用或公网验收，不把容器测试当生产备份计划。没有产品源码变化；此验证记录本地保留，随下一实质开发提交，不为补收据单独创建提交。
+
+### 2026-10-24 S3第二切片：GitHub后端身份边界
+
+- 主任务/范围：延续已确认GitHub直接登录+自管PostgreSQL，交付可选后端OAuth与账号会话，不新增阶段/供应商/费用决定。周六无例行JD/同类研究。负责api/auth.py、api/routes/auth.py、main注册/显式启动、审阅测试入口与相关手册/README/plan/journal；前端与用户日志/材料/test-results未编辑。启动journal已有10-23 Docker收据，本轮保留随功能归档。单worktree，分支/上游/origin仍既有开发分支；相关10-23聊天notLoaded，本任务active，可见无同项目其他active聊天，外部/其他机器并行未知，未向聊天发消息。
+- 启动实时远端：开发分支67d8f5f6cd521557f5c7786c7f2d87c1fd3909e6，main e44da22da39093f8a6e69edb33f12406a8db0fe7；前次历史基础提交已推送，[CI39927468141](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/39927468141)精确SHA completed/success。部署列表为空，不据此声称已有公网URL。沙箱SSH/gh失败，经允许的只读命令恢复核验。前次本机PostgreSQL9项/实际dump恢复见上节，不算今天新跑。
+- 实际实现：GET登录/回调、GET me、POST logout及共用REST/SSE身份依赖；随机state绑定HttpOnly浏览器Cookie，S256 PKCE、10分钟/100项待登录（含在途）；回调一次消费、固定GitHub HTTPS端点换token并每次查/user稳定数字ID，再交既有仓库映射内部UUID。随机账号Cookie只存服务端哈希，30分钟绝对过期/100会话/单worker；满额拒绝不驱逐、重登录轮换本设备、退出保留其他设备。退出/新登录取消旧在途回调，避免退出后回调复活。令牌不返前端/不入库；错误不泄露供应商正文或DSN；退出要求精确Origin，回跳固定前端根路径。普通配置详情见登录手册，不新写ADR。
+- 显式GITHUB_AUTH_ENABLED开关默认关闭；启用时从后端进程环境取得完整配置，可选导入历史驱动，不自动迁移、不读取dotenv。未使用真实OAuth凭据。现有匿名上传→解析→SSE结构化报告→题库仍在内存，未接账号历史。数据库已有accounts/preparations，账号会话仅本进程；重启后需重新登录，历史不因此删除。默认实现不代表永久登录/多实例批准。
+- 具体资料只查[GitHub官方OAuth](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps)，北京时间10-24正文取得，确认state/S256/code_verifier及每次验证身份。采用官方流程，无新框架/服务。发布前日志必须屏蔽回调query，真实HTTPS/域名/GitHub可达性仍待验收。
+- 验证：首次沙箱`venv/Scripts/python.exe scripts/check_backend.py`socketpair超时、exit2，业务未运行；允许本机回环后，Windows/Python3.12.7最终同命令exit0，117 passed/5 skipped/1既有Starlette警告，4.48s。新增27项合成GitHub transport+账号mapper测试，实际执行FastAPI路由；覆盖PKCE、Cookie/state/跨浏览器/Unicode伪造/重放/过期/拒绝、身份注入拒绝、错误关闭、旋转、两设备、容量及在途退出取消。审阅发现Unicode state直接字符串compare_digest会异常，改字节比较并新增回归；最终复验通过，未伪称观察到失败测试。跳过项为既有缺失PDF/DOCX样本。外网socket拦截+dotenv禁用保持，无真实模型/OAuth/DB回调集成。
+- 文档修正：plan顶表和切片标题已对齐四组既有确认，不再写供应商待决；README准确标记仅后端基础；存储/质量/登录手册说明运行、会话边界及未来长任务必须重新核验会话/record/revision。没有前端改动，未本机重复npm check或浏览器，不把后端TestClient当浏览器Cookie验收。实际PostgreSQL用例交远端独立job重新执行。
+- 可演示：离线测试展示完整授权回调与me/退出防错；界面没有新增登录按钮或历史列表。S3仍实施中。下一步可自主继续账号记录CRUD及所有权、绑定上传/分析SSE/题库与record/revision、重复/重启任务状态，再历史UI和两设备合成链路。真实凭据/GitHub连通、部署包/异机备份/备案资源/精确购买费用/正式发布仍未验收；Q003真实模型预算另行interview。当前提交自身SHA/普通推送/最终CI在本聊天及memory，下一轮归档，避免自引用提交。

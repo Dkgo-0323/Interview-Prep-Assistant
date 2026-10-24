@@ -32,6 +32,13 @@ def get_session(request: Request) -> Session:
 # ── 生命周期 ────────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if os.getenv('GITHUB_AUTH_ENABLED', 'false').lower() == 'true':
+        from api.auth import AuthConfig, AuthService
+        from api.history import HistoryStore
+        config = AuthConfig(os.environ['GITHUB_CLIENT_ID'], os.environ['GITHUB_CLIENT_SECRET'],
+                            os.environ['GITHUB_CALLBACK_URL'], os.environ['AUTH_FRONTEND_ORIGIN'])
+        history = HistoryStore.from_dsn(os.environ['HISTORY_DATABASE_URL'])
+        app.state.auth_service = AuthService(config, history.account_for_github)
     logger.info("🚀 Interview Prep Assistant API 启动成功")
     logger.info("📖 Swagger 文档: http://localhost:8000/docs")
     yield
@@ -95,12 +102,13 @@ app.add_middleware(
 )
 
 # ── 注册路由（在应用创建后导入，避免循环依赖）────────────────────
-from api.routes import upload, analyze, questions, profile  # noqa: E402
+from api.routes import upload, analyze, questions, profile, auth  # noqa: E402
 
 app.include_router(upload.router,    prefix="/api/upload",    tags=["文件上传"])
 app.include_router(analyze.router,   prefix="/api/analyze",   tags=["智能分析"])
 app.include_router(questions.router, prefix="/api/questions", tags=["面试题生成"])
 app.include_router(profile.router,   prefix="/api/profile",   tags=["求职画像"])
+app.include_router(auth.router, prefix='/api/auth', tags=['账号登录'])
 
 
 # ── 系统路由 ────────────────────────────────────────────────────

@@ -4,6 +4,8 @@
 
 ## 2026-10-22 可信会话验收
 
+2026-10-24：离线集合现为八文件，新增审阅过的`tests/test_auth.py`；真实FastAPI路由+合成GitHub HTTP transport/账号映射覆盖state/PKCE/回调重放、会话与退出、容量/过期/在途取消和失败关闭。门禁显式关闭真实OAuth启用开关，仍阻止外网、不读.env；不含真实OAuth或数据库回调集成。配置与边界见[GitHub登录手册](github-auth.md)。
+
 后端入口新增审阅过的`tests/test_api_sessions.py`，仍不读.env、不允许外部连接。会话集合使用两个独立TestClient、合成样例、可控时钟与线程阻塞点；覆盖Cookie身份/匿名隔离、滑动闲置过期、容量拒绝/释放、重启失效、重传/清除/过期与分析三个阶段或题目生成交错、重分析使旧题目失效、重复任务、取消等待后的忙槽、上传晚到。无需真实模型和新服务。健康接口现在仅返回status，不返回session_keys。
 
 前端API契约集合现12项，新增共享初始化/credentials、410不重放工作且可显式重试、容量失败不发后续请求、清除失败保留错误、报告恢复不启动SSE、SSE凭证及卸载取消。实际运行结果只记journal，下面保留旧日期基线。
@@ -80,4 +82,4 @@ npm run check
 
 ## S3独立数据库门禁
 
-新增`History PostgreSQL and backup restore` job：Ubuntu临时PostgreSQL16、合成身份/文本/报告，运行`tests/test_history_postgres.py`，真实并发连接及pg_dump/pg_restore。它独立于无数据库的七文件离线集合，不把模型调用加入默认tests。安装`requirements-history.txt`；CI缺数据库或客户端工具必须失败。范围/本地命令/恢复边界见[history-storage](history-storage.md)。当前历史模块未接入HTTP和页面，数据库测试不等于OAuth/端到端/生产恢复验收。
+新增`History PostgreSQL and backup restore` job：Ubuntu临时PostgreSQL16、合成身份/文本/报告，运行`tests/test_history_postgres.py`，真实并发连接及pg_dump/pg_restore。它独立于无数据库的八文件离线集合，不把模型调用加入默认tests。安装`requirements-history.txt`；CI缺数据库或客户端工具必须失败。范围/本地命令/恢复边界见[history-storage](history-storage.md)。当前历史模块未接入HTTP和页面，数据库测试不等于OAuth/端到端/生产恢复验收。

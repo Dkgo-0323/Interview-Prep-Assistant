@@ -1,6 +1,6 @@
 # S3 PostgreSQL history foundation
 
-This is an implemented repository, **not yet connected to HTTP, login or pages**.
+This is an implemented repository, **not yet connected to record HTTP or pages; optional GitHub login now maps verified numeric identity through this repository**.
 The current anonymous application continues to use process memory. Do not claim
 cross-device login, server restart recovery or public deployment is delivered.
 
@@ -26,7 +26,7 @@ use a migration role and a runtime role without schema administration permission
 
 `HistoryStore.account_for_github` accepts the numeric identity obtained from an
 **authenticated GitHub user lookup**, not a login name or client-supplied ID. It
-is a persistence method, not authentication. No public route exposes it.
+is a persistence method, not authentication. No public route accepts a caller-supplied GitHub ID. The optional [GitHub callback](github-auth.md) invokes it only after the authenticated provider user lookup.
 
 Each preparation belongs to one account and has a title, input revision, parsed
 JD/resume text and JSON results. Titles contain 1–100 trimmed characters. Accounts

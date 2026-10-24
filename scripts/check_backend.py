@@ -20,6 +20,7 @@ OFFLINE_TESTS = (
     "tests/test_api_workflow.py",
     "tests/test_api_smoke.py",
     "tests/test_api_sessions.py",
+    "tests/test_auth.py",
 )
 
 
@@ -49,6 +50,7 @@ def main() -> int:
         PYTEST_DISABLE_PLUGIN_AUTOLOAD="1",
         PYTEST_ADDOPTS="",
         PYTEST_PLUGINS="",
+        GITHUB_AUTH_ENABLED="false",
     )
     sys.dont_write_bytecode = True
     try:
