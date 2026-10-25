@@ -1,6 +1,6 @@
 """PostgreSQL history repository; callers must supply a VERIFIED account identity.
 
-Not wired into HTTP until the GitHub authentication boundary is implemented.
+Record management HTTP uses this repository through the GitHub identity boundary.
 Each call owns a short transaction; never hold a DB lock during a model request.
 """
 from pathlib import Path
@@ -11,16 +11,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 
-class HistoryMissing(Exception):
-    """Missing and foreign records deliberately have the same outcome."""
-
-
-class HistoryFull(Exception):
-    pass
-
-
-class HistoryConflict(Exception):
-    pass
+from api.history_errors import HistoryConflict, HistoryFull, HistoryMissing
 
 
 class HistoryStore:

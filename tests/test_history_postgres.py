@@ -15,6 +15,53 @@ import pytest
 from api.history import HistoryConflict, HistoryFull, HistoryMissing, HistoryStore
 
 
+def test_record_http_with_real_postgres(database):
+    """Compose real account-cookie HTTP handlers with the real SQL repository.
+
+    Identity issuance is synthetic; this does not contact GitHub or the model.
+    """
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from api.auth import AUTH_COOKIE, AuthConfig, AuthService, Identity
+    from api.routes.history import router
+
+    store, _, _ = database
+    owner = store.account_for_github(101)
+    other = store.account_for_github(202)
+    service = AuthService(AuthConfig('synthetic', 'synthetic',
+        'https://api.example.test/api/auth/github/callback', 'https://app.example.test'),
+        store.account_for_github, clock=lambda: 0)
+    service.sessions[service.digest('owner')] = Identity(owner, 1800)
+    service.sessions[service.digest('other')] = Identity(other, 1800)
+    app = FastAPI()
+    app.state.auth_service, app.state.history_store = service, store
+    app.include_router(router, prefix='/api/records')
+    with TestClient(app, base_url='https://api.example.test') as client:
+        client.cookies.set(AUTH_COOKIE, 'owner')
+        client.headers['origin'] = 'https://app.example.test'
+        response = client.post('/api/records', json={'title': ' 真实数据库合成记录 '})
+        assert response.status_code == 201
+        record = response.json()['id']
+        from uuid import UUID
+        assert store.get(owner, UUID(record))['title'] == '真实数据库合成记录'
+        store.replace_inputs(owner, UUID(record), 0, {'jd_text': '合成岗位'})
+        store.publish(owner, UUID(record), 1, 'gap', {'score': 80})
+        path = '/api/records/' + record
+        assert client.get(path).json()['results'] == {'gap': {'score': 80}}
+        assert client.patch(path, json={'title': '另一设备改名'}).json()['revision'] == 1
+        assert 'inputs' not in client.get('/api/records').json()[0]
+        client.cookies.set(AUTH_COOKIE, 'other')
+        for method in ('get', 'patch', 'delete'):
+            kwargs = {'json': {'title': '越权'}} if method == 'patch' else {}
+            assert client.request(method, path, **kwargs).status_code == 404
+        assert client.get('/api/records').json() == []
+        client.cookies.set(AUTH_COOKIE, 'owner')
+        assert client.delete(path).status_code == 204
+        assert client.get(path).status_code == 404
+        with pytest.raises(HistoryMissing):
+            HistoryStore(store.connect).get(owner, UUID(record))
+
+
 @pytest.fixture
 def database():
     dsn = os.environ.get('HISTORY_TEST_DSN')

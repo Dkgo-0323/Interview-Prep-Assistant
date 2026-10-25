@@ -1,6 +1,8 @@
 # S3 PostgreSQL history foundation
 
-This is an implemented repository, **not yet connected to record HTTP or pages; optional GitHub login now maps verified numeric identity through this repository**.
+This repository now backs **account-owned record management HTTP**, with optional
+GitHub login mapping verified numeric identity through the same repository.
+Upload/analysis/question routes and history pages are not connected yet.
 The current anonymous application continues to use process memory. Do not claim
 cross-device login, server restart recovery or public deployment is delivered.
 
@@ -40,8 +42,38 @@ work must capture record ID/owner/revision and publish only against those values
 Deleting a row or replacing its inputs prevents late writes. Calls use short
 transactions and close connections; never retain a database transaction during a
 model call. This foundation does not yet handle same-revision duplicate tasks,
-restart-interrupted task state, HTTP error mapping or account session revocation;
-these remain required before wiring it to analysis routes.
+restart-interrupted task state or late-job account session revocation;
+these remain required before wiring it to analysis routes. Record management
+already maps HTTP errors and uses the live account identity dependency.
+
+## Account record HTTP
+
+Enable explicit GitHub configuration in the [login manual](github-auth.md).
+Startup attaches one HistoryStore; no automatic migration or anonymous import
+occurs. Disabled operation needs no database driver.
+
+| Method | Path | Contract |
+| --- | --- | --- |
+| GET | `/api/records` | Own metadata: id, title, revision, timestamps |
+| POST | `/api/records` | `{ "title": "Python backend" }`, returns 201 detail |
+| GET | `/api/records/{uuid}` | Own parsed text/result snapshot and metadata |
+| PATCH | `/api/records/{uuid}` | Same title body; preserves revision/text/results |
+| DELETE | `/api/records/{uuid}` | Deletes owned row; 204 with no body |
+
+Titles must be strings, trimmed to 1–100 characters. Extra body fields (including
+owner/inputs/results/revision) and malformed UUIDs are rejected (422). Ownership
+always comes from the live HttpOnly account cookie. Writes require exact `Origin`
+matching `AUTH_FRONTEND_ORIGIN` without a trailing slash, including local clients.
+Missing/expired accounts return 401 (disabled configuration returns 503).
+Missing and foreign records share 404. Capacity is 409 with no automatic eviction.
+Storage failures return safe 503s without SQL/DSN details. All application API
+responses have `Cache-Control: no-store`, including errors. Writes are never
+automatically retried: a lost response could follow a committed mutation, so
+refresh the list before deciding to repeat it.
+
+Selection reads a record URL; no global current-record field. This slice has no
+input/result write endpoint: anonymous uploads, reports and questions remain in
+memory. No history UI or durable task state is claimed.
 
 ## Real database acceptance and recovery
 
@@ -51,7 +83,10 @@ a disposable database and synthetic data. It runs only
 Every test creates a unique `history_test_<uuid>` schema and drops only that schema.
 It covers ownership, actual concurrent connections at the capacity boundary,
 independent repository objects, stale writes/deletion, record separation, names
-and idempotent migration. The recovery case dumps an owned schema using pg_dump,
+and idempotent migration. A composed HTTP case exercises real routes against
+PostgreSQL (synthetic issued cookies): create, stored snapshot reads, metadata,
+rename, foreign-account rejection and deletion verified via another repository.
+This does not run real OAuth. The recovery case dumps an owned schema using pg_dump,
 drops that synthetic schema, restores with pg_restore and checks identity, text
 and report content. Missing database/tools is a failure, never a fake pass.
 

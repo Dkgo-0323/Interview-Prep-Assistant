@@ -47,7 +47,8 @@ callbacks, including one waiting on provider/DB IO. Restart requires login again
 but the verified GitHub ID maps to the existing database account. These are
 single-worker implementation defaults, not persistent login/multi-instance support.
 
-`api.auth.get_identity` is the shared dependency for future REST/SSE. Existing
+`api.auth.get_identity` now protects the [record REST API](history-storage.md)
+and remains the shared dependency for future analysis SSE. Existing
 anonymous routes are not retrofitted. Long-running record jobs must capture
 owner/record/revision and recheck session/record validity before publication;
 retaining a previously returned Identity alone is insufficient. No automatic
@@ -64,7 +65,7 @@ cookie behavior, UI or public deployment. No live credentials were used.
 
 Before publication, proxy/server access logs must omit callback query strings
 (authorization codes/state). Disable Uvicorn access logs or use a query-redacting
-formatter; no HTTP body/header debug logging. Complete record API/UI and job
+formatter; no HTTP body/header debug logging. Complete record business wiring/UI and job
 revocation, verify HTTPS cookies/Origin/SSE and actual GitHub reachability, then
 perform separately approved release acceptance. No resources are provisioned.
 

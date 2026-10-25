@@ -81,7 +81,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install persistence test dependencies
-        run: python -m pip install -r requirements-history.txt pytest==8.3.4
+        run: python -m pip install -r requirements-ci.txt -r requirements-history.txt
       - name: Verify PostgreSQL client tools
         run: /usr/lib/postgresql/16/bin/pg_dump --version
       - name: Exercise real database and backup restore (synthetic data only)

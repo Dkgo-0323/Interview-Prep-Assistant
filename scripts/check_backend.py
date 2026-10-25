@@ -21,6 +21,7 @@ OFFLINE_TESTS = (
     "tests/test_api_smoke.py",
     "tests/test_api_sessions.py",
     "tests/test_auth.py",
+    "tests/test_history_api.py",
 )
 
 
