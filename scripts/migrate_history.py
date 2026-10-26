@@ -11,4 +11,4 @@ if __name__ == '__main__':
     if not dsn:
         raise SystemExit('HISTORY_DATABASE_URL must identify the intended database')
     HistoryStore.from_dsn(dsn).migrate()
-    print('History migration 001 complete')
+    print('History migrations 001–002 complete')

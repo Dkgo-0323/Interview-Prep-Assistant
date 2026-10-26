@@ -17,8 +17,8 @@ credentials in commands, tracked files or logs. Then run:
 python scripts/migrate_history.py
 ```
 
-Migration 001 is additive and idempotent, serialized using a transaction advisory
-lock. It creates accounts/preparations and an owner index in the selected schema.
+Migrations 001–002 are additive and idempotent, serialized using a transaction advisory
+lock. They create accounts/preparations, an owner index and preparation_tasks.
 The caller must explicitly choose the database; there is no default production
 DSN, automatic application-start migration or dotenv loading. Future changes need
 new migration versions, not destructive edits to migration 001. For deployment,
@@ -41,9 +41,9 @@ Input replacement uses expected revision and clears all derived results. Model
 work must capture record ID/owner/revision and publish only against those values.
 Deleting a row or replacing its inputs prevents late writes. Calls use short
 transactions and close connections; never retain a database transaction during a
-model call. This foundation does not yet handle same-revision duplicate tasks,
-restart-interrupted task state or late-job account session revocation;
-these remain required before wiring it to analysis routes. Record management
+model call. The task repository below handles duplicate attempts and explicit
+restart interruption; business HTTP binding and late-job account session revocation
+remain required before wiring it to analysis routes. Record management
 already maps HTTP errors and uses the live account identity dependency.
 
 ## Account record HTTP
@@ -73,7 +73,38 @@ refresh the list before deciding to repeat it.
 
 Selection reads a record URL; no global current-record field. This slice has no
 input/result write endpoint: anonymous uploads, reports and questions remain in
-memory. No history UI or durable task state is claimed.
+memory. No history UI or HTTP task coordination is claimed.
+
+## Durable task repository (not yet wired to business HTTP)
+
+Migration 002 stores at most the latest analysis and questions attempt per record.
+`claim_task(owner, record, revision, kind)` locks the owned preparation row, checks
+its revision, rejects any running task on that record, then assigns a fresh UUID
+attempt. Other records remain independent. The transaction ends before model work.
+An explicit retry replaces the previous finished/failed/interrupted attempt; opening
+another connection never interrupts work or starts a model.
+
+`finish_task` requires the matching running attempt, owner and input revision. A
+complete analysis snapshot has jd/resume/gap keys; a questions snapshot has only
+questions. Completion and JSON publication commit together or both roll back.
+Analysis regeneration removes prior questions and their task state, because even
+unchanged input can produce a different report. Domain Pydantic validation remains
+the coordinator's responsibility; the repository checks snapshot keys, not model
+semantics. `fail_task` changes only the matching running attempt to failed, without
+storing provider error text. Input replacement interrupts running work and clears
+results in the same transaction; deletion cascades task rows.
+
+`interrupt_tasks_on_startup()` is an explicit **exclusive single-worker startup**
+operation: stop the previous worker first, call before accepting traffic, then
+allow users to retry. It changes running to interrupted and invokes no model.
+Do not call from a request, a connection constructor or a parallel worker. Application
+startup wiring is pending; restart recovery is not active in the current website.
+No queue, lease, automatic retry or multi-worker support is introduced.
+
+Future business HTTP MUST revalidate the original account session before publishing
+or failing a task; DB ownership/attempt checks do not prove a session is still valid.
+The old `publish` method remains for existing repository callers/tests only and has
+no attempt guard; new task-backed HTTP must use `finish_task`, never that shortcut.
 
 ## Real database acceptance and recovery
 
@@ -83,12 +114,15 @@ a disposable database and synthetic data. It runs only
 Every test creates a unique `history_test_<uuid>` schema and drops only that schema.
 It covers ownership, actual concurrent connections at the capacity boundary,
 independent repository objects, stale writes/deletion, record separation, names
-and idempotent migration. A composed HTTP case exercises real routes against
+and idempotent migration/001 upgrade. Task cases exercise concurrent claims,
+cross-kind exclusion, exact-attempt fencing, failure/retry, explicit restart,
+input replacement/deletion, ownership, analysis invalidation and atomic rollback.
+A composed HTTP case exercises real routes against
 PostgreSQL (synthetic issued cookies): create, stored snapshot reads, metadata,
 rename, foreign-account rejection and deletion verified via another repository.
 This does not run real OAuth. The recovery case dumps an owned schema using pg_dump,
 drops that synthetic schema, restores with pg_restore and checks identity, text
-and report content. Missing database/tools is a failure, never a fake pass.
+and report/task content, then explicitly interrupts restored running tasks. Missing database/tools is a failure, never a fake pass.
 
 For an already provisioned disposable local PostgreSQL, supply `HISTORY_TEST_DSN`
 with a loopback host and run `python -m pytest tests/test_history_postgres.py -q`.

@@ -83,3 +83,5 @@ npm run check
 ## S3独立数据库门禁
 
 `History PostgreSQL and backup restore` job：Ubuntu临时PostgreSQL16、合成身份/文本/报告，运行`tests/test_history_postgres.py`，真实并发连接及pg_dump/pg_restore；新增记录HTTP→真实数据库组合验收，身份Cookie仍合成。它独立于无数据库的九文件离线集合，不把模型调用加入默认tests。安装`requirements-ci.txt`和`requirements-history.txt`以固定FastAPI/httpx等依赖；CI缺数据库或客户端工具必须失败。范围见[history-storage](history-storage.md)。记录管理已接HTTP，上传/SSE/题库和页面仍未接历史；数据库测试不等于真实OAuth/完整端到端/生产恢复验收。
+
+10-26数据库增量：审阅文件增加持久任务并发占用、同版本重试的attempt隔离、失败/显式重启中断、重传/删除、快照事务回滚、重分析清题库、001→002保留数据迁移，以及dump/restore保留任务后显式中断。默认九文件离线入口不增加真实数据库或模型依赖；新增行为由独立PostgreSQL job验证，具体收据见journal/当轮聊天。

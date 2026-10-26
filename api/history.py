@@ -23,12 +23,13 @@ class HistoryStore:
         return cls(lambda: psycopg.connect(dsn, row_factory=dict_row, connect_timeout=5))
 
     def migrate(self):
-        source = Path(__file__).resolve().parents[1] / 'db/migrations/001_history.sql'
+        directory = Path(__file__).resolve().parents[1] / 'db/migrations'
         with self.connect() as conn:
             # Serialize concurrent initializers. Versioned migrations are explicit,
             # never executed as a side effect of importing the application.
             conn.execute('SELECT pg_advisory_xact_lock(712649001)')
-            conn.execute(source.read_text(encoding='utf-8-sig'))
+            for name in ('001_history.sql', '002_history_tasks.sql'):
+                conn.execute((directory / name).read_text(encoding='utf-8-sig'))
 
     def account_for_github(self, github_id: int) -> UUID:
         """Only call with id returned by GitHub's authenticated user endpoint."""
@@ -106,7 +107,102 @@ class HistoryStore:
             ).fetchone()
             if row is None:
                 raise HistoryConflict()
+            conn.execute(
+                "UPDATE preparation_tasks SET status='interrupted',updated_at=now() "
+                "WHERE record_id=%s AND status='running'", (record,),
+            )
             return row
+
+    @staticmethod
+    def _kind(kind):
+        if kind not in {'analysis', 'questions'}:
+            raise ValueError('unknown task kind')
+
+    @staticmethod
+    def _lock_record(conn, owner, record, revision=None):
+        row = conn.execute(
+            'SELECT revision FROM preparations WHERE id=%s AND owner_id=%s FOR UPDATE',
+            (record, owner),
+        ).fetchone()
+        if row is None:
+            raise HistoryMissing()
+        if revision is not None and row['revision'] != revision:
+            raise HistoryConflict()
+
+    def tasks(self, owner, record):
+        with self.connect() as conn:
+            self._lock_record(conn, owner, record)
+            return conn.execute(
+                'SELECT kind,revision,attempt,status,updated_at FROM preparation_tasks '
+                'WHERE record_id=%s ORDER BY kind', (record,),
+            ).fetchall()
+
+    def claim_task(self, owner, record, revision, kind):
+        """Explicit request only. No model invocation/retry occurs in this store."""
+        self._kind(kind)
+        with self.connect() as conn:
+            self._lock_record(conn, owner, record, revision)
+            if conn.execute(
+                "SELECT 1 FROM preparation_tasks WHERE record_id=%s AND status='running'",
+                (record,),
+            ).fetchone():
+                raise HistoryConflict()
+            return conn.execute(
+                'INSERT INTO preparation_tasks(record_id,kind,revision,attempt,status) '
+                "VALUES (%s,%s,%s,%s,'running') ON CONFLICT(record_id,kind) DO UPDATE SET "
+                "revision=EXCLUDED.revision,attempt=EXCLUDED.attempt,status='running',updated_at=now() "
+                'RETURNING *', (record, kind, revision, uuid4()),
+            ).fetchone()
+
+    def finish_task(self, owner, record, revision, kind, attempt, results):
+        """Atomically publish a whole task snapshot and finish its exact attempt.
+
+        The HTTP coordinator MUST revalidate the originating account session
+        before calling this; repository ownership is not session revocation.
+        """
+        self._kind(kind)
+        expected = {'jd', 'resume', 'gap'} if kind == 'analysis' else {'questions'}
+        if not isinstance(results, dict) or set(results) != expected:
+            raise ValueError('task requires a complete result snapshot')
+        with self.connect() as conn:
+            self._lock_record(conn, owner, record, revision)
+            self._transition_task(conn, record, revision, kind, attempt, 'completed')
+            # A regenerated analysis invalidates questions derived from the old
+            # report, even when its input revision has not changed.
+            expression = "results - 'questions'" if kind == 'analysis' else 'results'
+            conn.execute(
+                f'UPDATE preparations SET results=({expression}) || %s,updated_at=now() WHERE id=%s',
+                (Jsonb(results), record),
+            )
+            if kind == 'analysis':
+                conn.execute("DELETE FROM preparation_tasks WHERE record_id=%s AND kind='questions'", (record,))
+
+    @staticmethod
+    def _transition_task(conn, record, revision, kind, attempt, status):
+        if not conn.execute(
+            'UPDATE preparation_tasks SET status=%s,updated_at=now() '
+            "WHERE record_id=%s AND revision=%s AND kind=%s AND attempt=%s AND status='running' RETURNING attempt",
+            (status, record, revision, kind, attempt),
+        ).fetchone():
+            raise HistoryConflict()
+
+    def fail_task(self, owner, record, revision, kind, attempt):
+        self._kind(kind)
+        with self.connect() as conn:
+            self._lock_record(conn, owner, record, revision)
+            self._transition_task(conn, record, revision, kind, attempt, 'failed')
+
+    def interrupt_tasks_on_startup(self):
+        """Only after the old sole worker has stopped, BEFORE accepting requests.
+
+        Never call during live traffic or when merely opening another repository
+        connection. Does not resume or invoke models. HTTP startup wiring pending.
+        """
+        with self.connect() as conn:
+            return conn.execute(
+                "UPDATE preparation_tasks SET status='interrupted',updated_at=now() "
+                "WHERE status='running'",
+            ).rowcount
 
     def publish(self, owner, record, revision, key, result):
         if key not in {'jd', 'resume', 'gap', 'questions'}:

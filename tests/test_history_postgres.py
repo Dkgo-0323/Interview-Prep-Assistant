@@ -94,6 +94,150 @@ def test_accounts_and_idempotent_migration(database):
         store.account_for_github(True)
 
 
+def task_record(store):
+    owner = store.account_for_github(301)
+    item = store.create(owner, '任务合成记录')
+    return owner, item['id']
+
+
+def analysis_snapshot(label='synthetic'):
+    return {'jd': {'title': label}, 'resume': {'name': label}, 'gap': {'score': 42}}
+
+
+def test_task_claim_atomic_across_connections(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    def claim(_):
+        try:
+            return HistoryStore(store.connect).claim_task(owner, record, 0, 'analysis')
+        except HistoryConflict:
+            return None
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        claims = list(pool.map(claim, range(4)))
+    assert sum(item is not None for item in claims) == 1
+    assert store.tasks(owner, record)[0]['status'] == 'running'
+    # Analysis and questions share the record lock: no cross-kind race.
+    with pytest.raises(HistoryConflict):
+        store.claim_task(owner, record, 0, 'questions')
+    assert store.get(owner, record)['results'] == {}
+
+
+def test_task_complete_retry_and_attempt_fencing(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    first = store.claim_task(owner, record, 0, 'analysis')
+    store.finish_task(owner, record, 0, 'analysis', first['attempt'], analysis_snapshot())
+    assert store.tasks(owner, record)[0]['status'] == 'completed'
+    assert store.get(owner, record)['results'] == analysis_snapshot()
+    with pytest.raises(HistoryConflict):
+        store.finish_task(owner, record, 0, 'analysis', first['attempt'], analysis_snapshot('old'))
+    second = store.claim_task(owner, record, 0, 'analysis')
+    assert second['attempt'] != first['attempt']
+    with pytest.raises(HistoryConflict):
+        store.fail_task(owner, record, 0, 'analysis', first['attempt'])
+    assert store.tasks(owner, record)[0]['status'] == 'running'
+    store.finish_task(owner, record, 0, 'analysis', second['attempt'], analysis_snapshot('new'))
+    assert store.get(owner, record)['results']['jd']['title'] == 'new'
+
+
+def test_failed_task_is_explicitly_retryable(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    task = store.claim_task(owner, record, 0, 'analysis')
+    store.fail_task(owner, record, 0, 'analysis', task['attempt'])
+    assert store.tasks(owner, record)[0]['status'] == 'failed'
+    assert store.get(owner, record)['results'] == {}
+    assert store.claim_task(owner, record, 0, 'analysis')['attempt'] != task['attempt']
+
+
+def test_exclusive_restart_interrupts_without_automatic_retry(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    task = store.claim_task(owner, record, 0, 'analysis')
+    restarted = HistoryStore(store.connect)
+    # Recreating a repository/connection must never interrupt live work.
+    assert restarted.tasks(owner, record)[0]['status'] == 'running'
+    assert restarted.interrupt_tasks_on_startup() == 1
+    assert restarted.interrupt_tasks_on_startup() == 0
+    assert restarted.tasks(owner, record)[0]['status'] == 'interrupted'
+    with pytest.raises(HistoryConflict):
+        store.finish_task(owner, record, 0, 'analysis', task['attempt'], analysis_snapshot('late'))
+    retry = restarted.claim_task(owner, record, 0, 'analysis')
+    assert retry['attempt'] != task['attempt']
+    restarted.finish_task(owner, record, 0, 'analysis', retry['attempt'], analysis_snapshot())
+
+
+def test_replace_inputs_interrupts_and_rejects_old_attempt(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    task = store.claim_task(owner, record, 0, 'analysis')
+    store.replace_inputs(owner, record, 0, {'jd_text': '新岗位'})
+    assert store.tasks(owner, record)[0]['status'] == 'interrupted'
+    with pytest.raises(HistoryConflict):
+        store.finish_task(owner, record, 0, 'analysis', task['attempt'], analysis_snapshot())
+    with pytest.raises(HistoryConflict):
+        store.claim_task(owner, record, 0, 'analysis')
+    assert store.get(owner, record)['results'] == {}
+    assert store.claim_task(owner, record, 1, 'analysis')['revision'] == 1
+
+
+def test_task_owner_record_and_deletion_boundaries(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    other = store.account_for_github(302)
+    task = store.claim_task(owner, record, 0, 'analysis')
+    for action in (
+        lambda: store.tasks(other, record),
+        lambda: store.claim_task(other, record, 0, 'analysis'),
+        lambda: store.finish_task(other, record, 0, 'analysis', task['attempt'], analysis_snapshot()),
+        lambda: store.fail_task(other, record, 0, 'analysis', task['attempt']),
+    ):
+        with pytest.raises(HistoryMissing):
+            action()
+    second = store.create(owner, '另一记录')['id']
+    store.claim_task(owner, second, 0, 'analysis')
+    with pytest.raises(HistoryConflict):
+        store.finish_task(owner, second, 0, 'analysis', task['attempt'], analysis_snapshot())
+    store.delete(owner, record)
+    with pytest.raises(HistoryMissing):
+        store.finish_task(owner, record, 0, 'analysis', task['attempt'], analysis_snapshot())
+    with store.connect() as conn:
+        assert conn.execute('SELECT count(*) AS n FROM preparation_tasks WHERE record_id=%s', (record,)).fetchone()['n'] == 0
+
+
+def test_analysis_regeneration_invalidates_questions_atomically(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    task = store.claim_task(owner, record, 0, 'questions')
+    store.finish_task(owner, record, 0, 'questions', task['attempt'], {'questions': {'items': ['old']}})
+    task = store.claim_task(owner, record, 0, 'analysis')
+    store.finish_task(owner, record, 0, 'analysis', task['attempt'], analysis_snapshot())
+    assert 'questions' not in store.get(owner, record)['results']
+    assert [row['kind'] for row in store.tasks(owner, record)] == ['analysis']
+
+
+def test_task_snapshot_failure_rolls_back_state_and_results(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    task = store.claim_task(owner, record, 0, 'analysis')
+    invalid = analysis_snapshot()
+    invalid['gap'] = {'not_json_serializable': object()}
+    with pytest.raises(TypeError):
+        store.finish_task(owner, record, 0, 'analysis', task['attempt'], invalid)
+    assert store.tasks(owner, record)[0]['status'] == 'running'
+    assert store.get(owner, record)['results'] == {}
+    store.finish_task(owner, record, 0, 'analysis', task['attempt'], analysis_snapshot())
+
+
+@pytest.mark.parametrize('kind,results', [('other', {}), ('analysis', {'gap': {}}), ('questions', {'gap': {}})])
+def test_invalid_task_contract_does_not_mutate(database, kind, results):
+    store, _, _ = database
+    owner, record = task_record(store)
+    with pytest.raises(ValueError):
+        store.finish_task(owner, record, 0, kind, uuid4(), results)
+    assert store.tasks(owner, record) == []
+
+
 def test_owner_isolation_and_no_text_in_listing(database):
     store, _, _ = database
     a, b = store.account_for_github(101), store.account_for_github(102)
@@ -181,6 +325,7 @@ def test_backup_restore(database,tmp_path):
     item = store.create(owner,'备份恢复合成记录')
     store.replace_inputs(owner,item['id'],0,{'jd_text':'backup synthetic'})
     store.publish(owner,item['id'],1,'gap',{'score':42})
+    task = store.claim_task(owner, item['id'], 1, 'questions')
     def binary(tool):
         pinned = Path('/usr/lib/postgresql/16/bin') / tool
         value = str(pinned) if pinned.exists() else shutil.which(tool)
@@ -195,3 +340,26 @@ def test_backup_restore(database,tmp_path):
     assert restored.account_for_github(101) == owner
     assert restored.get(owner,item['id'])['results']['gap']['score'] == 42
     assert restored.get(owner,item['id'])['inputs']['jd_text'] == 'backup synthetic'
+    assert restored.tasks(owner, item['id'])[0]['attempt'] == task['attempt']
+    assert restored.tasks(owner, item['id'])[0]['status'] == 'running'
+    # Restoration never starts a model; the exclusive new worker must explicitly
+    # mark restored in-flight attempts interrupted before serving requests.
+    assert restored.interrupt_tasks_on_startup() == 1
+
+
+def test_upgrade_from_001_preserves_existing_record(database):
+    store, _, _ = database
+    # Simulate a deployed 001 schema without touching any other test schema.
+    with store.connect() as conn:
+        conn.execute('DROP TABLE preparation_tasks')
+    owner, record = task_record(store)
+    # Existing 001 application wrote this snapshot before the additive migration.
+    with store.connect() as conn:
+        from psycopg.types.json import Jsonb
+        conn.execute('UPDATE preparations SET inputs=%s WHERE id=%s',
+                     (Jsonb({'jd_text': 'migration synthetic'}), record))
+    store.migrate()
+    store.migrate()
+    assert store.get(owner, record)['inputs'] == {'jd_text': 'migration synthetic'}
+    assert store.tasks(owner, record) == []
+    assert store.claim_task(owner, record, 0, 'analysis')['status'] == 'running'

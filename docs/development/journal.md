@@ -184,3 +184,32 @@
 - 独立真实数据库验收：在既有9项PostgreSQL/并发/dump恢复之外新增HTTP→实际HistoryStore组合用例，验证真实SQL创建、存储快照读取、改名、摘要过滤、他账号拒绝、删除及另一个仓库实例确认已删除；账号Cookie合成，不引入真实GitHub/模型。CI数据库job改装固定requirements-ci+history依赖，仍只跑审阅过的test_history_postgres.py。本机Docker engine管道不存在，未跑本机真实数据库或dump恢复；新组合测试交远端CI，结果待本聊天与memory最终收据，不能先标成功。
 - 其他验证：7个Python AST、7份文档45个本地链接通过；限定路径diff检查通过。没有前端源码/页面变化，本机未重复npm check或浏览器，不将TestClient当浏览器验收；远端工作流仍覆盖前端门禁。可演示成果为合成测试/接口契约，不是新增网页。
 - 下一步（已确认可自主继续）：上传/分析SSE/题库绑定账号record+revision，持久同版本任务占用与重启可重试状态、退出后晚到结果再次鉴权，再历史UI/双设备完整链路、部署包与异机备份恢复。真实凭据/GitHub可达性、实际HTTPSCookie/SSE、备案/购买/精确费用/正式发布仍需独立验收或决定，Q003真实模型预算待interview。本次提交自身SHA、推送与最终CI留本聊天/memory，下次实质增量归档，不另做自引用收据提交。
+
+## 2026-10-26 — 2026-11-01
+
+### 周一集中研究（访问日期：北京时间2026-10-26）
+
+本周重新取得下列证据，不将上周研究冒充更新。当前主链源码仍Next.js+FastAPI+Qwen，Streamlit为历史原型；已确认S3继续，不增新阶段或框架。
+
+| 官方岗位直接链接 | 届别/类别/日期与取得程度 | 一手要求及适用边界 |
+| --- | --- | --- |
+| [百度北京后端J100737官方列表](https://talent.baidu.com/jobs/list) | 官方列表标2027届（毕业2026-09-01至2027-08-31）、校招技术；列表日期2026-07-21。取得职责摘要与届别，未取得完整详情/任职要求；带推荐码URL先超时，基础URL成功 | 摘要明确模型接入、稳定性/排障/调优及AI辅助编程。页面列出不证明剩余名额或可投递；不从人数推出实际在招人数，不虚构Python/PostgreSQL要求 |
+| [Amazon10583340](https://amazon.jobs/en/jobs/10583340/software-development-engineer-early-career-2027-us) | Early Career 2027 US / Jobs for grads；发布日期未知；取得官方详情职责及资格，Apply now/持续接收描述可见 | 通用语言含Python/TypeScript、数据结构/设计、验证AI代码、CI/CD与排障。用于工程能力对照，非中国校招资格判断；未实际投递，不保证名额 |
+| [Atlassian25813](https://www.atlassian.com/company/careers/details/25813) | Software Engineer 2027 Graduate U.S.；2027-08前毕业，发布日期未知；官方详情职责/最低资格正文取得，Apply入口可见 | 端到端实现/测试/监测、API/云/AI应用项目、Python/Java等。Seattle hybrid且明确不提供工作签证、F1/J1不适用，不能当作用户可直接申请建议；未验证投递/剩余名额 |
+
+| 开源仓库/锁定版本 | 实际模块与取得程度 | 采纳及成本/备选 |
+| --- | --- | --- |
+| [fastapi/full-stack-fastapi-template](https://github.com/fastapi/full-stack-fastapi-template/tree/b1125d8839482cb7bbae603ddc6d0081bf87532e)（本次实时API取master SHA） | [backend/app/api/routes/items.py](https://github.com/fastapi/full-stack-fastapi-template/blob/b1125d8839482cb7bbae603ddc6d0081bf87532e/backend/app/api/routes/items.py)锁定正文取得，CurrentUser、owner过滤、public响应投影 | 延续服务端身份决定所有权、响应模型约束。已有类似能力，不重复实现。其superuser/403暴露方式不照搬，本项目他人/不存在统一404；不迁移SQLModel/前端栈。备选维持现有psycopg短事务，无新依赖成本 |
+| [sysid/sse-starlette](https://github.com/sysid/sse-starlette/tree/431ad1a6b238322fc5498a253814b7459eaafe10)（本次实时API取main SHA） | [sse_starlette/sse.py](https://github.com/sysid/sse-starlette/blob/431ad1a6b238322fc5498a253814b7459eaafe10/sse_starlette/sse.py)：web锁定raw返回cache miss，随后gh contents固定ref取得源码，核对_listen_for_disconnect/_stream_response/_ping/send_timeout/client_close_handler_callable | 采纳断连/超时/进程退出边界应分开处理的思路；本轮不安装/换SSE库，库不能停止已发起的同步供应商线程，也不能代替数据库attempt校验。备选保持现有StreamingResponse，后续业务接线时补验收；不宣称有性能提升 |
+
+**本周取舍**：岗位证据共同支持把已有AI产品链路交付完整、证明权限/并发/故障恢复；不是要求引入多Agent、RAG、队列或微服务。已有上传解析、Pydantic、匿名SSE、题库、CI，以及可选账号与历史CRUD；缺口是业务绑定记录、持久任务一致性、历史UI、双设备合成闭环和部署/异机恢复。路线优先级不变：本轮先持久任务仓库作为安全接线前置，随后账号record+revision上传/SSE/题库、发布前重验会话、历史UI/双设备；部署包继续在确认S3内。周目标按验收而非承诺截止：并发只领取一次、旧attempt不写回、重启只标中断不自动调用；后续完整链需合成HTTP/浏览器与实际数据库配合。依赖：本机Docker不可用时由真实PostgreSQL CI；真实OAuth/目标域名/资源与正式发布仍独立审批。Q003模型预算未批，评测资产/真实质量留后续，不为JD堆框架。未采纳签证不适用岗位作为投递建议，未采用模板superuser、自动模型重试或新基础服务。
+
+### 2026-10-26 S3第四切片：持久任务占用与精确尝试写回
+
+- 范围/原因：继续已确认S3，今天负责api/history.py、迁移002、迁移脚本、真实数据库测试及plan/journal/存储与质量手册。账号CRUD虽可用，尚无跨连接任务状态，不能安全连接多设备生成；本轮交付可独立验收的仓库层一致性，业务HTTP/页面接线保留下一步。文档修改前无差异。未碰前端、原日志/两份私人分析材料/test-results，未读.env或凭据；默认匿名链不变。
+- 基线/并行：单worktree，codex/qwen-provider-migration，起始本地及实时远端d30b091d2258c8e12c805d47ae94f5418e52854d；main仍e44da22da39093f8a6e69edb33f12406a8db0fe7，上游origin原分支，部署列表0。前次[CI40178916950](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/40178916950)精确SHA completed/success，10项真实数据库含HTTP与备份恢复成功，归档上次收据而非今日成绩。本任务active，上轮聊天notLoaded且最后交付完成；可见无同项目其他active，外部/其他机器活动未知，无跨聊天消息。初次沙箱SSH/gh失败，允许读取后核验成功。
+- 实现：迁移002新增preparation_tasks，record+kind主键每份最多保留analysis/questions最新两项；owner仍从已有仓库边界传入，记录行锁后核对revision并拒绝任何running，发新attempt UUID；短事务提交后再由未来协调层调用模型。同版本再次明确生成使用新attempt，旧attempt即使输入版本相同也不能结束/失败新任务。running→completed与完整快照一起提交，写入失败一起回滚；失败仅记failed，不存供应商错误/隐私。重分析原子清除旧questions及任务；重传同事务清结果/中断running；删除级联任务。原001不改，迁移脚本显式运行001–002，支持重复/旧数据升级。
+- 重启边界：独立interrupt_tasks_on_startup只供旧单worker停止后、新worker接流量前显式调用，将running改interrupted、不自动重试/模型调用。普通连接/仓库重建不触发中断，其他记录互不占用。应用启动目前尚未调用，不能宣称网页重启恢复已生效；不支持并行worker/租约/任务队列。旧publish保留兼容测试，无attempt保护，后续任务HTTP必须用finish_task；完成前还须重新核验原账号会话，库层所有权不等于退出后授权仍有效。
+- 本机验证：Windows/Python3.12.7，初次沙箱check_backend在socketpair超时、exit1，未运行业务；允许回环后`venv/Scripts/python.exe scripts/check_backend.py` exit0：186 passed/5既有样本缺失skip/1既有Starlette警告，8.67s。这个九文件离线集合证明匿名/账号既有HTTP不回归，不包含本次真实SQL新行为。3 Python AST解析通过。全仓diff检查碰到用户已有logs/app.log空白，未修改，改限定本轮路径检查通过。Docker Linux engine管道不存在，未运行本机数据库/dump恢复。没有前端改动，不本机重复npm/browser；未进行真实模型/OAuth/部署或购买。
+- 新数据库验收范围：审阅test_history_postgres新增并发四连接只一成功、跨种类互斥、完成/重试/旧attempt、失败、显式重启、重传版本、所有权/跨记录/删除级联、重分析失效题库、JSON失败事务回滚、非法快照和001升级；既有dump/restore现在核对任务状态与attempt，恢复后显式中断。交独立PostgreSQL16 CI，实际结果待取得，不先标通过。
+- 可演示/剩余：本轮可通过数据库验收展示并发与故障状态；网页无新按钮/业务功能。现有上传→匿名内存文本→SSE结构化提取/报告→题库仍未落到账号记录。下一步已授权：接record+revision业务协调、原会话撤销检查与启动中断，再历史UI/完整双设备合成链、部署包/异机备份。真实凭据/资源购买/精确费用/正式发布、Q003模型预算仍按既有interview边界。本次提交SHA/push/最终CI在当轮聊天和memory，下轮实质增量归档，避免自引用补收据提交。
