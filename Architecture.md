@@ -148,7 +148,7 @@ interview-prep-assistant/
 
 - 会话已按匿名Cookie隔离，数据仍只在一个Python进程内；没有持久化、重启恢复、多实例/多worker共享或账号跨设备能力。
 - CORS 仅允许本地 `localhost:3000` / `127.0.0.1:3000` 开发来源。
-- 可选GitHub账号登录与PostgreSQL记录管理REST已实现（默认关闭），记录所有权取自账号Cookie，写入检查Origin；详见[登录](docs/development/github-auth.md)与[存储/API](docs/development/history-storage.md)手册。匿名上传/SSE/题库尚未接入账号记录，历史页面与长任务持久状态仍待实现。
+- 可选GitHub账号登录、PostgreSQL记录管理与账号记录业务API已实现（默认关闭），记录所有权取自账号Cookie，写入检查Origin。`/api/records/{id}/upload/{kind}`保存解析文本并递增revision；POST分析SSE与题目生成领取持久attempt、复用现有领域分析器，完整快照和完成状态一起提交。写回前在短暂账号锁内重验原Cookie，退出/过期后的结果不发布。重传/删除/新attempt拒绝旧写回；断连的同步线程结束前保留占用，其后只中断原attempt。启用账号时单worker启动先中断遗留任务，不自动生成/迁移。详见[登录](docs/development/github-auth.md)与[存储/API](docs/development/history-storage.md)手册。历史页面与完整双设备浏览器流程仍待接入；默认网页继续匿名链路。
 - 无对象存储、速率限制或完整敏感信息脱敏流程。求职画像路由返回占位数据；模拟面试和报告导出尚未实现。
 
 当前已确认S3采用GitHub+同机PostgreSQL、20份账号历史，继续接入业务与页面、部署/备份恢复；不因历史候选引入Redis或对象存储。限流、审计和实际公网验收仍需按发布范围补齐。

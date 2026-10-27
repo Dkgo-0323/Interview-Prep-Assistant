@@ -1,8 +1,9 @@
 # GitHub account boundary — partial S3 delivery
 
 Opt-in backend OAuth authorization-code flow with S256 PKCE, browser-bound
-one-use state and opaque HttpOnly account cookies. No login UI or account-bound
-upload/analysis/questions yet; the anonymous application remains active.
+one-use state and opaque HttpOnly account cookies. Account-bound upload, analysis
+and questions now have separate record APIs; login/history UI is still pending.
+The existing anonymous website remains active.
 
 ## Configuration
 
@@ -21,7 +22,10 @@ through the backend process environment/secret manager, never frontend variables
 HTTPS required except loopback HTTP development; both URLs use the same scheme.
 Use the same hostname, preferably a single HTTPS proxy origin for API/frontend;
 local ports may differ. Registered callback must match configuration. No automatic
-migrations. Incomplete enabled configuration fails startup. Disabled mode needs
+migrations. Stop the previous worker before starting the sole new worker: enabled
+startup marks leftover running tasks interrupted before attaching adapters or
+accepting traffic, without retrying models. Database failure aborts startup.
+Incomplete enabled configuration fails startup. Disabled mode needs
 neither database driver nor credentials. Configure exact CORS origins before
 separate-origin UI integration; current anonymous CORS remains local-only.
 
@@ -47,12 +51,17 @@ callbacks, including one waiting on provider/DB IO. Restart requires login again
 but the verified GitHub ID maps to the existing database account. These are
 single-worker implementation defaults, not persistent login/multi-instance support.
 
-`api.auth.get_identity` now protects the [record REST API](history-storage.md)
-and remains the shared dependency for future analysis SSE. Existing
-anonymous routes are not retrofitted. Long-running record jobs must capture
-owner/record/revision and recheck session/record validity before publication;
-retaining a previously returned Identity alone is insufficient. No automatic
-anonymous data migration is introduced.
+`api.auth.get_identity` protects record management and the new
+[record business API](history-storage.md). Both SSE and REST use the same cookie;
+all generation requires an explicit POST with the exact frontend Origin.
+The coordinator captures the originating token/identity and owner/record/revision/
+attempt. Before publication or failure it resolves that original session again,
+holding the auth lock only across the short DB transition so logout cannot slip
+between validation and publication. Provider calls hold neither auth nor DB locks.
+Revocation/expiry or disconnect only allow trusted exact-attempt interruption
+(no results or provider payload); another device's session is unaffected. If a
+synchronous provider thread is still active, cleanup waits for its actual return.
+Existing anonymous routes are not retrofitted; no anonymous import is introduced.
 
 ## Verification and release boundaries
 
@@ -65,8 +74,8 @@ cookie behavior, UI or public deployment. No live credentials were used.
 
 Before publication, proxy/server access logs must omit callback query strings
 (authorization codes/state). Disable Uvicorn access logs or use a query-redacting
-formatter; no HTTP body/header debug logging. Complete record business wiring/UI and job
-revocation, verify HTTPS cookies/Origin/SSE and actual GitHub reachability, then
+formatter; no HTTP body/header debug logging. Complete login/history UI and
+two-device browser acceptance, verify HTTPS cookies/Origin/SSE and actual GitHub reachability, then
 perform separately approved release acceptance. No resources are provisioned.
 
 Implementation reference, accessed 2026-10-24 Asia/Shanghai:

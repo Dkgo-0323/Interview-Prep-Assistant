@@ -192,11 +192,18 @@ class HistoryStore:
             self._lock_record(conn, owner, record, revision)
             self._transition_task(conn, record, revision, kind, attempt, 'failed')
 
+    def interrupt_task(self, owner, record, revision, kind, attempt):
+        """Trusted coordinator cleanup, never publication or automatic retry."""
+        self._kind(kind)
+        with self.connect() as conn:
+            self._lock_record(conn, owner, record, revision)
+            self._transition_task(conn, record, revision, kind, attempt, 'interrupted')
+
     def interrupt_tasks_on_startup(self):
         """Only after the old sole worker has stopped, BEFORE accepting requests.
 
         Never call during live traffic or when merely opening another repository
-        connection. Does not resume or invoke models. HTTP startup wiring pending.
+        connection. Does not resume or invoke models.
         """
         with self.connect() as conn:
             return conn.execute(

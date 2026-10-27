@@ -2,9 +2,10 @@
 
 This repository now backs **account-owned record management HTTP**, with optional
 GitHub login mapping verified numeric identity through the same repository.
-Upload/analysis/question routes and history pages are not connected yet.
-The current anonymous application continues to use process memory. Do not claim
-cross-device login, server restart recovery or public deployment is delivered.
+Separate account-record upload/analysis/question APIs are now connected to this
+repository. History/login pages are not connected yet; the current website
+continues to use anonymous process memory. HTTP/storage recovery evidence is
+distinct from complete cross-device browser login or public deployment.
 
 ## Setup and migration
 
@@ -42,9 +43,9 @@ work must capture record ID/owner/revision and publish only against those values
 Deleting a row or replacing its inputs prevents late writes. Calls use short
 transactions and close connections; never retain a database transaction during a
 model call. The task repository below handles duplicate attempts and explicit
-restart interruption; business HTTP binding and late-job account session revocation
-remain required before wiring it to analysis routes. Record management
-already maps HTTP errors and uses the live account identity dependency.
+restart interruption. The record coordinator now captures the original account
+session and revalidates it before result/failure transitions. Record management
+and business HTTP map safe errors and use the live account identity dependency.
 
 ## Account record HTTP
 
@@ -71,11 +72,61 @@ responses have `Cache-Control: no-store`, including errors. Writes are never
 automatically retried: a lost response could follow a committed mutation, so
 refresh the list before deciding to repeat it.
 
-Selection reads a record URL; no global current-record field. This slice has no
-input/result write endpoint: anonymous uploads, reports and questions remain in
-memory. No history UI or HTTP task coordination is claimed.
+Selection reads a record URL; no global current-record field. The default website
+still uses anonymous routes; no history UI or anonymous import is introduced.
 
-## Durable task repository (not yet wired to business HTTP)
+## Account preparation workflow HTTP
+
+All paths below are relative to `/api/records/{uuid}`. Identity comes only from
+the account cookie; writes require the exact configured Origin. No endpoint
+accepts an owner, result snapshot or token in its body/query.
+
+| Method/path | Input and behavior |
+| --- | --- |
+| POST `/upload/jd` or `/upload/resume` | Multipart `file`, query `revision=N`; same PDF/DOCX/TXT/10MB parser and tempfile cleanup as anonymous uploads; returns record detail with incremented revision |
+| DELETE `/inputs` | JSON `{ "revision": N }`; clears text/results, increments revision, interrupts running work |
+| POST `/analysis/stream` | Strict JSON `{ "revision": N }`; explicit generation, SSE jd/resume/gap stages; publishes complete snapshot atomically |
+| GET `/analysis/result` | Last successfully stored GapAnalysis, or 404; no generation |
+| POST `/questions/generate` | Strict JSON `{ "revision": N, "num_questions": 10 }`; 10–50 questions, requires stored jd/resume/gap |
+| GET `/questions/cached` | Stored question response, or 404; no generation |
+| GET `/tasks` | Latest kind/revision/attempt/status/time per record; no inputs, owner or provider errors |
+
+Each successful upload returns the next revision; use that value for the next
+upload/generation. Concurrent devices using the same old revision cannot merge or
+silently overwrite: a stale request gets 409 and must refresh the record. Upload
+captures existing inputs before parsing, then rechecks the original login and
+updates against the expected revision. Only parsed text is retained, no filename
+or original file. Replacing inputs clears all derived results in one transaction.
+
+Analysis uses **POST**, so native EventSource cannot initiate it; the future UI
+must read the POST fetch response stream and close on complete/error. Read/status
+GETs never start a model. Identity/Origin/body/record preflight errors use HTTP
+401/403/422/404/503; after SSE starts, failures (including busy/stale 409 or missing
+inputs 400) are terminal `error` events with `data.status`, not HTTP status changes.
+Do not automatically reconnect or retry the POST. Question errors use normal HTTP.
+These routes introduce no automatic job retry; existing LLMService provider-level
+retries remain unchanged. Normal deployment still uses the configured real
+provider: synthetic model behavior exists only in acceptance tests at present.
+
+The coordinator holds no DB transaction during provider work, checks task/session
+validity between stages, and revalidates Pydantic domain values before publishing.
+A short auth lock spans original-cookie revalidation and result/failure DB writes,
+serializing those transitions with logout. A revoked/expired login cannot publish
+or mark a task failed; trusted lifecycle cleanup may only mark its captured exact
+attempt interrupted. It cannot change newer attempts or write results. Disconnect
+cancels publication, not a running synchronous thread: the running slot remains
+until that thread actually exits, then exact-attempt interruption releases it.
+If storage is unavailable during cleanup, no retry occurs; exclusive startup is
+the recovery boundary. Reupload/delete can invalidate old work while it runs;
+any later callback cannot restore its snapshot or interrupt a newer attempt.
+
+While reanalysis runs or fails without changing inputs, read APIs retain the last
+successful snapshot. Clients must read task status and label it as previous output;
+it is not proof the latest attempt succeeded. Successful reanalysis clears previous
+questions. Missing results return 404; malformed stored result models return a safe
+503 without generating or exposing the stored body.
+
+## Durable task repository and exclusive startup
 
 Migration 002 stores at most the latest analysis and questions attempt per record.
 `claim_task(owner, record, revision, kind)` locks the owned preparation row, checks
@@ -97,12 +148,15 @@ results in the same transaction; deletion cascades task rows.
 `interrupt_tasks_on_startup()` is an explicit **exclusive single-worker startup**
 operation: stop the previous worker first, call before accepting traffic, then
 allow users to retry. It changes running to interrupted and invokes no model.
-Do not call from a request, a connection constructor or a parallel worker. Application
-startup wiring is pending; restart recovery is not active in the current website.
+Do not call from a request, a connection constructor or a parallel worker. Enabled
+account startup now calls this before accepting traffic; missing migration/storage
+fails startup. Stop the old worker first; do not run overlapping workers or rolling
+restarts. Account cookies are still process-local and require login after restart;
+saved records/results survive separately. The anonymous website still loses its data.
 No queue, lease, automatic retry or multi-worker support is introduced.
 
-Future business HTTP MUST revalidate the original account session before publishing
-or failing a task; DB ownership/attempt checks do not prove a session is still valid.
+Business HTTP revalidates the original account session before publishing
+or failing a task; DB ownership/attempt checks alone do not prove session validity.
 The old `publish` method remains for existing repository callers/tests only and has
 no attempt guard; new task-backed HTTP must use `finish_task`, never that shortcut.
 
@@ -120,6 +174,10 @@ input replacement/deletion, ownership, analysis invalidation and atomic rollback
 A composed HTTP case exercises real routes against
 PostgreSQL (synthetic issued cookies): create, stored snapshot reads, metadata,
 rename, foreign-account rejection and deletion verified via another repository.
+Record-business cases additionally exercise actual upload parsing, domain analyzers,
+SSE/report/questions across two HTTP clients and another repository connection,
+reanalysis invalidation, logout/reupload/deletion during provider return, and exact
+interruption cleanup. Provider responses and identity issuance remain synthetic.
 This does not run real OAuth. The recovery case dumps an owned schema using pg_dump,
 drops that synthetic schema, restores with pg_restore and checks identity, text
 and report/task content, then explicitly interrupts restored running tasks. Missing database/tools is a failure, never a fake pass.

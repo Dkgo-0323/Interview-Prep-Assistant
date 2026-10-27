@@ -1,5 +1,6 @@
 # api/main.py
 import logging
+import asyncio
 import os
 import sys
 from contextlib import asynccontextmanager
@@ -38,16 +39,21 @@ async def lifespan(app: FastAPI):
         config = AuthConfig(os.environ['GITHUB_CLIENT_ID'], os.environ['GITHUB_CLIENT_SECRET'],
                             os.environ['GITHUB_CALLBACK_URL'], os.environ['AUTH_FRONTEND_ORIGIN'])
         history = HistoryStore.from_dsn(os.environ['HISTORY_DATABASE_URL'])
+        # Exclusive single-worker startup only: the previous worker MUST be
+        # stopped. Fail closed before attaching adapters/accepting traffic.
+        await asyncio.to_thread(history.interrupt_tasks_on_startup)
         app.state.auth_service = AuthService(config, history.account_for_github)
         app.state.history_store = history
     logger.info("🚀 Interview Prep Assistant API 启动成功")
     logger.info("📖 Swagger 文档: http://localhost:8000/docs")
-    yield
-    # Do not retain enabled account adapters across application lifespan cycles.
-    for name in ('auth_service', 'history_store'):
-        if hasattr(app.state, name):
-            delattr(app.state, name)
-    logger.info("👋 API 服务已关闭")
+    try:
+        yield
+    finally:
+        # Do not retain adapters even when serving/shutdown raises.
+        for name in ('auth_service', 'history_store'):
+            if hasattr(app.state, name):
+                delattr(app.state, name)
+        logger.info("👋 API 服务已关闭")
 
 
 # ── 创建应用 ────────────────────────────────────────────────────
@@ -107,7 +113,7 @@ app.add_middleware(
 )
 
 # ── 注册路由（在应用创建后导入，避免循环依赖）────────────────────
-from api.routes import upload, analyze, questions, profile, auth, history  # noqa: E402
+from api.routes import upload, analyze, questions, profile, auth, history, record_workflow  # noqa: E402
 
 app.include_router(upload.router,    prefix="/api/upload",    tags=["文件上传"])
 app.include_router(analyze.router,   prefix="/api/analyze",   tags=["智能分析"])
@@ -115,6 +121,7 @@ app.include_router(questions.router, prefix="/api/questions", tags=["面试题�
 app.include_router(profile.router,   prefix="/api/profile",   tags=["求职画像"])
 app.include_router(auth.router, prefix='/api/auth', tags=['账号登录'])
 app.include_router(history.router, prefix='/api/records', tags=['账号历史'])
+app.include_router(record_workflow.router, prefix='/api/records', tags=['账号准备流程'])
 
 
 # ── 系统路由 ────────────────────────────────────────────────────

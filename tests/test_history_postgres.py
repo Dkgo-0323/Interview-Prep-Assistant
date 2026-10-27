@@ -15,6 +15,102 @@ import pytest
 from api.history import HistoryConflict, HistoryFull, HistoryMissing, HistoryStore
 
 
+def test_coordinator_interruption_is_exact_attempt_only(database):
+    store, _, _ = database
+    owner, record = task_record(store)
+    old = store.claim_task(owner, record, 0, 'analysis')
+    store.interrupt_task(owner, record, 0, 'analysis', old['attempt'])
+    assert store.tasks(owner, record)[0]['status'] == 'interrupted'
+    current = store.claim_task(owner, record, 0, 'analysis')
+    with pytest.raises(HistoryConflict):
+        store.interrupt_task(owner, record, 0, 'analysis', old['attempt'])
+    with pytest.raises(HistoryMissing):
+        store.interrupt_task(uuid4(), record, 0, 'analysis', current['attempt'])
+    assert store.tasks(owner, record)[0]['status'] == 'running'
+
+
+@pytest.mark.parametrize('change', ['none', 'logout', 'replace', 'delete'])
+def test_record_business_chain_with_real_postgres(database, monkeypatch, change):
+    """Real parsers/domain/HTTP/SQL; only identity and provider are synthetic."""
+    import json
+    from unittest.mock import Mock, patch
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from api.auth import AUTH_COOKIE, AuthConfig, AuthService, Identity
+    # This independent DB job must also never read local dotenv/credentials.
+    for key, value in dict(DEBUG='true', DASHSCOPE_API_KEY='offline-test-key',
+        LLM_BASE_URL='https://offline.invalid/v1', LLM_DEFAULT_MODEL='qwen3.7-plus',
+        GITHUB_AUTH_ENABLED='false').items():
+        monkeypatch.setenv(key, value)
+    with patch('dotenv.load_dotenv', return_value=False):
+        from api.routes import record_workflow as workflow
+    store, _, _ = database
+    owner = store.account_for_github(101)
+    record = store.create(owner, '真实数据库业务闭环')['id']
+    service = AuthService(AuthConfig('synthetic', 'synthetic',
+        'https://api.example.test/api/auth/github/callback', 'https://app.example.test'),
+        store.account_for_github, clock=lambda: 0)
+    for token in ('device-a', 'device-b'):
+        service.sessions[service.digest(token)] = Identity(owner, 1800)
+    app = FastAPI()
+    app.state.auth_service, app.state.history_store = service, store
+    app.include_router(workflow.router, prefix='/api/records')
+    fixtures = Path(__file__).parent / 'fixtures/workflow'
+    data = json.loads((fixtures / 'llm_responses.json').read_text(encoding='utf-8'))
+    llm = Mock()
+    llm.call.side_effect = lambda *, response_model, **kwargs: response_model.model_validate(data[response_model.__name__])
+    monkeypatch.setattr(workflow, 'LLMService', lambda: llm)
+    path = f'/api/records/{record}'
+    with TestClient(app, base_url='https://api.example.test') as a, TestClient(app, base_url='https://api.example.test') as b:
+        for client, token in ((a, 'device-a'), (b, 'device-b')):
+            client.cookies.set(AUTH_COOKIE, token)
+            client.headers['origin'] = 'https://app.example.test'
+        for revision, kind in enumerate(('jd', 'resume')):
+            response = a.post(path + '/upload/' + kind, params={'revision': revision},
+                files={'file': (kind + '.txt', (fixtures / (kind + '.txt')).read_bytes())})
+            assert response.status_code == 200, response.text
+        response = a.post(path + '/analysis/stream', json={'revision': 2})
+        assert '"complete"' in response.text and '"overall_match_score": 77' in response.text
+        assert b.get(path + '/analysis/result').json()['data']['overall_match_score'] == 77
+        assert b.post(path + '/questions/generate', json={'revision': 2}).json()['total'] == 10
+        assert a.get(path + '/questions/cached').json()['total'] == 10
+        assert HistoryStore(store.connect).get(owner, record)['results']['questions']['questions']
+        assert all(task['status'] == 'completed' for task in b.get(path + '/tasks').json())
+        calls = llm.call.call_count
+        if change == 'none':
+            # New repository/another device read saved snapshots without generation.
+            assert a.get(path + '/questions/cached').status_code == 200
+            assert llm.call.call_count == calls
+            assert '"complete"' in a.post(path + '/analysis/stream', json={'revision': 2}).text
+            assert b.get(path + '/questions/cached').status_code == 404
+            assert len(store.tasks(owner, record)) == 1
+        else:
+            def change_during_provider(*, response_model, **kwargs):
+                if change == 'logout':
+                    service.logout('device-a', None)
+                elif change == 'replace':
+                    assert b.request('DELETE', path + '/inputs', json={'revision': 2}).status_code == 200
+                else:
+                    store.delete(owner, record)
+                return response_model.model_validate(data[response_model.__name__])
+            llm.call.side_effect = change_during_provider
+            response = a.post(path + '/analysis/stream', json={'revision': 2})
+            assert '"error"' in response.text and '"complete"' not in response.text
+            assert llm.call.call_count == calls + 1  # Stops before resume/gap.
+            if change != 'delete':
+                task = next(t for t in store.tasks(owner, record) if t['kind'] == 'analysis')
+                assert task['status'] == 'interrupted'
+                # Revocation does not revoke the other device or leave a busy slot.
+                assert b.get(path + '/tasks').status_code == 200
+                if change == 'logout':
+                    assert store.get(owner, record)['results']['gap']['overall_match_score'] == 77
+                else:
+                    assert store.get(owner, record)['results'] == {}
+            else:
+                with pytest.raises(HistoryMissing):
+                    HistoryStore(store.connect).get(owner, record)
+
+
 def test_record_http_with_real_postgres(database):
     """Compose real account-cookie HTTP handlers with the real SQL repository.
 
@@ -363,3 +459,32 @@ def test_upgrade_from_001_preserves_existing_record(database):
     assert store.get(owner, record)['inputs'] == {'jd_text': 'migration synthetic'}
     assert store.tasks(owner, record) == []
     assert store.claim_task(owner, record, 0, 'analysis')['status'] == 'running'
+
+
+def test_enabled_startup_interrupts_real_database_before_traffic(database, monkeypatch):
+    from unittest.mock import patch
+    from fastapi.testclient import TestClient
+    from api.auth import AUTH_COOKIE, Identity
+    store, _, _ = database
+    owner, record = task_record(store)
+    task = store.claim_task(owner, record, 0, 'analysis')
+    for key, value in dict(GITHUB_AUTH_ENABLED='true', GITHUB_CLIENT_ID='synthetic',
+        GITHUB_CLIENT_SECRET='synthetic', GITHUB_CALLBACK_URL='https://api.example.test/api/auth/github/callback',
+        AUTH_FRONTEND_ORIGIN='https://app.example.test', HISTORY_DATABASE_URL='synthetic-scoped-test-store',
+        DEBUG='true', DASHSCOPE_API_KEY='offline-test-key', LLM_BASE_URL='https://offline.invalid/v1',
+        LLM_DEFAULT_MODEL='qwen3.7-plus').items():
+        monkeypatch.setenv(key, value)
+    with patch('dotenv.load_dotenv', return_value=False):
+        from api.main import app
+    # Inject only the schema-scoped connection factory, not the startup method.
+    monkeypatch.setattr(HistoryStore, 'from_dsn', classmethod(lambda cls, _: store))
+    with TestClient(app, base_url='https://api.example.test') as client:
+        auth = app.state.auth_service
+        auth.sessions[auth.digest('synthetic')] = Identity(owner, auth.clock() + 1800)
+        client.cookies.set(AUTH_COOKIE, 'synthetic')
+        response = client.get(f'/api/records/{record}/tasks')
+        assert response.status_code == 200
+        assert response.json()[0]['status'] == 'interrupted'
+        assert response.json()[0]['attempt'] == str(task['attempt'])
+        assert store.get(owner, record)['results'] == {}
+    assert not hasattr(app.state, 'history_store') and not hasattr(app.state, 'auth_service')

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from api.auth import Identity, get_auth, get_identity
-from api.history_errors import HistoryFull, HistoryMissing
+from api.history_errors import HistoryConflict, HistoryFull, HistoryMissing
 
 router = APIRouter()
 
@@ -59,6 +59,8 @@ def call(repository, method, *args):
         raise HTTPException(404, '记录不存在') from None
     except HistoryFull:
         raise HTTPException(409, '历史记录已达20份，请先删除不需要的记录') from None
+    except HistoryConflict:
+        raise HTTPException(409, '资料版本已变化或任务仍在运行，请刷新记录后重试') from None
     except Exception:
         # Never expose SQL, DSNs, input text or provider payloads. Do not retry a
         # mutation automatically: a lost connection may follow a committed write.

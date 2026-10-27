@@ -1,10 +1,10 @@
 """Snapshot-based SSE analysis: late work cannot restore invalidated input."""
-import json
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
+from api.events import _sse
 from api.main import get_session
 from api.session import Session
 from core.analyzers.jd_analyzer import analyze_jd
@@ -14,13 +14,6 @@ from services.llm_service import LLMService
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-def _sse(step: str, message: str, data: dict = None) -> str:
-    payload = {"step": step, "message": message}
-    if data is not None:
-        payload["data"] = data
-    return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
 
 
 async def _stream_analysis(session: Session):
