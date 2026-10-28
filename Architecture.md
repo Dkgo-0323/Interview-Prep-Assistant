@@ -148,7 +148,7 @@ interview-prep-assistant/
 
 - 会话已按匿名Cookie隔离，数据仍只在一个Python进程内；没有持久化、重启恢复、多实例/多worker共享或账号跨设备能力。
 - CORS 仅允许本地 `localhost:3000` / `127.0.0.1:3000` 开发来源。
-- 可选GitHub账号登录、PostgreSQL记录管理与账号记录业务API已实现（默认关闭），记录所有权取自账号Cookie，写入检查Origin。`/api/records/{id}/upload/{kind}`保存解析文本并递增revision；POST分析SSE与题目生成领取持久attempt、复用现有领域分析器，完整快照和完成状态一起提交。写回前在短暂账号锁内重验原Cookie，退出/过期后的结果不发布。重传/删除/新attempt拒绝旧写回；断连的同步线程结束前保留占用，其后只中断原attempt。启用账号时单worker启动先中断遗留任务，不自动生成/迁移。详见[登录](docs/development/github-auth.md)与[存储/API](docs/development/history-storage.md)手册。历史页面与完整双设备浏览器流程仍待接入；默认网页继续匿名链路。
+- 可选GitHub账号登录、PostgreSQL记录管理与账号记录业务API已实现（默认关闭），记录所有权取自账号Cookie，写入检查Origin。`/api/records/{id}/upload/{kind}`保存解析文本并递增revision；POST分析SSE与题目生成领取持久attempt、复用现有领域分析器，完整快照和完成状态一起提交。写回前在短暂账号锁内重验原Cookie，退出/过期后的结果不发布。重传/删除/新attempt拒绝旧写回；断连的同步线程结束前保留占用，其后只中断原attempt。启用账号时单worker启动先中断遗留任务，不自动生成/迁移。详见[登录](docs/development/github-auth.md)与[存储/API](docs/development/history-storage.md)手册。新增`/history`独立账号工作区，客户端`history-api.ts`不初始化匿名会话；记录选择保存在URL查询参数，仅标识记录、不承载身份。刷新只GET，分析用fetch读取POST SSE，题库明确按钮生成，无自动重连/重试。切换按account+record重新挂载，取消流并屏蔽旧响应；401清空账号视图、409丢弃旧展示待明确刷新，已有结果与任务状态分开展示。20份上限/改名/二次确认删除可用。双设备浏览器拦截合成API验收通过，浏览器直连完整后端/真实OAuth仍待验收；原首页继续匿名链路。
 - 无对象存储、速率限制或完整敏感信息脱敏流程。求职画像路由返回占位数据；模拟面试和报告导出尚未实现。
 
 当前已确认S3采用GitHub+同机PostgreSQL、20份账号历史，继续接入业务与页面、部署/备份恢复；不因历史候选引入Redis或对象存储。限流、审计和实际公网验收仍需按发布范围补齐。

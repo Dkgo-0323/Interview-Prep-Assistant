@@ -73,7 +73,7 @@ automatically retried: a lost response could follow a committed mutation, so
 refresh the list before deciding to repeat it.
 
 Selection reads a record URL; no global current-record field. The default website
-still uses anonymous routes; no history UI or anonymous import is introduced.
+retains anonymous routes. The separate `/history` account workspace is connected; no anonymous import is introduced.
 
 ## Account preparation workflow HTTP
 
@@ -98,7 +98,7 @@ captures existing inputs before parsing, then rechecks the original login and
 updates against the expected revision. Only parsed text is retained, no filename
 or original file. Replacing inputs clears all derived results in one transaction.
 
-Analysis uses **POST**, so native EventSource cannot initiate it; the future UI
+Analysis uses **POST**, so native EventSource cannot initiate it; the account UI
 must read the POST fetch response stream and close on complete/error. Read/status
 GETs never start a model. Identity/Origin/body/record preflight errors use HTTP
 401/403/422/404/503; after SSE starts, failures (including busy/stale 409 or missing
@@ -194,3 +194,29 @@ and a documented restore exercise on the chosen host. Same-disk backups alone do
 not protect against loss of the server. No recovery time or loss guarantee exists
 yet. Revert this additive foundation by leaving it disconnected; never drop real
 user records to roll back application code.
+
+## Account browser workspace (2026-10-28)
+
+`/history` uses `frontend/lib/history-api.ts` and `history-workspace.tsx`. Login
+is a normal navigation to the OAuth endpoint; the existing callback returns to
+the homepage. Enter My Records again after login. Missing configuration remains
+a visible 503, and the anonymous homepage remains usable. No browser token or
+private record content is placed in localStorage. Only the record identifier is
+in the query string; authorization always comes from the HttpOnly cookie.
+
+Creation, rename, deletion, upload, clear, analysis and questions are explicit
+actions; every account request includes credentials and no-store. A saved record
+contains parsed input text, and its saved results are shown with task states and
+a last-successful notice. Refresh/list/selection never generate. A 409 clears
+possibly stale presentation and requires an explicit read before retry; 401 clears
+account data. Selection uses Next's supported native replaceState integration,
+so hung data requests do not block same-page selection. Keyed record instances
+ignore old responses and abort the POST stream on unmount; this cannot cancel
+already running synchronous provider work (see backend attempt lifecycle above).
+
+`node scripts/check_history_ui.cjs <loopback-page-url> <artifact-directory>` uses
+production Next pages with ALL account APIs intercepted: independent browser
+contexts share synthetic records. It verifies UI requests and rendering, not
+actual OAuth/cookies, file parsers, SQL or provider quality. The separate actual
+PostgreSQL HTTP tests remain complementary; a single browser-to-real-DB composed
+acceptance is still required before release.

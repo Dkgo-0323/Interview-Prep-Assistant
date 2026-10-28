@@ -84,6 +84,12 @@ npm run check
 
 2026-10-27：默认离线allowlist新增`tests/test_record_workflow.py`，共十文件，不读.env、阻断外部连接。合成账号/内存存储边界配合真实HTTP、上传解析和分析器，覆盖双设备完整链路、Origin/所有权/严格输入、版本冲突、并发重复、退出/过期/重传/删除后拒绝晚到、取消时忙槽、坏领域结果、存储失败无重试及启用启动中断/失败关闭。本机结果与修复见journal；内存边界替身不证明SQL事务。真实PostgreSQL门禁新增同类HTTP业务组合与精确中断attempt验收，仍不接真实OAuth/模型或浏览器页面。
 
-`History PostgreSQL and backup restore` job：Ubuntu临时PostgreSQL16、合成身份/文本/报告，运行`tests/test_history_postgres.py`，真实并发连接及pg_dump/pg_restore；包括记录管理/业务HTTP→真实数据库组合验收，身份Cookie仍合成。它独立于无数据库的十文件离线集合，不把真实模型调用加入默认tests。安装`requirements-ci.txt`和`requirements-history.txt`以固定FastAPI/httpx等依赖；CI缺数据库或客户端工具必须失败。范围见[history-storage](history-storage.md)。记录管理、上传/SSE/题库已接账号历史，页面仍待接入；数据库测试不等于真实OAuth/完整浏览器端到端/生产恢复验收。
+`History PostgreSQL and backup restore` job：Ubuntu临时PostgreSQL16、合成身份/文本/报告，运行`tests/test_history_postgres.py`，真实并发连接及pg_dump/pg_restore；包括记录管理/业务HTTP→真实数据库组合验收，身份Cookie仍合成。它独立于无数据库的十文件离线集合，不把真实模型调用加入默认tests。安装`requirements-ci.txt`和`requirements-history.txt`以固定FastAPI/httpx等依赖；CI缺数据库或客户端工具必须失败。范围见[history-storage](history-storage.md)。记录管理、上传/SSE/题库已接账号历史，账号页面已于10-28接入；数据库测试不等于真实OAuth/完整浏览器端到端/生产恢复验收。
 
 10-26数据库增量：审阅文件增加持久任务并发占用、同版本重试的attempt隔离、失败/显式重启中断、重传/删除、快照事务回滚、重分析清题库、001→002保留数据迁移，以及dump/restore保留任务后显式中断。默认九文件离线入口不增加真实数据库或模型依赖；新增行为由独立PostgreSQL job验证，具体收据见journal/当轮聊天。
+
+## 账号页面验收（2026-10-28）
+
+`npm run check`现包含`test_history_api.cjs`：账号请求不初始化匿名会话、Cookie/no-store、只提交title/revision/题量、204删除、401/409/503无重试；POST SSE中文逐字节拆包/CRLF跨包/心跳、terminal error、提前断流/坏JSON、取消信号。与原12项共18项。
+
+本机生产页面运行后，`node scripts/check_history_ui.cjs http://127.0.0.1:3168 <本次独立产物目录>`执行八组账号场景（完整操作链/独立浏览器恢复/版本冲突/SSE错误与旧结果/晚到切换/删除容量/权限过期退出/503与移动端），另运行`check_questions_ui.cjs`回归原十场景。需要可用的Playwright及Edge，本仓库未新增浏览器依赖。请求全部拦截合成，非页面来源请求阻断，产物不入Git；不能据此宣称真实OAuth、浏览器Cookie或浏览器直连数据库已通过。已有真实PostgreSQL HTTP与恢复门禁继续独立运行。

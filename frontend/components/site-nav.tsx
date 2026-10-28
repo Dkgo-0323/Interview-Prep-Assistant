@@ -7,6 +7,7 @@ import { Sparkles, Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const links = [
+  { href: "/history", label: "我的记录", match: (p: string) => p.startsWith("/history") },
   { href: "/", label: "上传", match: (p: string) => p === "/" },
   { href: "/analyze", label: "分析", match: (p: string) => p.startsWith("/analyze") },
   { href: "/questions", label: "面试题", match: (p: string) => p.startsWith("/questions") },

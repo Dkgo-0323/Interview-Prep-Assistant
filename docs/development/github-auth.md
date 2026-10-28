@@ -70,12 +70,13 @@ FastAPI handlers with synthetic GitHub HTTP transport and account mapper, under
 the external-network guard. Covers PKCE/state/browser binding/replay, expiration,
 rotation/capacity/two-device logout, in-flight cancellation, provider/DB failures
 and forged identity. Not real OAuth, PostgreSQL callback integration, browser
-cookie behavior, UI or public deployment. No live credentials were used.
+cookie behavior or public deployment. The account UI now exists; its browser
+acceptance intercepts API responses and does not exercise this OAuth service. No live credentials were used.
 
 Before publication, proxy/server access logs must omit callback query strings
 (authorization codes/state). Disable Uvicorn access logs or use a query-redacting
-formatter; no HTTP body/header debug logging. Complete login/history UI and
-two-device browser acceptance, verify HTTPS cookies/Origin/SSE and actual GitHub reachability, then
+formatter; no HTTP body/header debug logging. Complete browser-to-backend/database two-device acceptance (the UI has passed
+intercepted synthetic API checks), verify HTTPS cookies/Origin/SSE and actual GitHub reachability, then
 perform separately approved release acceptance. No resources are provisioned.
 
 Implementation reference, accessed 2026-10-24 Asia/Shanghai:
