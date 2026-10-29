@@ -13,6 +13,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 # Explicit allowlist: several other tests in tests/ call the real provider.
 OFFLINE_TESTS = (
+    "tests/test_backup_history.py",
     "tests/test_parser_factory.py",
     "tests/test_pdf_parser.py",
     "tests/test_docx_parser.py",

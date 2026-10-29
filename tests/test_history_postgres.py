@@ -427,8 +427,12 @@ def test_backup_restore(database,tmp_path):
         value = str(pinned) if pinned.exists() else shutil.which(tool)
         assert value, f'{tool} required for actual backup/restore acceptance'
         return value
-    backup = tmp_path/'synthetic.dump'
-    subprocess.run([binary('pg_dump'),'--dbname',dsn,'--schema',name,'--format=custom','--file',str(backup)], check=True, capture_output=True)
+    from scripts.backup_history import backup as create_backup, verify
+    bundle = tmp_path/'bundle'
+    receipt = create_backup(bundle, dsn, binary('pg_dump'), binary('pg_restore'), schema=name)
+    assert (bundle/'READY').is_file()
+    assert verify(bundle, binary('pg_restore')) == receipt
+    backup = bundle/'history.dump'
     with psycopg.connect(dsn,autocommit=True) as conn:
         conn.execute(sql.SQL('DROP SCHEMA {} CASCADE').format(sql.Identifier(name)))
     subprocess.run([binary('pg_restore'),'--dbname',dsn,'--exit-on-error',str(backup)],check=True,capture_output=True)

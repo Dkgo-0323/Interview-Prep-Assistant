@@ -195,6 +195,10 @@ not protect against loss of the server. No recovery time or loss guarantee exist
 yet. Revert this additive foundation by leaving it disconnected; never drop real
 user records to roll back application code.
 
+An explicit [backup bundle tool and restore rehearsal](history-backup.md) now
+provides export, SHA256 receipts and verification. Scheduling, protected off-host
+storage and actual host recovery remain release prerequisites.
+
 ## Account browser workspace (2026-10-28)
 
 `/history` uses `frontend/lib/history-api.ts` and `history-workspace.tsx`. Login
