@@ -67,3 +67,9 @@ restores its synthetic schema and reads account, input, report and running task
 back before startup interruption. Its schema filter is internal test isolation;
 the operator CLI deliberately exposes no schema filter. CI does not prove an
 off-host transfer, production permissions, a scheduler, or recovery duration.
+
+The export command requires requirements-history.txt (psycopg). It parses the
+connection string into a private temporary libpq service file and deletes that
+file with staging; it is never copied into the bundle. Multiline connection
+options are rejected. Supplying an entire URI as PGDATABASE was rejected by the
+first real CI rehearsal and has been replaced by this service-file mechanism.

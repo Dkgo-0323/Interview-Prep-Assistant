@@ -8,6 +8,11 @@ from scripts import backup_history as module
 
 @pytest.fixture
 def tools(monkeypatch):
+    import sys
+    from types import ModuleType
+    conninfo = ModuleType('psycopg.conninfo')
+    conninfo.conninfo_to_dict = lambda dsn: {'dbname': 'synthetic', 'password': dsn}
+    monkeypatch.setitem(sys.modules, 'psycopg.conninfo', conninfo)
     calls = []
     def run(args, **kwargs):
         calls.append((args, kwargs))
@@ -24,14 +29,15 @@ def test_bundle_and_secret_boundary(tmp_path, tools):
     assert receipt == module.verify(target)
     assert 'secret-dsn' not in json.dumps(receipt)
     assert all('secret-dsn' not in str(args) for args, _ in tools)
-    assert tools[0][1]['env']['PGDATABASE'] == 'secret-dsn'
+    assert tools[0][1]['env']['PGSERVICE'] == 'history_backup'
+    assert not Path(tools[0][1]['env']['PGSERVICEFILE']).exists()
     assert tools[0][1]['timeout'] == 1800
     with pytest.raises(ValueError):
         module.backup(target, 'secret-dsn')
 
 
 @pytest.mark.parametrize('failure', ['dump', 'list'])
-def test_failure_never_publishes(tmp_path, monkeypatch, failure):
+def test_failure_never_publishes(tmp_path, monkeypatch, tools, failure):
     def run(args, **kwargs):
         if '--file' in args:
             Path(args[args.index('--file') + 1]).write_bytes(b'partial')

@@ -48,7 +48,20 @@ def backup(destination, dsn, pg_dump='pg_dump', pg_restore='pg_restore', schema=
     try:
         archive = staging / 'history.dump'
         env = os.environ.copy()
-        env['PGDATABASE'] = dsn
+        # libpq does not expand a connection URI obtained from PGDATABASE.
+        # A private service file preserves every parsed libpq option without
+        # exposing credentials in argv or relying on URI environment expansion.
+        from psycopg.conninfo import conninfo_to_dict
+        settings = conninfo_to_dict(dsn)
+        if any('\n' in value or '\r' in value for value in settings.values()):
+            raise ValueError('Multiline connection options are unsupported')
+        service = staging / 'connection.conf'
+        service.write_text('[history_backup]\n' + ''.join(
+            f'{key}={value}\n' for key, value in settings.items()), encoding='utf-8')
+        service.chmod(0o600)
+        env['PGSERVICEFILE'] = str(service)
+        env['PGSERVICE'] = 'history_backup'
+        env.pop('PGDATABASE', None)
         args = [pg_dump, '--format=custom', '--no-password', '--file', str(archive)]
         if schema:
             args.extend(['--schema', schema])
