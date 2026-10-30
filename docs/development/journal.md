@@ -252,3 +252,5 @@
 - 实现与理由：API绑定127.0.0.1、workers1、无access log、可信代理仅loopback；Next绑定loopback，以空NEXT_PUBLIC_API_URL构建同源。systemd不自动重启、进程组停机，防旧worker未退出时启动新worker触发任务中断。nginx保留/api路径、关闭buffer/cache/gzip与自动重试、11MiB请求包容10MiB文件及multipart、300秒读取间隔；TLS占位待实际证书。关闭可能记录OAuth query的代理日志，记录诊断/监控缺口。手册要求独立release、先维护停旧服务→备份verify异机→显式迁移→切current→启动/检查；禁止自动降schema和不兼容代码回滚。
 - 验证：本机限定路径git diff --check通过；源码核对实际健康路径、配置名、文件大小、Next构建期API地址、启动中断与日志路径。无后端/前端业务源码变化，不重复本机backend/npm/browser。新增Linux CI以临时自签证书执行nginx -t，systemd-analyze verify使用临时替代用户/工作目录/Exec路径/移除秘密环境文件，仅证明语法；不安装/启动项目服务、不读取真实凭据。实际CI结果待本聊天/memory最终收据，不预标成功。
 - 可演示/剩余：今天交付可审阅的运行配置和故障处理路径，不是线上服务或新业务功能。未真实OAuth/Qwen/购买/发布/主机迁移/异机恢复；真实凭据、模型预算、资源和正式发布仍按原interview。已授权下一步仍为完整数据库浏览器合成闭环、实际主机代理Cookie/SSE/重启与备份恢复。当前提交自身SHA/push/最终CI留聊天和memory，下一轮归档，不补自引用提交。
+
+- 首轮bc1965af9d45ae4b70f1978f1ed1e0769fd98ade已普通推送；CI41015650938四项既有门禁成功，新增配置job失败：nginx报告syntax is ok后无权限绑定443。修正检查副本监听127.0.0.1:14443，正式TLS443不改、不启动服务、不提升CI为root。最终收据留聊天/memory。
