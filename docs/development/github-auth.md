@@ -2,7 +2,7 @@
 
 Opt-in backend OAuth authorization-code flow with S256 PKCE, browser-bound
 one-use state and opaque HttpOnly account cookies. Account-bound upload, analysis
-and questions now have separate record APIs; login/history UI is still pending.
+and questions now have separate record APIs; login/history UI is available at `/history` (intercepted API browser acceptance).
 The existing anonymous website remains active.
 
 ## Configuration

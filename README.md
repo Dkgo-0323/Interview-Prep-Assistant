@@ -264,6 +264,7 @@ npm run lint
 
 ## 开发与交接导航
 
+- [单机运行与回滚包](docs/development/single-vm.md)：待部署的同源代理、单worker服务、显式迁移和验收步骤。
 - [当前计划](docs/development/plan.md)：唯一动态计划入口，包含已完成/已确认/候选与待决、验收和依赖。
 - [按周记录](docs/development/journal.md)：周一研究、每日交付、真实验证和必要决策。阶段确认后自主连续推进，重要取舍采用 interview；用户每天约10–15分钟理解主线。
 - [架构说明](Architecture.md)、[质量门禁](docs/development/quality-gates.md)、[文档索引及历史](docs/development/README.md)：按需参考。旧状态表、每日文件和模板只保留历史，不再重复日常维护。

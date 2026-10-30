@@ -1,0 +1,21 @@
+[Unit]
+Description=Interview Prep Assistant Next.js
+After=network.target
+
+[Service]
+Type=exec
+User=ipa
+Group=ipa
+WorkingDirectory=/srv/interview-prep/current/frontend
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port 3000
+Restart=no
+KillMode=control-group
+TimeoutStopSec=60
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

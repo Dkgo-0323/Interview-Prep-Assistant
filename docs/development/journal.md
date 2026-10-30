@@ -244,3 +244,11 @@
 - 验证：本机Windows/Python3.12.7，首次沙箱socketpair超时exit1、业务未执行；允许本机回环后venv/Scripts/python.exe scripts/check_backend.py exit0，十一文件229 passed/5既有缺fixture skips/1既有Starlette警告，32.28s。新增六例覆盖凭据边界/非覆盖、dump/list失败清理、截断/等长损坏/坏收据拒绝；工具为替身，非真实备份证明。真实PG16既有恢复测试改为调用新导出工具及verify，再实际drop合成schema/pg_restore/读回账号文本报告task及启动中断；远端结果尚待取得，不预标通过。无前端改动，本机不重复npm或浏览器；远端仍跑完整门禁。未调用真实模型/OAuth、未部署/购买。
 - 可演示/剩余：现在可对已配置数据库显式生成完整可校验包，另处复制后检查，再在隔离库演练。尚无线上备份服务、异机实际传输/恢复/定时/磁盘告警/恢复时长承诺；浏览器→FastAPI→PG组合、单机代理启动迁移健康检查/回滚包继续已授权推进。真实凭据/资源/正式发布/Q003保留既有interview边界。当前提交自身完整SHA/普通push/最终CI记聊天与memory，下轮归档避免自引用提交。
 - 首次远端CI40827439795失败：Windows/Ubuntu离线与前端成功，真实PG27通过/1失败；完整URI放PGDATABASE不会按连接字符串展开，pg_dump连接失败。修正为psycopg解析连接配置→私密临时PGSERVICEFILE，保持凭据不进入argv，拒绝换行配置以防服务文件注入；临时文件用完清理，不随bundle发布。最终重跑收据见聊天/memory，不把首次失败记通过。本机docker info再次确认LinuxEngine管道不存在。
+
+### 2026-10-30 S3第八切片：单机服务、同源代理与停机回滚包
+
+- 目标/范围：周五不做例行研究，继续已确认S3部署准备；负责deploy/single-vm三个模板、原生配置语法检查脚本及CI、运行手册与必要导航/plan/journal。未增加业务按钮；完整浏览器→FastAPI→实际PG双设备仍未完成。本机nginx/systemd不可用，WSL枚举E_ACCESSDENIED，语法交Linux CI验证；不把文档或静态检查当部署成功。
+- 基线/并行：单worktree、codex/qwen-provider-migration、上游origin同名分支；起始本地/实时远端ab17b3f4d50d403e6bc4fa7147f866aa47e772d0，main仍e44da22da39093f8a6e69edb33f12406a8db0fe7。上次完整提交已普通推送，CI40827751463精确SHA completed/success四job（含真实PG备份恢复），部署列表0。首次沙箱SSH/gh被拒，允许只读网络核实成功。可见本项目仅当前聊天active，其他编辑器/机器未知，不向其他聊天发消息。规划文档修改前无差异；未读.env/私人材料，未改原logs、两份私人文档或test-results。
+- 实现与理由：API绑定127.0.0.1、workers1、无access log、可信代理仅loopback；Next绑定loopback，以空NEXT_PUBLIC_API_URL构建同源。systemd不自动重启、进程组停机，防旧worker未退出时启动新worker触发任务中断。nginx保留/api路径、关闭buffer/cache/gzip与自动重试、11MiB请求包容10MiB文件及multipart、300秒读取间隔；TLS占位待实际证书。关闭可能记录OAuth query的代理日志，记录诊断/监控缺口。手册要求独立release、先维护停旧服务→备份verify异机→显式迁移→切current→启动/检查；禁止自动降schema和不兼容代码回滚。
+- 验证：本机限定路径git diff --check通过；源码核对实际健康路径、配置名、文件大小、Next构建期API地址、启动中断与日志路径。无后端/前端业务源码变化，不重复本机backend/npm/browser。新增Linux CI以临时自签证书执行nginx -t，systemd-analyze verify使用临时替代用户/工作目录/Exec路径/移除秘密环境文件，仅证明语法；不安装/启动项目服务、不读取真实凭据。实际CI结果待本聊天/memory最终收据，不预标成功。
+- 可演示/剩余：今天交付可审阅的运行配置和故障处理路径，不是线上服务或新业务功能。未真实OAuth/Qwen/购买/发布/主机迁移/异机恢复；真实凭据、模型预算、资源和正式发布仍按原interview。已授权下一步仍为完整数据库浏览器合成闭环、实际主机代理Cookie/SSE/重启与备份恢复。当前提交自身SHA/push/最终CI留聊天和memory，下一轮归档，不补自引用提交。

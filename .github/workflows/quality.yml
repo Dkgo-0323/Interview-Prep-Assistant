@@ -86,3 +86,14 @@ jobs:
         run: /usr/lib/postgresql/16/bin/pg_dump --version
       - name: Exercise real database and backup restore (synthetic data only)
         run: python -m pytest tests/test_history_postgres.py -q -p no:cacheprovider
+
+  deployment-config:
+    name: Single VM configuration syntax (not deployment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install native syntax tools
+        run: sudo apt-get update && sudo apt-get install -y nginx
+      - name: Check proxy and service templates without starting services
+        run: bash scripts/check_deploy_config.sh

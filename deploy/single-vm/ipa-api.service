@@ -1,0 +1,22 @@
+[Unit]
+Description=Interview Prep Assistant API (exclusive single worker)
+After=network.target
+
+[Service]
+Type=exec
+User=ipa
+Group=ipa
+WorkingDirectory=/srv/interview-prep/current
+EnvironmentFile=/etc/interview-prep/api.env
+Environment=PYTHON_DOTENV_DISABLED=1
+Environment=SESSION_COOKIE_SECURE=true
+ExecStart=/srv/interview-prep/current/venv/bin/python -m uvicorn api.main:app --host 127.0.0.1 --port 8000 --workers 1 --no-access-log --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=no
+KillMode=control-group
+TimeoutStopSec=300
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
