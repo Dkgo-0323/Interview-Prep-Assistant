@@ -68,7 +68,6 @@ export default function QuestionsPage() {
       setAllQuestions([])
       setSource(null)
       if (!forceNew && err instanceof APIError && err.status === 404) {
-        setNumToGenerate(10)
         setLoadStatus(waiting ? "busy" : "empty")
         return
       }
@@ -177,28 +176,6 @@ export default function QuestionsPage() {
               </p>
             </div>
 
-            {/* 重新生成控制区 */}
-            {loadStatus === "success" && (
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <select
-                  value={numToGenerate}
-                  onChange={(e) => setNumToGenerate(Number(e.target.value))}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                >
-                  {[10, 15, 20, 30].map((n) => (
-                    <option key={n} value={n}>{n} 道题</option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => loadQuestions(true)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  {source === "example" ? "生成个性化题目" : "重新生成"}
-                </button>
-              </div>
-            )}
           </div>
         </header>
 
@@ -218,8 +195,25 @@ export default function QuestionsPage() {
         {loadStatus === "empty" && (
           <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-center">
             <h2 className="font-semibold">尚未生成面试题</h2>
-            <p className="text-sm text-muted-foreground">根据当前岗位分析生成10道个性化题目及参考回答，点击后将调用模型。</p>
-            <button type="button" onClick={() => loadQuestions(true)} className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">生成10道面试题</button>
+            <p className="text-sm text-muted-foreground">根据当前岗位分析生成个性化题目及参考回答，请选择题目数量后生成。</p>
+          </div>
+        )}
+
+        {(loadStatus === "empty" || loadStatus === "success") && (
+          <div className="space-y-2 rounded-xl border border-border bg-card p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <label htmlFor="question-count" className="text-sm font-medium">题目数量</label>
+              <select id="question-count" value={numToGenerate} onChange={event => setNumToGenerate(Number(event.target.value))}
+                className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground outline-none focus:border-primary">
+                {[10, 20, 30, 40, 50].map(count => <option key={count} value={count}>{count} 道题</option>)}
+              </select>
+              <button type="button" onClick={() => loadQuestions(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+                <RefreshCw className="h-4 w-4" />
+                {loadStatus === "success" ? "重新生成" : "生成"}{numToGenerate}道面试题
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">题目越多，等待时间和模型用量通常越高。选择数量不会生成，点击按钮后才调用模型。</p>
           </div>
         )}
 

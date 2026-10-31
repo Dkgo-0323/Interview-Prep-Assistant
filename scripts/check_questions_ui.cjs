@@ -37,6 +37,7 @@ async function main() {
         }
         if (url.pathname === '/api/questions/generate') {
           calls.generated++
+          assert.equal(route.request().postDataJSON().num_questions, mode === 'missing' ? 20 : mode === 'cached' ? 50 : 10)
           await new Promise(resolve => setTimeout(resolve, 400))
           if (mode === 'busy' || mode === 'generateFailure') return route.fulfill({ status: mode === 'busy' ? 409 : 500, json: { detail: '合成生成错误' } })
           saved = true
@@ -54,7 +55,11 @@ async function main() {
       assert.equal(calls.generated, 0, mode + ': page entry must be read-only')
       assert.equal(await page.getByText('题目来源：固定示例，非个性化', { exact: true }).count(), 0)
       if (empty) {
-        await page.getByRole('button', { name: '生成10道面试题', exact: true }).click()
+        const count = mode === 'missing' ? 20 : 10
+        assert.deepEqual(await page.getByLabel('题目数量', { exact: true }).locator('option').evaluateAll(options => options.map(option => option.value)), ['10', '20', '30', '40', '50'])
+        await page.getByLabel('题目数量', { exact: true }).selectOption(String(count))
+        assert.equal(calls.generated, 0, 'Selecting a count must not generate')
+        await page.getByRole('button', { name: `生成${count}道面试题`, exact: true }).click()
         await page.getByText('正在生成面试题…', { exact: true }).waitFor()
         if (mode === 'generateFailure') {
           await page.getByText(/生成失败/).waitFor()
@@ -81,6 +86,13 @@ async function main() {
         await page.reload()
         await page.getByText('题目来源：后端缓存', { exact: true }).waitFor()
         assert.equal(calls.generated, 0)
+        await page.getByLabel('题目数量', { exact: true }).selectOption('50')
+        assert.equal(calls.generated, 0)
+        await page.getByRole('button', { name: '重新生成50道面试题', exact: true }).click()
+        await page.getByText('题目来源：本次生成', { exact: true }).waitFor()
+        assert.equal(calls.generated, 1)
+        await page.setViewportSize({ width: 390, height: 844 })
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false)
         await page.screenshot({ path: path.join(output, 'cached-desktop.png'), fullPage: true, animations: 'disabled' })
       }
       if (mode === 'server') {
