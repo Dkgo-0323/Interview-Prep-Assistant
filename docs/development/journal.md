@@ -262,3 +262,5 @@
 - 场景：设备A创建并上传TXT，版本0→1→2，显式分析SSE/生成10题；设备B读取/刷新/展开答案不增加模型调用；直接SQL核对版本/77分/10题。第三账号不能读；A退出不影响B恢复。服务线程finally停机、既有fixture仅清理本次随机schema。CI新增Chromium及生产构建，保持其他质量门禁。
 - 本机Python语法编译与限定路径diff检查通过；未执行本机数据库/浏览器组合（无PG引擎），不标业务验收通过。远端真实执行与可能失败修复收据留本聊天/memory。未改前端源码，不重复本机npm；远端原完整check继续执行。
 - 剩余：组合测试通过后仍不代表真实OAuth、实际主机重启/HTTPSCookie/SSE代理或异机恢复已验收。S3继续实施；资源/凭据/正式发布/真实模型Q003沿用待确认边界。当前提交自身SHA/push/CI留最终聊天与memory，下轮归档。
+- 实际首轮交付：81d201991fd3e9c1dde30388b990f2bdc3dd37bc已普通推送origin/codex/qwen-provider-migration；CI41175184907五job全部success。Ubuntu/Windows审阅离线集合各229 passed/5既有skips/1既有警告；实际PG原28项通过/1既有警告，新增Chromium双设备组合1项通过。前端完整check与生产构建、nginx/systemd语法均成功。链接：https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41175184907 。无业务测试失败或断言弱化；本机首次网络受限，允许只读/授权push网络后成功，未将环境失败算通过。
+- 因而关闭“浏览器直连FastAPI+真实PostgreSQL双设备合成闭环”证据缺口；不关闭实际OAuth/HTTPS/主机部署和异机恢复。后续可自主推进已确认部署准备；实际资源、凭据与正式发布须必要interview。仅测试及文档变化，今日无新增业务功能。交接提交自身收据留聊天/memory。

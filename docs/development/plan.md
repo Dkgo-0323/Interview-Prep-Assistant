@@ -1,6 +1,6 @@
 # 当前开发计划与工作约定
 
-更新：2026-10-30（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
+更新：2026-10-31（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
 
 ## 产品主线与已交付状态
 
@@ -78,4 +78,4 @@
 
 ID `interview-prep-assistant`、名称“Interview Prep Assistant 每日调研与工程规划”保留；每天北京时间14:00、ACTIVE、本地项目独立新聊天，绑定`30b254df-d398-43b1-bc43-ff9ac69d0764` / `D:\codefield\interview-prep-assistant`，模型`gpt-6.1-sol` / medium、原通知配置及创建标识保留。2026-10-21已用管理工具update同ID并view，持久化读回核验；未新建任务、未修改VOC项目或任务。未来无人值守实际触发/权限仍需观察，不因保存成功宣称已运行验证。电脑/应用/路径须可用，沙箱网络阻碍不被本次授权自动消除。 10-22用户明确要求14:00、GPT-6.1 sol中等推理及详细复盘；已通过管理工具更新原ID并逐字段读回核验。10-21的12:00/high为历史设置，不再生效。
 
-- **10-31数据库浏览器组合门禁**：新增真实生产Next→FastAPI→PostgreSQL双设备测试，覆盖恢复不生成、账号隔离与本设备退出；身份/模型为合成替身。执行状态以本轮journal/最终CI收据为准，不等于真实OAuth或部署验收。
+- **10-31数据库浏览器组合门禁**：新增真实生产Next→FastAPI→PostgreSQL双设备测试，覆盖恢复不生成、账号隔离与本设备退出；身份/模型为合成替身。首轮CI41175184907五job成功，组合浏览器测试通过，关闭该证据缺口；真实OAuth、HTTPS代理、目标主机及异机恢复仍待验收。历史日期条目中的组合缺口以此最新收据为准，S3尚未完成。
