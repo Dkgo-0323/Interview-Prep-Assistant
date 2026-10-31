@@ -165,13 +165,13 @@ export default function AnalyzePage() {
               href="/questions"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
-              生成面试题 →
+              进入面试题库 →
             </Link>
             <Link
-              href="/profile"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-8 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              href="/"
+              className="inline-flex items-center justify-center px-4 py-3 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             >
-              查看求职画像
+              重新上传资料
             </Link>
           </div>
         )}

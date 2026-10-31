@@ -114,7 +114,7 @@ LLM 服务通过 OpenAI SDK 的 `chat.completions.parse` 解析到这些 Pydanti
 | `/questions` | 生成、筛选、搜索与收藏题目 | `POST /api/questions/generate`、`GET /api/questions/cached` |
 | `/profile` | 画像尚未开放说明，提供分析/题库入口 | 不调用画像 API；`POST /api/profile/generate` 仍为未接入页面的历史占位接口 |
 
-前端默认连接`http://localhost:8000`，可通过`NEXT_PUBLIC_API_URL`覆盖。REST通过共享初始化Promise建立Cookie，再以credentials发送；EventSource使用withCredentials。首页刷新读取上传状态，分析页先恢复当前会话报告，仅404才启动新分析；缓存错误/410不会自动重放分析。APIError保留HTTP status；题库仍仅在缓存404时进入既有自动生成，其他失败显示固定示例。区分本会话缓存、本次生成与固定非个性化示例，显式重试可再次请求；换题集清空收藏。过期/无资料时引导返回首页重新上传。
+前端默认连接`http://localhost:8000`，可通过`NEXT_PUBLIC_API_URL`覆盖。REST通过共享初始化Promise建立Cookie，再以credentials发送；EventSource使用withCredentials。首页刷新读取上传状态，分析页先恢复当前会话报告，仅404才启动新分析；缓存错误/410不会自动重放分析。APIError保留HTTP status；题库进入/刷新仅GET缓存，404展示显式生成入口，只有按钮才能POST生成；409保留等待状态并提供只读检查，错误不自动展示示例。示例通过独立按钮主动预览。请求锁阻止同页重复提交，请求序号屏蔽卸载后的晚到响应。区分本会话缓存、本次生成与固定非个性化示例，显式重试可再次请求；换题集清空收藏。过期/无资料时引导返回首页重新上传。
 
 ## 7. 当前仓库结构
 

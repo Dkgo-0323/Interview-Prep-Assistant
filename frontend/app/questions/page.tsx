@@ -1,7 +1,7 @@
 // frontend/app/questions/page.tsx
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
   ArrowLeft, BookOpen, Star, Loader2, AlertCircle, RefreshCw,
@@ -21,7 +21,7 @@ import {
 
 const PAGE_SIZE = 10
 
-type LoadStatus = "idle" | "loading" | "success" | "error"
+type LoadStatus = "idle" | "loading" | "success" | "error" | "empty" | "busy"
 type QuestionSource = "cached" | "generated" | "example"
 
 const SOURCE_LABELS: Record<QuestionSource, { title: string; description: string }> = {
@@ -47,67 +47,70 @@ export default function QuestionsPage() {
   const [bookmarks, setBookmarks]       = useState<Set<number>>(new Set())
   const [onlyBookmarked, setOnlyBookmarked] = useState(false)
 
-  // ── 加载题目（优先读缓存，没有再生成）─────────────────────
-  async function fetchQuestions(forceNew = false) {
-    let operation: "cached" | "generated" = forceNew ? "generated" : "cached"
+  // Page entry is read-only. Only an explicit button can start paid work.
+  const pending = useRef(false)
+  const epoch = useRef(0)
+
+  async function fetchQuestions(forceNew = false, waiting = false) {
+    const current = ++epoch.current
+    const operation = forceNew ? "generated" : "cached"
     try {
-      let response
-      let shouldGenerate = forceNew
-
-      if (!forceNew) {
-        // 先尝试拿缓存
-        try {
-          response = await getCachedQuestions()
-        } catch (err) {
-          // 只有 404 表示无缓存；网络/服务错误不能悄悄触发模型生成。
-          if (!(err instanceof APIError) || err.status !== 404) throw err
-          shouldGenerate = true
-        }
-      }
-
-      // 没有缓存 或 强制重新生成
-      if (shouldGenerate) {
-        operation = "generated"
-        setRequestKind("generated")
-        response = await generateQuestions(numToGenerate)
-      }
-
-      if (!response) throw new Error("题目响应无效")
-      const mapped = mapBackendQuestions(response.questions)
-      setAllQuestions(mapped)
+      const response = forceNew ? await generateQuestions(numToGenerate) : await getCachedQuestions()
+      if (current !== epoch.current) return
+      setAllQuestions(mapBackendQuestions(response.questions))
       setSource(operation)
       setBookmarks(new Set())
+      setOnlyBookmarked(false)
+      setVisible(PAGE_SIZE)
       setLoadStatus("success")
-      setVisible(PAGE_SIZE)   // 重置分页
     } catch (err) {
+      if (current !== epoch.current) return
+      setAllQuestions([])
+      setSource(null)
+      if (!forceNew && err instanceof APIError && err.status === 404) {
+        setNumToGenerate(10)
+        setLoadStatus(waiting ? "busy" : "empty")
+        return
+      }
       const msg = err instanceof Error ? err.message : "题目加载失败"
-
-      // 降级：用 mock 数据，至少能看到页面
-      setAllQuestions(fallbackQuestions)
-      setSource("example")
-      setBookmarks(new Set())
-      setErrorMsg(`${operation === "cached" ? "读取缓存失败" : "生成失败"}：${msg}`)
-      setLoadStatus("error")
+      setErrorMsg(`${forceNew ? "生成失败" : "读取缓存失败"}：${msg}`)
+      setLoadStatus(err instanceof APIError && err.status === 409 ? "busy" : "error")
+    } finally {
+      if (current === epoch.current) pending.current = false
     }
   }
 
-  // 页面挂载时自动加载
   function loadQuestions(forceNew = false) {
+    if (pending.current) return
+    pending.current = true
+    const waiting = loadStatus === "busy"
     setLoadStatus("loading")
     setSource(null)
     setRequestKind(forceNew ? "generated" : "cached")
     setErrorMsg("")
-    void fetchQuestions(forceNew)
+    void fetchQuestions(forceNew, waiting)
   }
 
-  useEffect(() => {
-    async function loadInitialQuestions() {
-      await Promise.resolve()
-      await fetchQuestions()
-    }
+  function previewExamples() {
+    setAllQuestions(fallbackQuestions)
+    setSource("example")
+    setBookmarks(new Set())
+    setOnlyBookmarked(false)
+    setVisible(PAGE_SIZE)
+  }
 
-    void loadInitialQuestions()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- initialize once; later generation is user-triggered.
+  function invalidateRead() { epoch.current++ }
+
+  useEffect(() => {
+    let active = true
+    async function readInitial() {
+      await Promise.resolve()
+      if (active) await fetchQuestions()
+    }
+    void readInitial()
+    // Ignore late reads after unmount and Strict Mode's discarded mount.
+    return () => { active = false; invalidateRead() }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- initial read only; generation is explicit.
 
   // ── 筛选逻辑 ───────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -192,7 +195,7 @@ export default function QuestionsPage() {
                   className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
                 >
                   <RefreshCw className="h-4 w-4" />
-                  重新生成
+                  {source === "example" ? "生成个性化题目" : "重新生成"}
                 </button>
               </div>
             )}
@@ -207,31 +210,35 @@ export default function QuestionsPage() {
               {requestKind === "cached" ? "正在读取题目缓存…" : "正在生成面试题…"}
             </p>
             <p className="text-xs text-muted-foreground">
-              {requestKind === "cached" ? "缓存不存在时将根据已有分析生成题目" : "基于现有岗位分析，请稍候"}
+              {requestKind === "cached" ? "这里只读取已保存题目，不会自动生成" : "基于现有岗位分析，请稍候"}
             </p>
           </div>
         )}
 
-        {/* ── 错误提示（降级显示 mock 数据）── */}
-        {loadStatus === "error" && (
-          <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-            <div className="flex-1 text-sm">
-              <span className="text-muted-foreground">{errorMsg}</span>
-              <span className="ml-1 text-muted-foreground">（以下为示例题目）</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => loadQuestions(true)}
-              className="shrink-0 text-sm font-medium text-primary hover:underline"
-            >
-              重新生成
-            </button>
+        {loadStatus === "empty" && (
+          <div className="space-y-4 rounded-xl border border-border bg-card p-6 text-center">
+            <h2 className="font-semibold">尚未生成面试题</h2>
+            <p className="text-sm text-muted-foreground">根据当前岗位分析生成10道个性化题目及参考回答，点击后将调用模型。</p>
+            <button type="button" onClick={() => loadQuestions(true)} className="rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground">生成10道面试题</button>
           </div>
         )}
 
+        {(loadStatus === "error" || loadStatus === "busy") && (
+          <div role="alert" className="flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4 sm:flex-row sm:items-center">
+            <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+            <div className="flex-1 text-sm">
+              {loadStatus === "busy" ? "题目任务仍在处理中，或结果尚未保存。请稍后检查生成结果，不要重复生成。" : errorMsg}
+              <p className="mt-1 text-muted-foreground">系统不会自动重发生成请求。</p>
+            </div>
+            <button type="button" onClick={() => loadQuestions()} className="shrink-0 text-sm font-medium text-primary hover:underline">检查生成结果</button>
+          </div>
+        )}
+        {["empty", "error", "busy"].includes(loadStatus) && (
+          <button type="button" onClick={previewExamples} className="self-center text-sm text-muted-foreground underline underline-offset-4">查看示例题（非个性化）</button>
+        )}
+
         {/* ── 题目内容区（加载完成后显示）── */}
-        {(loadStatus === "success" || loadStatus === "error") && (
+        {(loadStatus === "success" || source === "example") && (
           <>
             {source && (
               <div role="status" className="rounded-xl border border-border bg-card px-4 py-3 text-sm">

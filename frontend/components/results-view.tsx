@@ -1,7 +1,6 @@
 "use client"
 
-import { CheckCircle2, AlertTriangle, Lightbulb, ArrowLeft, BookOpen } from "lucide-react"
-import Link from "next/link"
+import { CheckCircle2, AlertTriangle, Lightbulb } from "lucide-react"
 import { ScoreCircle } from "@/components/score-circle"
 import { SubScoreBar } from "@/components/sub-score-bar"
 
@@ -86,22 +85,7 @@ export function ResultsView({ result }: { result: AnalysisResult }) {
         </ul>
       </section>
 
-      <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
-        <Link
-          href="/questions"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 sm:w-auto"
-        >
-          <BookOpen className="h-4 w-4" />
-          开始面试题练习
-        </Link>
-        <Link
-          href="/"
-          className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary sm:w-auto"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          重新上传文件
-        </Link>
-      </div>
+
     </div>
   )
 }
