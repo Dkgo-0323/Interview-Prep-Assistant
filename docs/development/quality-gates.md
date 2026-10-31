@@ -93,3 +93,9 @@ npm run check
 `npm run check`现包含`test_history_api.cjs`：账号请求不初始化匿名会话、Cookie/no-store、只提交title/revision/题量、204删除、401/409/503无重试；POST SSE中文逐字节拆包/CRLF跨包/心跳、terminal error、提前断流/坏JSON、取消信号。与原12项共18项。
 
 本机生产页面运行后，`node scripts/check_history_ui.cjs http://127.0.0.1:3168 <本次独立产物目录>`执行八组账号场景（完整操作链/独立浏览器恢复/版本冲突/SSE错误与旧结果/晚到切换/删除容量/权限过期退出/503与移动端），另运行`check_questions_ui.cjs`回归原十场景。需要可用的Playwright及Edge，本仓库未新增浏览器依赖。请求全部拦截合成，非页面来源请求阻断，产物不入Git；不能据此宣称真实OAuth、浏览器Cookie或浏览器直连数据库已通过。已有真实PostgreSQL HTTP与恢复门禁继续独立运行。
+
+### 账号页面与真实数据库组合门禁（2026-10-31）
+
+Quality 的 History PostgreSQL job 先执行原数据库/备份恢复测试，再构建生产 Next 页面，使用 Python Playwright Chromium 执行 `tests/test_history_browser.py`。后者依赖已启动的 `http://127.0.0.1:3000` 前端及可丢弃的 loopback `HISTORY_TEST_DSN`，自身启动8000端口真实API并在结束时停止；使用既有随机schema迁移/清理fixture。不要对生产数据库运行。
+
+身份发放与模型响应为合成；Cookie鉴权、Origin、HTTP解析器、SSE、记录仓库和页面实际执行，不替换API响应。验证两设备恢复不生成、第三账号不可读、本设备退出不影响另一设备及数据库快照。它不是实际GitHub回调、TLS代理、目标主机或真实模型质量验收。Playwright/uvicorn仅安装于此CI job，不增加生产运行模式。

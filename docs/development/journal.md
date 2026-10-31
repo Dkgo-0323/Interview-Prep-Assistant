@@ -254,3 +254,11 @@
 - 可演示/剩余：今天交付可审阅的运行配置和故障处理路径，不是线上服务或新业务功能。未真实OAuth/Qwen/购买/发布/主机迁移/异机恢复；真实凭据、模型预算、资源和正式发布仍按原interview。已授权下一步仍为完整数据库浏览器合成闭环、实际主机代理Cookie/SSE/重启与备份恢复。当前提交自身SHA/push/最终CI留聊天和memory，下一轮归档，不补自引用提交。
 
 - 首轮bc1965af9d45ae4b70f1978f1ed1e0769fd98ade已普通推送；CI41015650938四项既有门禁成功，新增配置job失败：nginx报告syntax is ok后无权限绑定443。修正检查副本监听127.0.0.1:14443，正式TLS443不改、不启动服务、不提升CI为root。最终收据留聊天/memory。
+
+### 2026-10-31 S3第九切片：真实数据库双设备浏览器门禁
+
+- 周六不重复例行研究；负责tests/test_history_browser.py、Quality中现有PG job及plan/journal/质量手册。基线208086cdec7864ad2c2d587fb6320983dcbc00bf，本地/实时origin同名分支一致，上一CI41015816323 success、部署0；单worktree，仅当前同项目聊天可见active，其他机器并行未知。未读.env/私人材料，原日志/两份材料/test-results未暂存。本机Docker LinuxEngine管道仍不存在。
+- 新增生产Next页面→真实uvicorn/FastAPI→隔离迁移PostgreSQL schema组合验收。合成服务端账号Cookie与模型响应；不拦截替换API响应，浏览器仅允许本地地址，Python socket禁止外部连接，dotenv不加载。不修改生产认证/提供合成登录入口。真实GitHub、模型、TLS代理和公网均不在此证据内。
+- 场景：设备A创建并上传TXT，版本0→1→2，显式分析SSE/生成10题；设备B读取/刷新/展开答案不增加模型调用；直接SQL核对版本/77分/10题。第三账号不能读；A退出不影响B恢复。服务线程finally停机、既有fixture仅清理本次随机schema。CI新增Chromium及生产构建，保持其他质量门禁。
+- 本机Python语法编译与限定路径diff检查通过；未执行本机数据库/浏览器组合（无PG引擎），不标业务验收通过。远端真实执行与可能失败修复收据留本聊天/memory。未改前端源码，不重复本机npm；远端原完整check继续执行。
+- 剩余：组合测试通过后仍不代表真实OAuth、实际主机重启/HTTPSCookie/SSE代理或异机恢复已验收。S3继续实施；资源/凭据/正式发布/真实模型Q003沿用待确认边界。当前提交自身SHA/push/CI留最终聊天与memory，下轮归档。
