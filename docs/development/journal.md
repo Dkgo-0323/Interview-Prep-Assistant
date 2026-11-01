@@ -282,3 +282,13 @@
 - 统一首次空态与已生成状态使用同一个有label的题量选择控件：10/20/30/40/50，默认10；按钮随选择显示生成N道/重新生成N道，提示更多题目通常增加等待和模型用量。选择不请求模型，点击才POST；读取404不再强制覆盖用户所选数量。409等待及错误状态仍不开放重复生成；例题预览不解除限制。仅产品选项扩展，不扩大本轮真实测试一次分析+10题/失败停授权。
 - 验证：Windows前端npm run check完整通过exit0，含lint/Next类型/18离线契约/生产构建。开发页面独立Edge十组全API合成拦截通过，新增断言所有五档可选、首次选20传num_questions20、缓存题库重选50传50；选择数量POST0，明确按钮后POST1。原缓存/404/非JSON404/500/断网/502/null/畸形/生成失败/409等待只读恢复维持通过，unexpected0/pageErrors空，390px控件无横向溢出。未调用真实模型、未读取用户上传材料、未重启真实后端；无后端改动，不重复本地后端测试。浏览器产物在本聊天visualizations/question-count，不提交Git。
 - 当前提交完整SHA/普通推送/最终CI记本聊天与memory，下轮归档，不自引用补交接。S3目标主机/OAuth/HTTPS/异机恢复仍待验收；此次不是新阶段或真实题量预算批准。
+
+### 2026-11-01 S3第十切片：临时HTTPS代理运行验收
+
+- 目标/理由：周日不重复JD研究，继续已确认部署准备。过去nginx -t只能证明语法，不能证明SSE第一阶段在任务完成前到达。负责scripts/check_proxy_runtime.py、Quality代理job、single-vm手册及plan/journal；无新业务功能，无资源/凭据/真实模型/发布操作。
+- 基线/并行：分支codex/qwen-provider-migration、单worktree，本地/实时origin起点104cfe03a316b8bd42ad3f6f6d1ce441da0620b8一致，CI41186845380精确SHA五job success，部署列表0。可见同项目仅当前聊天active，上轮notLoaded，其他编辑器/机器未知；未发跨聊天消息。规划文档修改前干净，保护原日志/两份私人文档/test-results，不读.env或上传内容，不重启既有8000/3000进程。
+- 实现：直接读取已交付nginx模板，只替换临时证书和loopback随机端口，启动真实nginx及两个合成HTTP上游。客户端仅信任本次自签证书并验证IP；验证/history路由/HTTPS转发头、Cookie请求与Set-Cookie的Secure/HttpOnly/SameSite属性、GET SSE逐段读取、上游断开502且只收到一次请求。上游发送第一事件后等待客户端放行才结束，因此整段缓冲会超时而非误通过。finally停止临时进程/关闭上游，临时证书不入Git。无生产合成开关，不加载应用/数据库/模型。
+- 本地验证：Windows Python AST语法通过；本次明确路径diff检查通过。最初全仓diff检查发现原日志尾随空白，不属于本次且未修改/暂存；后改限定路径检查。Windows未执行nginx运行检查，不冒称本机HTTPS通过。无前端/后端业务改动，不重复本机npm或后端离线集合；CI保留全部既有门禁。
+- 失败与修复：首提交9beeb7c22dda9638d2a63ab2557ce279fb0fd6a5已普通推送，CI41279370706代理job失败：HTTPSConnection不支持直接with。改contextlib.closing确保连接关闭，未弱化断言。修复8c1d96ec84d724393c91665d72132d76c9aa364f已普通推送；首轮总体被后续push取消，不能记整体通过。修复CI41279511600的原生语法+真实HTTPS代理job已success，其余job最终收据留聊天/memory。
+- 可演示/边界：现在有可重复的真实nginx本地网络行为证据，不只是静态配置；未证明真实域名/浏览器Cookie策略/实际账号POST SSE/OAuth、FastAPI/PG经代理组合、长超时/主机重启/异机恢复。单上游失败一次不泛化所有故障的无重复保证。S3继续；下一步可自主补已确认部署验证，主机资源/真实凭据/正式发布仍须既有interview。最终文档提交自身SHA/push/精确CI留本聊天与memory，下轮归档。
+- 实现最终收据：8c1d96ec84d724393c91665d72132d76c9aa364f的[CI41279511600](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41279511600)五job全部success，含真实PG恢复与双设备浏览器、前端完整check/build、双平台离线集合、新代理运行门禁。未部署。

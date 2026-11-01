@@ -74,4 +74,19 @@ health仅证明应用响应，不是数据库持续可用、OAuth、模型或完
 
 参考（2026-10-30北京时间）：[nginx proxy官方文档](https://nginx.org/en/docs/http/ngx_http_proxy_module.html)
 关于buffering/read timeout/retry；[systemd.service官方文档](https://www.freedesktop.org/software/systemd/man/latest/systemd.service.html)
-关于Type=exec及进程启动不等于业务就绪。CI只验证模板语法，不证明主机部署成功。
+关于Type=exec及进程启动不等于业务就绪。语法检查不证明主机部署成功；新增临时代理行为检查见下节。
+
+## 临时HTTPS代理行为门禁（2026-11-01）
+
+Linux安装nginx与openssl后执行 `python3 scripts/check_proxy_runtime.py`。
+脚本直接读取上述nginx模板，只替换证书路径、监听端口和两个上游端口；
+使用临时自签证书及两个随机loopback端口的合成HTTP服务，不启动项目API、
+Next或systemd，不读dotenv、不调用OAuth/模型、不安装服务。
+客户端信任本次证书且验证IP，不关闭TLS校验。检查前端路径/HTTPS转发头、
+Cookie双向传递及Secure/HttpOnly属性、GET SSE第一条事件在上游结束前可读，
+以及断开上游返回502且该请求只到达一次。测试结束终止临时nginx并关闭上游。
+
+这是实际nginx网络行为证据，仍不是浏览器Cookie策略、真实账号POST SSE、
+FastAPI/数据库/Next组合、真实域名证书、OAuth可达性、目标主机超时/重启或公网验收。
+单上游失败一次也不证明所有网络故障与多上游拓扑均不会重复请求。
+Quality保留原语法检查并追加此门禁；实际结果见journal及对应提交的CI收据。

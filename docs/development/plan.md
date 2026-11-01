@@ -1,6 +1,6 @@
 # 当前开发计划与工作约定
 
-更新：2026-10-31（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
+更新：2026-11-01（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
 
 ## 产品主线与已交付状态
 
@@ -83,3 +83,5 @@ ID `interview-prep-assistant`、名称“Interview Prep Assistant 每日调研�
 - **10-31用户实测改善**：已实现报告底部单一主入口+重传次入口；匿名题库改为只读进入/显式生成、409等待只查结果、失败不自动混示例。用户本轮真实测试授权为一次分析+10题/失败停，非无限用量批准。实现及验证见journal，本次不改变S3部署剩余。
 
 - **10-31题量选择确认交付**：匿名题库首次与再次生成统一选择10/20/30/40/50道，默认10道；按钮随选择显示题量，只有点击才请求。此前首次固定10道入口的日期记录由此更新，真实测试用量授权仍是原一次分析+10题。
+
+- **11-01临时HTTPS代理门禁**：新增直接读取部署模板的nginx运行检查，合成loopback上游验收路由/HTTPS转发头、Cookie属性传递、GET SSE逐阶段接收和失败上游单次请求，接入Linux CI。实际结果见journal/交接收据；不能代替真实账号POST SSE、浏览器Cookie、目标主机OAuth/HTTPS/重启及异机恢复。S3仍实施中，无资源购买/正式发布或新真实用量批准。
