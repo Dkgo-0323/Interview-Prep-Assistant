@@ -110,7 +110,7 @@ jobs:
           python -m pytest tests/test_history_browser.py -q -p no:cacheprovider
 
   deployment-config:
-    name: Single VM configuration syntax (not deployment)
+    name: Single VM syntax and local HTTPS proxy (not deployment)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -119,3 +119,5 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y nginx
       - name: Check proxy and service templates without starting services
         run: bash scripts/check_deploy_config.sh
+      - name: Exercise temporary HTTPS proxy with synthetic loopback upstreams
+        run: python3 scripts/check_proxy_runtime.py
