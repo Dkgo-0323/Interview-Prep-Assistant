@@ -6,6 +6,7 @@ ports. The temporary certificate is trusted only by this test client.
 from __future__ import annotations
 
 from collections import Counter
+from contextlib import closing
 from http.client import HTTPSConnection
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -88,7 +89,7 @@ def main() -> None:
             context = ssl.create_default_context(cafile=str(cert))
 
             def connect():
-                return HTTPSConnection("127.0.0.1", port, context=context, timeout=4)
+                return closing(HTTPSConnection("127.0.0.1", port, context=context, timeout=4))
 
             for attempt in range(50):
                 try:
