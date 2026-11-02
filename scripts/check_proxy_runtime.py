@@ -25,10 +25,28 @@ def main() -> None:
     calls: Counter[str] = Counter()
     release = threading.Event()
     finished = threading.Event()
+    post_release = threading.Event()
+    post_finished = threading.Event()
+    received_posts = []
 
     class Upstream(BaseHTTPRequestHandler):
         def log_message(self, *_args):
             pass
+
+        def do_POST(self):
+            calls[self.path] += 1
+            body = self.rfile.read(int(self.headers.get("Content-Length", "0")))
+            received_posts.append((self.path, body, self.headers.get("Cookie"),
+                                   self.headers.get("Origin"), self.headers.get("Content-Type")))
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.end_headers()
+            self.wfile.write(b'event: progress\ndata: {"stage":"jd"}\n\n')
+            self.wfile.flush()
+            if post_release.wait(8):
+                self.wfile.write(b'event: complete\ndata: {"status":"completed"}\n\n')
+                self.wfile.flush()
+            post_finished.set()
 
         def do_GET(self):
             calls[self.path] += 1
@@ -121,6 +139,25 @@ def main() -> None:
                 assert not finished.is_set()
                 release.set()
                 assert response.read() == b"data: second\n\n"
+            # Account analysis uses POST fetch SSE, unlike anonymous GET SSE.
+            payload = b'{"revision":2}'
+            origin = f"https://127.0.0.1:{port}"
+            with connect() as client:
+                client.request("POST", "/api/records/synthetic/analyze", body=payload,
+                               headers={"Cookie": "ipa_test=synthetic", "Origin": origin,
+                                        "Content-Type": "application/json"})
+                response = client.getresponse()
+                assert response.status == 200
+                assert response.getheader("Content-Type") == "text/event-stream"
+                assert response.readline() == b"event: progress\n"
+                assert response.readline() == b'data: {"stage":"jd"}\n'
+                assert response.readline() == b"\n"
+                assert not post_finished.is_set()
+                assert received_posts == [("/api/records/synthetic/analyze", payload,
+                                           "ipa_test=synthetic", origin, "application/json")]
+                post_release.set()
+                assert response.read() == b'event: complete\ndata: {"status":"completed"}\n\n'
+            assert calls["/api/records/synthetic/analyze"] == 1
             with connect() as client:
                 client.request("GET", "/api/fail")
                 response = client.getresponse()
@@ -128,9 +165,10 @@ def main() -> None:
                 response.read()
             assert calls["/api/fail"] == 1
             assert calls["/api/events"] == 1
-            print("PASS: HTTPS routing/forwarded headers, Cookie, incremental SSE, failed request once")
+            print("PASS: HTTPS routing/forwarded headers, Cookie, incremental GET/POST SSE + POST body/identity/origin, failed request once")
     finally:
         release.set()
+        post_release.set()
         if process is not None:
             process.terminate()
             try:

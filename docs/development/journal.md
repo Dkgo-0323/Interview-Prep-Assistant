@@ -292,3 +292,26 @@
 - 失败与修复：首提交9beeb7c22dda9638d2a63ab2557ce279fb0fd6a5已普通推送，CI41279370706代理job失败：HTTPSConnection不支持直接with。改contextlib.closing确保连接关闭，未弱化断言。修复8c1d96ec84d724393c91665d72132d76c9aa364f已普通推送；首轮总体被后续push取消，不能记整体通过。修复CI41279511600的原生语法+真实HTTPS代理job已success，其余job最终收据留聊天/memory。
 - 可演示/边界：现在有可重复的真实nginx本地网络行为证据，不只是静态配置；未证明真实域名/浏览器Cookie策略/实际账号POST SSE/OAuth、FastAPI/PG经代理组合、长超时/主机重启/异机恢复。单上游失败一次不泛化所有故障的无重复保证。S3继续；下一步可自主补已确认部署验证，主机资源/真实凭据/正式发布仍须既有interview。最终文档提交自身SHA/push/精确CI留本聊天与memory，下轮归档。
 - 实现最终收据：8c1d96ec84d724393c91665d72132d76c9aa364f的[CI41279511600](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41279511600)五job全部success，含真实PG恢复与双设备浏览器、前端完整check/build、双平台离线集合、新代理运行门禁。未部署。
+
+## 2026-11-02 — 2026-11-08
+
+### 周一研究（北京时间2026-11-02访问）
+
+本周重新访问，不把历史研究称为新增岗位。主链仍Next.js+FastAPI+Qwen，Streamlit为历史原型。
+
+| 官方直接链接 | 届别/日期/证据及在招边界 | 影响 |
+| --- | --- | --- |
+| [百度J100737](https://talent.baidu.com/jobs/list) | 官方列表2027届，毕业2026-09至2027-08；校招技术，列表日期2026-07-21。取得职责摘要，完整资格未取得；不保证剩余名额 | 明确模型集成、稳定性/排障/调优、AI辅助开发；不推导指定Python/数据库 |
+| [Amazon10583340](https://amazon.jobs/en/jobs/10583340/software-development-engineer-early-career-2027-us) | Early Career2027 US/Jobs for grads；发布日期未知。详情职责/资格和Apply入口取得，持续接收可见，未验证投递/名额 | 明确Python/TypeScript等语言、AI代码验证、CI/CD及排障；仅能力对照，不当中国岗位/签证适用判断 |
+| [同花顺2257](https://campus.10jqka.com.cn/job/detail?id=2257) | 官方搜索索引显示2027届后端实习转正/研发技术，日期未知；详情无可读正文，非完整JD | AI服务底座仅索引线索，不据此扩展Agent或宣称在招 |
+
+开源质量优先本周一个：[sysid/sse-starlette](https://github.com/sysid/sse-starlette/tree/431ad1a6b238322fc5498a253814b7459eaafe10)。实时main仍431ad1a6b238322fc5498a253814b7459eaafe10，与上周相同；固定ref重新取得sse_starlette/sse.py，核对逐块发送、send_timeout、断连监听和HEAD不启动流边界。web raw cache miss后GitHub contents取得正文。采纳逐段观察、发送超时与断连分开验收原则；不换现有StreamingResponse，避免依赖迁移成本。备选保留现有库/精确attempt保护，新库同样不能终止同步模型线程。
+
+已有解析/结构化/报告/题库/账号持久化及双设备合成闭环；缺口为HTTPS组合、真实OAuth/主机重启与异机恢复。路线不变：本周先补POST代理契约，再继续应用与HTTPS组合；验收需请求体/身份/Origin保真和首阶段先于完成，无自动重发。主机/凭据/发布/Q003仍依赖明确批准。不为关键词引入队列、微服务或多Agent，不跳过S3进入评估阶段。
+
+### 2026-11-02 S3第十一切片：POST SSE代理契约
+
+- 负责scripts/check_proxy_runtime.py、single-vm手册、plan/journal；无新增业务功能。GET门禁未覆盖账号fetch POST请求体与来源头，补独立POST上游与握手。核对revision JSON字节、Cookie、Origin、Content-Type原样到达且仅一次；progress在上游获准complete前读取；保留GET/路由/Cookie/502断言，finally释放两握手并清理进程。
+- 基线：单worktree/codex/qwen-provider-migration，本地/实时origin起点6fa287fc9541d051551634375decda61cdb5dfe7；上轮最终[CI41279699666](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41279699666)completed/success，部署0。可见仅本聊天同项目active，分页外/编辑器/机器活动未知，无跨聊天消息。规划文档改前干净；保护原日志/私人两文档/test-results，不读.env/材料正文、不重启用户服务。初始沙箱网络失败，允许网络后核对成功。
+- Windows AST与限定路径diff检查通过；本机无nginx，运行行为交Linux CI，结果待收据。无业务/前端变更，不重复本机后端/npm/浏览器。首次文档编辑默认GBK读取UTF8失败且未写入，改用显式UTF8。无真实模型/OAuth/资源/发布操作。
+- 合成POST路径不是真实账号API，不证明FastAPI鉴权/Origin拒绝、浏览器Cookie接受或PG经HTTPS组合。S3未完成，下一步已授权继续部署组合验证；主机/凭据/异机策略/发布仍保留决策边界。当前提交自身SHA/push/最终CI留聊天/memory，下轮归档。

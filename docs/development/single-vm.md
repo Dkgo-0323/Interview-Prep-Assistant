@@ -90,3 +90,5 @@ Cookie双向传递及Secure/HttpOnly属性、GET SSE第一条事件在上游结�
 FastAPI/数据库/Next组合、真实域名证书、OAuth可达性、目标主机超时/重启或公网验收。
 单上游失败一次也不证明所有网络故障与多上游拓扑均不会重复请求。
 Quality保留原语法检查并追加此门禁；实际结果见journal及对应提交的CI收据。
+
+2026-11-02：代理门禁另用合成POST SSE验证revision JSON、Cookie、Origin、Content-Type完整转发与单次到达；读到progress才放行complete。不是实际账号API，不验证Origin授权或浏览器Cookie接受。

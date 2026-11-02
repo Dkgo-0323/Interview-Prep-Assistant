@@ -85,3 +85,5 @@ ID `interview-prep-assistant`、名称“Interview Prep Assistant 每日调研�
 - **10-31题量选择确认交付**：匿名题库首次与再次生成统一选择10/20/30/40/50道，默认10道；按钮随选择显示题量，只有点击才请求。此前首次固定10道入口的日期记录由此更新，真实测试用量授权仍是原一次分析+10题。
 
 - **11-01临时HTTPS代理门禁**：新增直接读取部署模板的nginx运行检查，合成loopback上游验收路由/HTTPS转发头、Cookie属性传递、GET SSE逐阶段接收和失败上游单次请求，接入Linux CI。实际结果见journal/交接收据；不能代替真实账号POST SSE、浏览器Cookie、目标主机OAuth/HTTPS/重启及异机恢复。S3仍实施中，无资源购买/正式发布或新真实用量批准。
+
+- **11-02 POST代理契约**：临时HTTPS门禁扩展POST SSE、JSON版本/身份/来源头转发及首事件握手；Linux结果见journal/交接。仅合成上游，不代替实际账号与浏览器HTTPS组合。本周研究延续S3，无新框架或阶段。
