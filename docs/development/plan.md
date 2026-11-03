@@ -1,6 +1,6 @@
 # 当前开发计划与工作约定
 
-更新：2026-11-01（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
+更新：2026-11-03（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
 
 ## 产品主线与已交付状态
 
@@ -87,3 +87,6 @@ ID `interview-prep-assistant`、名称“Interview Prep Assistant 每日调研�
 - **11-01临时HTTPS代理门禁**：新增直接读取部署模板的nginx运行检查，合成loopback上游验收路由/HTTPS转发头、Cookie属性传递、GET SSE逐阶段接收和失败上游单次请求，接入Linux CI。实际结果见journal/交接收据；不能代替真实账号POST SSE、浏览器Cookie、目标主机OAuth/HTTPS/重启及异机恢复。S3仍实施中，无资源购买/正式发布或新真实用量批准。
 
 - **11-02 POST代理契约**：临时HTTPS门禁扩展POST SSE、JSON版本/身份/来源头转发及首事件握手；Linux结果见journal/交接。仅合成上游，不代替实际账号与浏览器HTTPS组合。本周研究延续S3，无新框架或阶段。
+
+
+- **11-03 HTTPS应用数据库组合门禁**：既有双设备生产浏览器验收升级经实际nginx临时HTTPS，空API基址同源构建，禁止浏览器直连后端；Secure合成会话/精确Origin拒绝/真实PG上传至题库和跨设备恢复。实际CI收据见journal及交接；合成身份/模型、自签测试证书，不代表真实OAuth或公网证书/目标主机部署通过。S3其余发布依赖保留。

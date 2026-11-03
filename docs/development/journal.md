@@ -315,3 +315,12 @@
 - 基线：单worktree/codex/qwen-provider-migration，本地/实时origin起点6fa287fc9541d051551634375decda61cdb5dfe7；上轮最终[CI41279699666](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41279699666)completed/success，部署0。可见仅本聊天同项目active，分页外/编辑器/机器活动未知，无跨聊天消息。规划文档改前干净；保护原日志/私人两文档/test-results，不读.env/材料正文、不重启用户服务。初始沙箱网络失败，允许网络后核对成功。
 - Windows AST与限定路径diff检查通过；本机无nginx，运行行为交Linux CI，结果待收据。无业务/前端变更，不重复本机后端/npm/浏览器。首次文档编辑默认GBK读取UTF8失败且未写入，改用显式UTF8。无真实模型/OAuth/资源/发布操作。
 - 合成POST路径不是真实账号API，不证明FastAPI鉴权/Origin拒绝、浏览器Cookie接受或PG经HTTPS组合。S3未完成，下一步已授权继续部署组合验证；主机/凭据/异机策略/发布仍保留决策边界。当前提交自身SHA/push/最终CI留聊天/memory，下轮归档。
+
+
+### 2026-11-03 S3第十二切片：浏览器HTTPS应用数据库组合
+
+- 周二不重复调研。负责tests/test_history_browser.py、Quality既有PG job、single-vm手册及plan/journal。基线2c1fc672bde9d93431c55d0e0debcecc2637c20a已普通推送，精确CI41397708771五job success；本轮实时origin一致，部署0，单worktree。可见同项目仅当前聊天active，分页外/编辑器/机器并行未知，未向其他聊天发消息。原日志/两份私人材料/test-results不读不暂存，规划文档改前干净。
+- 将既有双设备浏览器门禁升级为生产Next（空API基址构建）→真实nginx临时HTTPS→实际FastAPI→实际PostgreSQL。直接读取交付模板，仅替换证书/监听端口；临时进程finally停止，不改系统服务。浏览器仅允许该HTTPS origin，不允许绕过代理直连API。身份为服务端预置会话，Secure/HttpOnly Cookie由测试注入；证书仅测试context忽略自签错误，Python准备探测使用临时证书严格验证，均非生产设置。
+- 保留合成TXT上传版本0→1→2、分析POST SSE报告、10题、同账号设备B刷新不生成、第三账号隔离、A退出不影响B及SQL77分/10题断言；新增实际API身份读取与恶意Origin创建403且数据库不新增。模型与身份仍为合成，不调用GitHub/Qwen，不读dotenv，无真实资源/发布。该测试不证明OAuth回调签发Cookie或公网证书可信，也不单独证明流的阶段时序（已有独立代理握手门禁负责）。
+- Windows AST语法与限定路径git diff --check通过；本机无nginx/PG引擎，不执行本机组合，不重启用户3000/8000。未改业务/前端源码，不重复本机后端离线/npm；CI保留全部门禁并实际运行组合。远端收据/失败修复留本聊天及memory，未通过前不标组合验收完成。
+- 无新增业务按钮；成果是部署前可重复的同源HTTPS整链证据。S3继续：真实OAuth、目标主机启停/健康/回滚、受保护异机备份策略与恢复、公网验收仍未完成。资源/凭据/发布/真实模型边界不变，下一步继续已授权部署准备。当前提交自身收据留聊天和memory，下轮归档，避免自引用。

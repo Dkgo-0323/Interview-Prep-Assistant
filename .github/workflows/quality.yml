@@ -93,11 +93,12 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Prepare real browser and production page
         run: |
+          sudo apt-get update && sudo apt-get install -y nginx
           python -m pip install playwright==1.58.0 uvicorn==0.41.0
           python -m playwright install --with-deps chromium
           npm ci --prefix frontend
-          NEXT_PUBLIC_API_URL=http://127.0.0.1:8000 npm run build --prefix frontend
-      - name: Two browser devices through HTTP and PostgreSQL (synthetic identity and model)
+          NEXT_PUBLIC_API_URL='' npm run build --prefix frontend
+      - name: Two browser devices through HTTPS proxy, FastAPI and PostgreSQL (synthetic identity and model)
         run: |
           npm run start --prefix frontend -- --hostname 127.0.0.1 --port 3000 > /tmp/history-next.log 2>&1 &
           next_pid=$!

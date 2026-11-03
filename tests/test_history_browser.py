@@ -3,6 +3,9 @@ import json
 import os
 from pathlib import Path
 import socket
+import subprocess
+import ssl
+from urllib.request import urlopen
 import threading
 import time
 from unittest.mock import patch
@@ -11,7 +14,52 @@ import pytest
 from test_history_postgres import database  # isolated migrated schema + cleanup
 
 
-def test_two_devices_browser_postgres(database, monkeypatch):
+@pytest.fixture
+def https_origin(tmp_path):
+    """Real shipped proxy, isolated certificate; no system service changes."""
+    cert, key = tmp_path / 'cert.pem', tmp_path / 'key.pem'
+    subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes',
+        '-days', '1', '-subj', '/CN=localhost', '-addext', 'subjectAltName=IP:127.0.0.1',
+        '-keyout', str(key), '-out', str(cert)], check=True,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with socket.socket() as probe:
+        probe.bind(('127.0.0.1', 0))
+        port = probe.getsockname()[1]
+    origin = f'https://127.0.0.1:{port}'
+    template = (Path(__file__).resolve().parents[1] / 'deploy/single-vm/nginx.conf').read_text()
+    for old, new in {
+        'listen 443 ssl;': f'listen 127.0.0.1:{port} ssl;',
+        '/etc/interview-prep/tls/fullchain.pem': str(cert),
+        '/etc/interview-prep/tls/privkey.pem': str(key),
+    }.items():
+        assert old in template
+        template = template.replace(old, new)
+    config = tmp_path / 'nginx.conf'
+    config.write_text(f'pid {tmp_path}/nginx.pid;\nerror_log stderr;\nevents {{}}\nhttp {{\n{template}\n}}\n')
+    process = subprocess.Popen(['nginx', '-p', f'{tmp_path}/', '-c', str(config),
+        '-g', 'daemon off;'], stdout=subprocess.DEVNULL)
+    try:
+        context = ssl.create_default_context(cafile=str(cert))
+        for attempt in range(100):
+            try:
+                with urlopen(origin + '/history', context=context, timeout=2) as response:
+                    assert response.status == 200
+                break
+            except OSError:
+                if process.poll() is not None or attempt == 99:
+                    raise
+                time.sleep(.1)
+        yield origin
+    finally:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait(timeout=5)
+
+
+def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
     from playwright.sync_api import sync_playwright, expect
     import uvicorn
     from fastapi import FastAPI
@@ -19,7 +67,7 @@ def test_two_devices_browser_postgres(database, monkeypatch):
     from api.auth import AUTH_COOKIE, AuthConfig, AuthService, Identity
     from api.routes import auth, history
 
-    origin = 'http://127.0.0.1:3000'
+    origin = https_origin
     monkeypatch.setenv('DEBUG', 'true')
     monkeypatch.setenv('DASHSCOPE_API_KEY', 'offline-test-key')
     monkeypatch.setenv('LLM_BASE_URL', 'https://offline.invalid/v1')
@@ -46,7 +94,7 @@ def test_two_devices_browser_postgres(database, monkeypatch):
     owner = store.account_for_github(101)
     other = store.account_for_github(202)
     service = AuthService(AuthConfig('synthetic', 'synthetic',
-        'http://127.0.0.1:8000/api/auth/github/callback', origin), store.account_for_github)
+        origin + '/api/auth/github/callback', origin), store.account_for_github)
     for token, account in [('device-a', owner), ('device-b', owner), ('other', other)]:
         service.sessions[service.digest(token)] = Identity(account, service.clock() + 1800)
     app = FastAPI()
@@ -68,18 +116,27 @@ def test_two_devices_browser_postgres(database, monkeypatch):
             browser = p.chromium.launch()
             errors = []
             def device(token):
-                context = browser.new_context(service_workers='block')
+                context = browser.new_context(service_workers='block', ignore_https_errors=True)
                 context.add_cookies([dict(name=AUTH_COOKIE, value=token,
-                    domain='127.0.0.1', path='/api', httpOnly=True, sameSite='Lax')])
+                    domain='127.0.0.1', path='/api', httpOnly=True, secure=True, sameSite='Lax')])
                 # Only allow real local requests; never fulfill or replace API responses.
                 context.route('**/*', lambda route: route.continue_() if
-                    route.request.url.startswith((origin + '/', 'http://127.0.0.1:8000/')) else route.abort())
+                    route.request.url.startswith(origin + '/') else route.abort())
                 page = context.new_page()
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.set_default_timeout(15000)
                 return page
             a, b, foreign = device('device-a'), device('device-b'), device('other')
             a.goto(origin + '/history')
+            # Browser sends the secure cookie through HTTPS; real API checks Origin.
+            assert a.context.request.get(origin + '/api/auth/me').status == 200
+            before = len(store.list(owner))
+            denied = a.context.request.post(origin + '/api/records',
+                headers={'Origin': 'https://foreign.invalid'}, data={'title': 'rejected'})
+            assert denied.status == 403
+            assert len(store.list(owner)) == before
+            cookies = a.context.cookies(origin + '/api/auth/me')
+            assert any(c['name'] == AUTH_COOKIE and c['secure'] and c['httpOnly'] for c in cookies)
             a.get_by_label('新记录名称').fill('合成双设备验收')
             a.get_by_role('button', name='创建记录', exact=True).click()
             expect(a.get_by_label('上传记录JD')).to_be_visible()

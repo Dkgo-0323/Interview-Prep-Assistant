@@ -92,3 +92,8 @@ FastAPI/数据库/Next组合、真实域名证书、OAuth可达性、目标主�
 Quality保留原语法检查并追加此门禁；实际结果见journal及对应提交的CI收据。
 
 2026-11-02：代理门禁另用合成POST SSE验证revision JSON、Cookie、Origin、Content-Type完整转发与单次到达；读到progress才放行complete。不是实际账号API，不验证Origin授权或浏览器Cookie接受。
+
+
+### HTTPS应用与数据库组合门禁（2026-11-03）
+
+Quality既有PostgreSQL job将Next以空`NEXT_PUBLIC_API_URL`构建，使用`tests/test_history_browser.py`启动读取本模板的临时nginx，真实浏览器只允许HTTPS origin。上传、POST分析SSE、保存报告/题库、双设备恢复与退出均通过实际FastAPI/PG；恶意Origin写入须403且不新增记录。临时证书/进程随测试清理，身份会话和模型为合成，Secure Cookie测试注入；浏览器仅该隔离context忽略自签证书错误，生产不采用此选项。不能替代GitHub回调签发/可信公网TLS、目标主机启停或异机恢复。逐事件不缓冲仍由独立check_proxy_runtime握手门禁证明。结果以精确提交CI为准。
