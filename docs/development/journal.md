@@ -326,3 +326,10 @@
 - 无新增业务按钮；成果是部署前可重复的同源HTTPS整链证据。S3继续：真实OAuth、目标主机启停/健康/回滚、受保护异机备份策略与恢复、公网验收仍未完成。资源/凭据/发布/真实模型边界不变，下一步继续已授权部署准备。当前提交自身收据留聊天和memory，下轮归档，避免自引用。
 
 - 实际交付3bec4ecce5e83df5afd7b32320819b37577e4c97已普通推送；精确[CI41587916463](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41587916463)completed/success，五job全部成功，新增HTTPS浏览器组合与实际PG备份恢复通过。没有业务失败或断言弱化；本轮初次受限网络核对失败，使用已授权网络后成功。关闭“合成身份/模型下浏览器经真实HTTPS代理至应用数据库”的证据缺口，不关闭真实OAuth/公网/目标主机/异机恢复。最终文档交接提交自身SHA/push/CI仍留聊天和memory。
+
+### 2026-11-04 S3第十三切片：HTTPS登录回调签发
+
+- 负责tests/test_history_browser.py、single-vm手册、plan/journal；周三不重复研究，无新增业务按钮。基线97eba677ac11ce1a6c6ee90413ba2f44c6087c92实时origin一致，精确CI41588277438 completed/success，部署0，单worktree。可见十条近期聊天仅本聊天同项目active，前轮notLoaded；分页外/其他机器并行未知，未发送消息。根及父目录未发现AGENTS，仓库仅frontend/AGENTS且本次不改前端。原日志/两份私人文件/test-results保护，规划文档改前无diff。
+- 昨天注入账号Cookie不能证明浏览器接受回调签发。今日改为每设备实际HTTPS登录→离线GitHub授权302→实际回调→服务端换票替身→PG账号绑定→浏览器Cookie→实际身份API。只拦截外部GitHub授权，全部本地API不拦截；httpx MockTransport替代换票和身份供应商，无真实凭据或网络。校验state由实际流程验证、PKCE verifier对应challenge、callback URI、flow Cookie Secure/HttpOnly/Lax与回调删除、账号Cookie路径/api及属性、回调重放400且供应商不再调用。保留双设备报告/10题恢复不生成、第三账号隔离、Origin403、退出隔离及SQL断言。
+- Windows AST与限定diff检查通过；无本机nginx/PG，组合运行交既有Linux CI，未执行不标通过。无业务/前端改动，不重复本机后端/npm，不重启用户3000/8000。不读.env/材料、不调用真实模型、不使用资源/发布。首次受限网络读取失败，授权网络后远端核验成功。
+- 证据边界：这是合成供应商下的真实HTTPS Cookie签发与数据库链路，不是实际GitHub凭据/网络/公网证书验收。S3仍缺目标主机启停/健康/回滚、实际OAuth、受保护异机备份与恢复；既有资源/策略/发布决策边界保留。提交自身SHA/push/最终CI留本聊天和memory，下轮归档。

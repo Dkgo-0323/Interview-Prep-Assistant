@@ -1,5 +1,8 @@
 """CI-only real browser/HTTP/PostgreSQL acceptance; identity/provider synthetic."""
 import json
+from urllib.parse import parse_qs, urlencode, urlsplit
+
+import httpx
 import os
 from pathlib import Path
 import socket
@@ -64,7 +67,7 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
     import uvicorn
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
-    from api.auth import AUTH_COOKIE, AuthConfig, AuthService, Identity
+    from api.auth import AUTH_COOKIE, AuthConfig, AuthService, FLOW_COOKIE
     from api.routes import auth, history
 
     origin = https_origin
@@ -83,7 +86,7 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
             return response_model.model_validate(responses[response_model.__name__])
 
     monkeypatch.setattr(workflow, 'LLMService', SyntheticLLM)
-    # No application .env import, no OAuth exchange, no model network access.
+    # No application .env import; provider transport and model are offline replacements.
     original_connect = socket.socket.connect
     def local_connect(sock, address):
         if sock.family in (socket.AF_INET, socket.AF_INET6) and address[0] not in ('127.0.0.1', '::1'):
@@ -93,10 +96,26 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
     store, _, _ = database
     owner = store.account_for_github(101)
     other = store.account_for_github(202)
+    provider_calls = []
+    challenges = {}
+    def provider(request):
+        provider_calls.append(request.url.path)
+        if request.url.path == '/login/oauth/access_token':
+            import base64
+            import hashlib
+            form = parse_qs(request.content.decode())
+            code = form['code'][0]
+            challenge = base64.urlsafe_b64encode(hashlib.sha256(
+                form['code_verifier'][0].encode()).digest()).rstrip(b'=').decode()
+            assert challenge == challenges[code]
+            assert form['redirect_uri'] == [origin + '/api/auth/github/callback']
+            return httpx.Response(200, json={'access_token': code})
+        assert request.url.host == 'api.github.com' and request.url.path == '/user'
+        code = request.headers['authorization'].removeprefix('Bearer ')
+        return httpx.Response(200, json={'id': 202 if code == 'other' else 101})
     service = AuthService(AuthConfig('synthetic', 'synthetic',
-        origin + '/api/auth/github/callback', origin), store.account_for_github)
-    for token, account in [('device-a', owner), ('device-b', owner), ('other', other)]:
-        service.sessions[service.digest(token)] = Identity(account, service.clock() + 1800)
+        origin + '/api/auth/github/callback', origin), store.account_for_github,
+        transport=httpx.MockTransport(provider))
     app = FastAPI()
     app.state.auth_service, app.state.history_store = service, store
     app.add_middleware(CORSMiddleware, allow_origins=[origin], allow_credentials=True,
@@ -115,18 +134,48 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
         with sync_playwright() as p:
             browser = p.chromium.launch()
             errors = []
-            def device(token):
+            def device(code):
                 context = browser.new_context(service_workers='block', ignore_https_errors=True)
-                context.add_cookies([dict(name=AUTH_COOKIE, value=token,
-                    domain='127.0.0.1', path='/api', httpOnly=True, secure=True, sameSite='Lax')])
-                # Only allow real local requests; never fulfill or replace API responses.
-                context.route('**/*', lambda route: route.continue_() if
-                    route.request.url.startswith(origin + '/') else route.abort())
+                callbacks = []
+                def route_request(route):
+                    url = route.request.url
+                    if url.startswith(origin + '/'):
+                        return route.continue_()
+                    parsed = urlsplit(url)
+                    if parsed.scheme == 'https' and parsed.netloc == 'github.com' and parsed.path == '/login/oauth/authorize':
+                        query = parse_qs(parsed.query, keep_blank_values=True)
+                        assert query['scope'] == ['']
+                        assert query['code_challenge_method'] == ['S256']
+                        assert query['redirect_uri'] == [origin + '/api/auth/github/callback']
+                        flow = context.cookies(origin + '/api/auth/github/callback')
+                        assert any(c['name'] == FLOW_COOKIE and c['secure'] and c['httpOnly']
+                            and c['sameSite'] == 'Lax' for c in flow)
+                        challenges[code] = query['code_challenge'][0]
+                        callback = origin + '/api/auth/github/callback?' + urlencode(
+                            {'state': query['state'][0], 'code': code})
+                        callbacks.append(callback)
+                        return route.fulfill(status=302, headers={'Location': callback}, body='')
+                    return route.abort()
+                # Only the external provider is replaced; local API responses are real.
+                context.route('**/*', route_request)
                 page = context.new_page()
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.set_default_timeout(15000)
+                page.goto(origin + '/api/auth/github/login')
+                page.wait_for_url(origin + '/')
+                cookies = context.cookies(origin + '/api/auth/github/callback')
+                assert not any(c['name'] == FLOW_COOKIE for c in cookies)
+                account_cookie = next(c for c in cookies if c['name'] == AUTH_COOKIE)
+                assert account_cookie['secure'] and account_cookie['httpOnly']
+                assert account_cookie['sameSite'] == 'Lax' and account_cookie['path'] == '/api'
+                assert context.request.get(origin + '/api/auth/me').status == 200
+                count_before = len(provider_calls)
+                replay = context.request.get(callbacks[0], max_redirects=0)
+                assert replay.status == 400
+                assert len(provider_calls) == count_before, 'Replay must not exchange again'
                 return page
             a, b, foreign = device('device-a'), device('device-b'), device('other')
+            assert len(provider_calls) == 6
             a.goto(origin + '/history')
             # Browser sends the secure cookie through HTTPS; real API checks Origin.
             assert a.context.request.get(origin + '/api/auth/me').status == 200

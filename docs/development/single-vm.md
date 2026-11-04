@@ -97,3 +97,5 @@ Quality保留原语法检查并追加此门禁；实际结果见journal及对应
 ### HTTPS应用与数据库组合门禁（2026-11-03）
 
 Quality既有PostgreSQL job将Next以空`NEXT_PUBLIC_API_URL`构建，使用`tests/test_history_browser.py`启动读取本模板的临时nginx，真实浏览器只允许HTTPS origin。上传、POST分析SSE、保存报告/题库、双设备恢复与退出均通过实际FastAPI/PG；恶意Origin写入须403且不新增记录。临时证书/进程随测试清理，身份会话和模型为合成，Secure Cookie测试注入；浏览器仅该隔离context忽略自签证书错误，生产不采用此选项。不能替代GitHub回调签发/可信公网TLS、目标主机启停或异机恢复。逐事件不缓冲仍由独立check_proxy_runtime握手门禁证明。结果以精确提交CI为准。
+
+2026-11-04：组合门禁不再直接注入账号Cookie，而是实际HTTPS登录/回调签发并由浏览器接受。外部GitHub授权302和换票/身份HTTP为离线替身；本地API不替换。验证PKCE、flow Cookie清除、账号Cookie属性/路径、重放400且不重复换票，再执行双设备PG业务链。仍不证明实际GitHub配置、供应商可达性或公网可信TLS；结果以精确CI收据为准。
