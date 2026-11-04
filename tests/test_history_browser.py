@@ -136,32 +136,29 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
             errors = []
             def device(code):
                 context = browser.new_context(service_workers='block', ignore_https_errors=True)
-                callbacks = []
-                def route_request(route):
-                    url = route.request.url
-                    if url.startswith(origin + '/'):
-                        return route.continue_()
-                    parsed = urlsplit(url)
-                    if parsed.scheme == 'https' and parsed.netloc == 'github.com' and parsed.path == '/login/oauth/authorize':
-                        query = parse_qs(parsed.query, keep_blank_values=True)
-                        assert query['scope'] == ['']
-                        assert query['code_challenge_method'] == ['S256']
-                        assert query['redirect_uri'] == [origin + '/api/auth/github/callback']
-                        flow = context.cookies(origin + '/api/auth/github/callback')
-                        assert any(c['name'] == FLOW_COOKIE and c['secure'] and c['httpOnly']
-                            and c['sameSite'] == 'Lax' for c in flow)
-                        challenges[code] = query['code_challenge'][0]
-                        callback = origin + '/api/auth/github/callback?' + urlencode(
-                            {'state': query['state'][0], 'code': code})
-                        callbacks.append(callback)
-                        return route.fulfill(status=302, headers={'Location': callback}, body='')
-                    return route.abort()
-                # Only the external provider is replaced; local API responses are real.
-                context.route('**/*', route_request)
+                # Obtain the real login redirect without following it to GitHub.
+                # Playwright routing does not re-route every redirect hop.
+                context.route('**/*', lambda route: route.continue_() if
+                    route.request.url.startswith(origin + '/') else route.abort())
+                start = context.request.get(origin + '/api/auth/github/login', max_redirects=0)
+                assert start.status == 303
+                parsed = urlsplit(start.headers['location'])
+                assert parsed.scheme == 'https' and parsed.netloc == 'github.com'
+                assert parsed.path == '/login/oauth/authorize'
+                query = parse_qs(parsed.query, keep_blank_values=True)
+                assert query['scope'] == ['']
+                assert query['code_challenge_method'] == ['S256']
+                assert query['redirect_uri'] == [origin + '/api/auth/github/callback']
+                flow = context.cookies(origin + '/api/auth/github/callback')
+                assert any(c['name'] == FLOW_COOKIE and c['secure'] and c['httpOnly']
+                    and c['sameSite'] == 'Lax' for c in flow)
+                challenges[code] = query['code_challenge'][0]
+                callback = origin + '/api/auth/github/callback?' + urlencode(
+                    {'state': query['state'][0], 'code': code})
                 page = context.new_page()
                 page.on('pageerror', lambda error: errors.append(str(error)))
                 page.set_default_timeout(15000)
-                page.goto(origin + '/api/auth/github/login')
+                page.goto(callback)
                 page.wait_for_url(origin + '/')
                 cookies = context.cookies(origin + '/api/auth/github/callback')
                 assert not any(c['name'] == FLOW_COOKIE for c in cookies)
@@ -170,7 +167,7 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
                 assert account_cookie['sameSite'] == 'Lax' and account_cookie['path'] == '/api'
                 assert context.request.get(origin + '/api/auth/me').status == 200
                 count_before = len(provider_calls)
-                replay = context.request.get(callbacks[0], max_redirects=0)
+                replay = context.request.get(callback, max_redirects=0)
                 assert replay.status == 400
                 assert len(provider_calls) == count_before, 'Replay must not exchange again'
                 return page

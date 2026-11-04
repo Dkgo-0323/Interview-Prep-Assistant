@@ -91,4 +91,4 @@ ID `interview-prep-assistant`、名称“Interview Prep Assistant 每日调研�
 
 - **11-03 HTTPS应用数据库组合门禁**：既有双设备生产浏览器验收升级经实际nginx临时HTTPS，空API基址同源构建，禁止浏览器直连后端；Secure合成会话/精确Origin拒绝/真实PG上传至题库和跨设备恢复。实现3bec4ec精确CI41587916463五job全成功，组合验收通过（收据见journal）；合成身份/模型、自签测试证书，不代表真实OAuth或公网证书/目标主机部署通过。S3其余发布依赖保留。
 
-- **11-04 HTTPS登录签发门禁**：双设备组合测试改经实际登录/回调路由签发Cookie；仅GitHub授权跳转与换票传输离线替身，校验PKCE、flow Cookie消除、回调重放不换票，保留全部PG业务断言。远端运行结果见journal/本轮收据；不是实际GitHub或公网验收。
+- **11-04 HTTPS登录签发门禁**：双设备组合测试改经实际登录/回调路由签发Cookie；仅GitHub授权页面跳过、换票传输离线替身，校验PKCE、flow Cookie消除、回调重放不换票，保留全部PG业务断言。远端运行结果见journal/本轮收据；不是实际GitHub或公网验收。

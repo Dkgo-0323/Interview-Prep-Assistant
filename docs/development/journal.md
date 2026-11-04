@@ -333,3 +333,5 @@
 - 昨天注入账号Cookie不能证明浏览器接受回调签发。今日改为每设备实际HTTPS登录→离线GitHub授权302→实际回调→服务端换票替身→PG账号绑定→浏览器Cookie→实际身份API。只拦截外部GitHub授权，全部本地API不拦截；httpx MockTransport替代换票和身份供应商，无真实凭据或网络。校验state由实际流程验证、PKCE verifier对应challenge、callback URI、flow Cookie Secure/HttpOnly/Lax与回调删除、账号Cookie路径/api及属性、回调重放400且供应商不再调用。保留双设备报告/10题恢复不生成、第三账号隔离、Origin403、退出隔离及SQL断言。
 - Windows AST与限定diff检查通过；无本机nginx/PG，组合运行交既有Linux CI，未执行不标通过。无业务/前端改动，不重复本机后端/npm，不重启用户3000/8000。不读.env/材料、不调用真实模型、不使用资源/发布。首次受限网络读取失败，授权网络后远端核验成功。
 - 证据边界：这是合成供应商下的真实HTTPS Cookie签发与数据库链路，不是实际GitHub凭据/网络/公网证书验收。S3仍缺目标主机启停/健康/回滚、实际OAuth、受保护异机备份与恢复；既有资源/策略/发布决策边界保留。提交自身SHA/push/最终CI留本聊天和memory，下轮归档。
+
+- 首轮b6f01d57fda3f61761e5063cd3b98fdafc399641普通HTTPS推送成功（SSH公钥失败、首次HTTPS服务端500后重试）；CI41817334120四job成功，浏览器等待回调首页超时。修复测试授权模拟：登录起点以共享浏览器Cookie jar的APIRequestContext读取真实303且禁止跟随，解析授权参数后浏览器直接导航合成callback，避免依赖重定向链逐跳路由拦截。真实本地API响应不替换；不宣称实际GitHub授权页面通过。原首轮不能记通过，修复后重新验收。
