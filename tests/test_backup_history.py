@@ -62,3 +62,70 @@ def test_corruption_rejected_before_tool(tmp_path, tools, change):
     with pytest.raises((ValueError, KeyError)):
         module.verify(target)
     assert len(tools) == calls
+
+
+@pytest.mark.parametrize('marker', ['missing', 'directory'])
+def test_incomplete_bundle_rejected_before_tool(tmp_path, tools, marker):
+    target = tmp_path/'bundle'
+    module.backup(target, 'synthetic')
+    (target/'READY').unlink()
+    if marker == 'directory':
+        (target/'READY').mkdir()
+    calls = len(tools)
+    with pytest.raises(ValueError, match='incomplete'):
+        module.verify(target)
+    assert len(tools) == calls
+
+
+def test_partial_publication_cannot_be_verified(tmp_path, tools, monkeypatch):
+    move = module.shutil.move
+    def fail_receipt(source, destination):
+        if Path(source).name == 'receipt.json':
+            raise OSError('synthetic interrupted publication')
+        return move(source, destination)
+    monkeypatch.setattr(module.shutil, 'move', fail_receipt)
+    target = tmp_path/'bundle'
+    with pytest.raises(OSError):
+        module.backup(target, 'synthetic')
+    assert (target/'history.dump').is_file()
+    assert not (target/'READY').exists()
+    assert list(tmp_path.iterdir()) == [target]
+    calls = len(tools)
+    with pytest.raises(ValueError, match='incomplete'):
+        module.verify(target)
+    assert len(tools) == calls
+    with pytest.raises(ValueError, match='already exists'):
+        module.backup(target, 'synthetic')
+
+
+@pytest.mark.parametrize('receipt', [
+    None, [], 'secret-not-a-receipt', 1,
+    {'format': True, 'bytes': 17, 'sha256': 'a'*64},
+    {'format': 1, 'bytes': True, 'sha256': 'a'*64},
+    {'format': 1, 'bytes': -1, 'sha256': 'a'*64},
+    {'format': 1, 'bytes': 17, 'sha256': []},
+    {'format': 1, 'bytes': 17, 'sha256': 'z'*64},
+])
+def test_malformed_receipt_rejected_before_tool(tmp_path, tools, receipt):
+    target = tmp_path/'bundle'
+    module.backup(target, 'synthetic')
+    (target/'receipt.json').write_text(json.dumps(receipt), encoding='utf-8')
+    calls = len(tools)
+    with pytest.raises(ValueError):
+        module.verify(target)
+    assert len(tools) == calls
+
+
+@pytest.mark.parametrize('content', [b'{broken', b'\xff'])
+def test_cli_invalid_receipt_has_no_traceback(tmp_path, tools, monkeypatch, capsys, content):
+    import sys
+    target = tmp_path/'bundle'
+    module.backup(target, 'synthetic')
+    (target/'receipt.json').write_bytes(content)
+    calls = len(tools)
+    monkeypatch.setattr(sys, 'argv', ['backup_history.py', 'verify', str(target)])
+    with pytest.raises(SystemExit) as error:
+        module.main()
+    assert error.value.code == 1
+    assert capsys.readouterr().err == 'Backup failed validation or export; no credentials are printed.\n'
+    assert len(tools) == calls

@@ -1,6 +1,6 @@
 # 当前开发计划与工作约定
 
-更新：2026-11-04（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
+更新：2026-11-05（Asia/Shanghai）。本文件是**唯一动态计划入口**；研究、交付与必要实施决定记入 [journal](journal.md)。根 [README](../../README.md) 只在用途、运行、演示或导航变化时更新。旧 status/roadmap/backlog/daily/templates 保留为历史，其旧工作流不再生效。
 
 ## 产品主线与已交付状态
 
@@ -92,3 +92,5 @@ ID `interview-prep-assistant`、名称“Interview Prep Assistant 每日调研�
 - **11-03 HTTPS应用数据库组合门禁**：既有双设备生产浏览器验收升级经实际nginx临时HTTPS，空API基址同源构建，禁止浏览器直连后端；Secure合成会话/精确Origin拒绝/真实PG上传至题库和跨设备恢复。实现3bec4ec精确CI41587916463五job全成功，组合验收通过（收据见journal）；合成身份/模型、自签测试证书，不代表真实OAuth或公网证书/目标主机部署通过。S3其余发布依赖保留。
 
 - **11-04 HTTPS登录签发门禁**：双设备组合测试改经实际登录/回调路由签发Cookie；仅GitHub授权页面跳过、换票传输离线替身，校验PKCE、flow Cookie消除、回调重放不换票，保留全部PG业务断言。远端运行结果见journal/本轮收据；不是实际GitHub或公网验收。
+
+- **11-05备份恢复前校验**：Python与CLI统一要求READY完成标记，严格检查收据结构/数值/摘要，损坏编码统一失败；发布中断留下的部分目录拒绝验证与覆盖。Windows离线集合243通过/5跳过/1既有警告；实际PG兼容性由既有CI恢复用例验证，结果见本轮收据。未配置异机目的地、定时/保留策略或执行线上恢复，S3其余依赖不变。

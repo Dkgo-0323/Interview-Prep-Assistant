@@ -335,3 +335,11 @@
 - 证据边界：这是合成供应商下的真实HTTPS Cookie签发与数据库链路，不是实际GitHub凭据/网络/公网证书验收。S3仍缺目标主机启停/健康/回滚、实际OAuth、受保护异机备份与恢复；既有资源/策略/发布决策边界保留。提交自身SHA/push/最终CI留本聊天和memory，下轮归档。
 
 - 首轮b6f01d57fda3f61761e5063cd3b98fdafc399641普通HTTPS推送成功（SSH公钥失败、首次HTTPS服务端500后重试）；CI41817334120四job成功，浏览器等待回调首页超时。修复测试授权模拟：登录起点以共享浏览器Cookie jar的APIRequestContext读取真实303且禁止跟随，解析授权参数后浏览器直接导航合成callback，避免依赖重定向链逐跳路由拦截。真实本地API响应不替换；不宣称实际GitHub授权页面通过。原首轮不能记通过，修复后重新验收。
+
+### 2026-11-05 S3第十四切片：备份完成与收据校验统一
+
+- 周四不重复JD/开源调研，继续已确认S3。负责scripts/backup_history.py、tests/test_backup_history.py、history-backup手册与plan/journal。基线f87130fa54ff97534af0d59e4bfd3d0a94c4fced实时远端一致，精确[CI41817869768](https://github.com/Dkgo-0323/Interview-Prep-Assistant/actions/runs/41817869768)completed/success；部署列表0。单worktree/原分支；近期十条聊天中同项目仅当前active、前轮notLoaded，分页外及外部并行未知，未发消息。根与父目录未发现适用AGENTS，本次不改frontend。规划及负责源码修改前干净；原日志、两份私人材料、test-results不读不暂存。
+- 发现命令行检查READY但Python verify入口不检查，且JSON为null/列表或摘要类型不正确时可抛出未统一处理的异常。将完成bundle校验与内部staging归档校验分开：公开verify先要求READY为文件，随后严格核对对象/format整数1/正整数字节数/64位小写十六进制摘要，再比较大小与SHA256，最后调用pg_restore --list。JSON布尔值不作为整数接受；非法JSON/UTF8统一报校验失败，不输出内容。导出仍先验staging再搬文件、最后发布READY，不改变格式1或旧有效bundle兼容性。
+- 增加缺失/目录型READY、九组异常收据、非法JSON/编码命令行无traceback、搬运receipt失败后部分目录拒绝验证/拒绝覆盖等回归。保留部分目标供排查，清理自有staging，不删除或修复用户备份。该成果是恢复前失败边界修复，无新增页面或模型能力。
+- Windows Python3.12.7执行venv/Scripts/python.exe scripts/check_backend.py：首轮沙箱socketpair超时，入口返回环境阻碍，业务测试未运行；允许本机通信后242通过/5跳过，再新增搬运中断用例后最终243通过/5跳过/1既有Starlette弃用警告，15.45秒、退出0。5项因缺少PDF/DOCX夹具跳过。无前端变化，不重复npm/浏览器；本机未运行PG/nginx，实际PG导出恢复兼容性待远端既有门禁。未读dotenv/真实资料，未调用真实模型/OAuth，未重启用户服务、使用资源或发布。
+- 仍不证明备份真实性/加密、实际异机复制、恢复耗时或目标主机启停；摘要只能检测意外损坏。S3尚未完成，下一步可继续已授权部署准备；实际资源/凭据/异机策略与发布保留interview边界。当前提交自身完整SHA/推送与最终CI在聊天和memory留收据，下轮归档，避免自引用提交。

@@ -30,6 +30,15 @@ compares the archive to its receipt and checks its table of contents. The receip
 detects accidental corruption, not malicious replacement of both files; it is
 not a signature, encryption, SQL restore proof or a freshness/service guarantee.
 
+Both the CLI and Python `verify()` require a regular READY file before reading
+the receipt or invoking PostgreSQL tools. Receipt validation rejects non-object
+JSON, invalid format/size/hash types (including JSON booleans as numbers), malformed
+JSON and invalid UTF-8. Export checks its private staging archive internally before
+publishing READY; that internal check is not a completed-bundle verification.
+An interrupted publication can leave a partial destination for investigation;
+verification rejects it and export refuses to overwrite it. Neither check repairs
+or deletes that destination. These checks do not authenticate an untrusted bundle.
+
 ## Off-host copy and restore rehearsal
 
 The archive contains parsed resumes, reports and account identifiers: treat the

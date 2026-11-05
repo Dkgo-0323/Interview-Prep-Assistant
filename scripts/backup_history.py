@@ -30,13 +30,29 @@ def run_tool(args, env):
         raise RuntimeError('PostgreSQL tool failed; no backup was published') from None
 
 
-def verify(bundle, pg_restore='pg_restore'):
+def _verify_archive(bundle, pg_restore):
     archive = bundle / 'history.dump'
-    receipt = json.loads((bundle / 'receipt.json').read_text(encoding='utf-8'))
-    if receipt['format'] != 1 or archive.stat().st_size != receipt['bytes'] or digest(archive) != receipt['sha256']:
+    try:
+        receipt = json.loads((bundle / 'receipt.json').read_text(encoding='utf-8'))
+    except (UnicodeError, ValueError):
+        raise ValueError('Invalid backup receipt') from None
+    if (not isinstance(receipt, dict)
+            or type(receipt.get('format')) is not int or receipt['format'] != 1
+            or type(receipt.get('bytes')) is not int or receipt['bytes'] <= 0
+            or not isinstance(receipt.get('sha256'), str)
+            or len(receipt['sha256']) != 64
+            or any(char not in '0123456789abcdef' for char in receipt['sha256'])
+            or archive.stat().st_size != receipt['bytes'] or digest(archive) != receipt['sha256']):
         raise ValueError('Backup receipt mismatch')
     run_tool([pg_restore, '--list', str(archive)], os.environ.copy())
     return receipt
+
+
+def verify(bundle, pg_restore='pg_restore'):
+    bundle = Path(bundle)
+    if not (bundle / 'READY').is_file():
+        raise ValueError('Backup is incomplete: READY is missing')
+    return _verify_archive(bundle, pg_restore)
 
 
 def backup(destination, dsn, pg_dump='pg_dump', pg_restore='pg_restore', schema=None):
@@ -70,7 +86,7 @@ def backup(destination, dsn, pg_dump='pg_dump', pg_restore='pg_restore', schema=
         receipt = dict(format=1, created_at=datetime.now(timezone.utc).isoformat(),
                        bytes=archive.stat().st_size, sha256=digest(archive))
         (staging / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n', encoding='utf-8')
-        verify(staging, pg_restore)
+        _verify_archive(staging, pg_restore)
         # Rename on the same filesystem; reject an existing destination again.
         # os.rename on POSIX may replace an EMPTY directory, so reserve the name
         # using mkdir, then move files and publish READY only as the final step.
@@ -97,8 +113,6 @@ def main():
                 raise ValueError('HISTORY_DATABASE_URL is required; dotenv is never loaded')
             backup(args.bundle, dsn, args.pg_dump, args.pg_restore)
         else:
-            if not (args.bundle / 'READY').is_file():
-                raise ValueError('Backup is incomplete: READY is missing')
             verify(args.bundle, args.pg_restore)
     except (ValueError, KeyError, OSError, RuntimeError):
         parser.exit(1, 'Backup failed validation or export; no credentials are printed.\n')
