@@ -186,8 +186,12 @@ def test_two_devices_browser_postgres(database, monkeypatch, https_origin):
             a.get_by_label('新记录名称').fill('合成双设备验收')
             a.get_by_role('button', name='创建记录', exact=True).click()
             expect(a.get_by_label('上传记录JD')).to_be_visible()
+            expect(a.get_by_label('上传记录JD')).to_be_enabled()
             a.get_by_label('上传记录JD').set_input_files(fixtures / 'jd.txt')
             expect(a.get_by_text('资料版本 1 · 刷新只读取已保存内容')).to_be_visible()
+            # Revision renders before apply() finishes reading task status.
+            # set_input_files does not wait for enabled like a user click does.
+            expect(a.get_by_label('上传记录简历')).to_be_enabled()
             a.get_by_label('上传记录简历').set_input_files(fixtures / 'resume.txt')
             expect(a.get_by_text('资料版本 2 · 刷新只读取已保存内容')).to_be_visible()
             a.get_by_role('button', name='开始分析当前资料', exact=True).click()
