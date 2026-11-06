@@ -476,6 +476,8 @@ def test_enabled_startup_interrupts_real_database_before_traffic(database, monke
     inputs = {'jd_text': 'synthetic restart JD', 'resume_text': 'synthetic restart resume'}
     store.replace_inputs(owner, record, 0, inputs)
     saved = {'jd': data['JDInfo'], 'resume': data['ResumeInfo'], 'gap': data['GapAnalysis']}
+    # Provider fixtures precede the domain's Python weighted-score calculation.
+    saved['gap'] = dict(saved['gap'], overall_match_score=77)
     first = store.claim_task(owner, record, 1, 'analysis')
     store.finish_task(owner, record, 1, 'analysis', first['attempt'], saved)
     questions = {'questions': data['QuestionList']}
