@@ -344,3 +344,11 @@
 - Windows Python3.12.7执行venv/Scripts/python.exe scripts/check_backend.py：首轮沙箱socketpair超时，入口返回环境阻碍，业务测试未运行；允许本机通信后242通过/5跳过，再新增搬运中断用例后最终243通过/5跳过/1既有Starlette弃用警告，15.45秒、退出0。5项因缺少PDF/DOCX夹具跳过。无前端变化，不重复npm/浏览器；本机未运行PG/nginx，实际PG导出恢复兼容性待远端既有门禁。未读dotenv/真实资料，未调用真实模型/OAuth，未重启用户服务、使用资源或发布。
 - 仍不证明备份真实性/加密、实际异机复制、恢复耗时或目标主机启停；摘要只能检测意外损坏。S3尚未完成，下一步可继续已授权部署准备；实际资源/凭据/异机策略与发布保留interview边界。当前提交自身完整SHA/推送与最终CI在聊天和memory留收据，下轮归档，避免自引用提交。
 - 实现9f137b0730d9978fa8795b5875a2c53374d21666已普通HTTPS推送。首轮CI41989985559整体failure：四job成功，PG导出恢复步骤成功，但组合浏览器上传简历后未到版本2。源码apply先setRow再await读取任务，busy在其后释放；测试set_input_files不等待enabled，可能在禁用期间设置文件而onChange被忽略。补明确等待JD/简历输入框enabled，不增加重试/睡眠或弱化版本与SQL断言；负责范围必要扩展到该浏览器测试。修复远端复验结果留本聊天与memory。本机无PG/nginx，仅AST语法检查，不冒称本机组合通过。
+
+
+### 2026-11-06 S3第十五切片：应用生命周期与数据库恢复
+
+- 周五不重复研究。负责tests/test_history_postgres.py、single-vm手册、plan/journal。基线1d3926a2221ff56696517b57c6dcb411027e9816与实时远端一致；上轮精确CI41990662012 completed/success，部署0。单worktree/原分支，近期十条仅当前同项目active、前轮notLoaded；分页外/外部并行未知，未向其他聊天发消息。根/父目录无AGENTS，本次不改frontend。负责路径改前干净，原日志/两份私人材料/test-results保护。
+- 原启动用例只证明一次启动中断空结果任务；扩展为真实PG保存合成输入、完整报告与题库后连续两次实际应用lifespan，重建HistoryStore与AuthService。验证旧Cookie401、同GitHub标识绑定原owner、重新认证后输入revision1/77分/10题恢复、已完成题库状态保留、遗留分析attempt中断且不能晚写。模型工厂禁止构造，不自动生成。身份为预置合成会话，不是实际OAuth；不是OS进程/数据库服务重启或目标systemd回滚。
+- Windows AST与限定diff检查；本地无PG引擎，实际执行交既有Linux PG CI，不冒称本机通过。无业务/前端源码变更，不重复无关npm/离线集合，不重启用户服务。首次网络核对受沙箱阻止，允许网络后成功。无dotenv/真实资料读取、真实模型、资源或发布操作。
+- S3仍未完成。下一步继续已授权部署准备，目标主机启停/回滚、实际OAuth和受保护异机恢复仍依赖资源/凭据/策略的明确决定。当前提交SHA/push/最终CI留本聊天与memory，下轮归档。

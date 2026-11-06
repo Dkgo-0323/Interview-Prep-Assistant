@@ -471,7 +471,17 @@ def test_enabled_startup_interrupts_real_database_before_traffic(database, monke
     from api.auth import AUTH_COOKIE, Identity
     store, _, _ = database
     owner, record = task_record(store)
-    task = store.claim_task(owner, record, 0, 'analysis')
+    import json
+    data = json.loads((Path(__file__).parent / 'fixtures/workflow/llm_responses.json').read_text(encoding='utf-8'))
+    inputs = {'jd_text': 'synthetic restart JD', 'resume_text': 'synthetic restart resume'}
+    store.replace_inputs(owner, record, 0, inputs)
+    saved = {'jd': data['JDInfo'], 'resume': data['ResumeInfo'], 'gap': data['GapAnalysis']}
+    first = store.claim_task(owner, record, 1, 'analysis')
+    store.finish_task(owner, record, 1, 'analysis', first['attempt'], saved)
+    questions = {'questions': data['QuestionList']}
+    first = store.claim_task(owner, record, 1, 'questions')
+    store.finish_task(owner, record, 1, 'questions', first['attempt'], questions)
+    task = store.claim_task(owner, record, 1, 'analysis')
     for key, value in dict(GITHUB_AUTH_ENABLED='true', GITHUB_CLIENT_ID='synthetic',
         GITHUB_CLIENT_SECRET='synthetic', GITHUB_CALLBACK_URL='https://api.example.test/api/auth/github/callback',
         AUTH_FRONTEND_ORIGIN='https://app.example.test', HISTORY_DATABASE_URL='synthetic-scoped-test-store',
@@ -481,7 +491,11 @@ def test_enabled_startup_interrupts_real_database_before_traffic(database, monke
     with patch('dotenv.load_dotenv', return_value=False):
         from api.main import app
     # Inject only the schema-scoped connection factory, not the startup method.
-    monkeypatch.setattr(HistoryStore, 'from_dsn', classmethod(lambda cls, _: store))
+    monkeypatch.setattr(HistoryStore, 'from_dsn', classmethod(lambda cls, _: cls(store.connect)))
+    from api.routes import record_workflow as workflow
+    def forbidden_model():
+        pytest.fail('startup/read recovery must never construct a model client')
+    monkeypatch.setattr(workflow, 'LLMService', forbidden_model)
     with TestClient(app, base_url='https://api.example.test') as client:
         auth = app.state.auth_service
         auth.sessions[auth.digest('synthetic')] = Identity(owner, auth.clock() + 1800)
@@ -490,5 +504,34 @@ def test_enabled_startup_interrupts_real_database_before_traffic(database, monke
         assert response.status_code == 200
         assert response.json()[0]['status'] == 'interrupted'
         assert response.json()[0]['attempt'] == str(task['attempt'])
-        assert store.get(owner, record)['results'] == {}
+        assert store.get(owner, record)['results'] == saved | questions
+        # Leave an in-flight attempt for the next exclusive lifespan.
+        pending = store.claim_task(owner, record, 1, 'analysis')
+    assert not hasattr(app.state, 'history_store') and not hasattr(app.state, 'auth_service')
+
+    # A second real application lifespan, fresh adapters and auth session map.
+    # This is not an OS process/systemd or database-server restart.
+    with TestClient(app, base_url='https://api.example.test') as client:
+        assert app.state.auth_service is not auth
+        client.cookies.set(AUTH_COOKIE, 'synthetic')
+        path = f'/api/records/{record}'
+        assert client.get(path).status_code == 401
+        recovered_owner = app.state.history_store.account_for_github(301)
+        assert recovered_owner == owner
+        fresh = app.state.auth_service
+        fresh.sessions[fresh.digest('after-restart')] = Identity(owner, fresh.clock() + 1800)
+        client.cookies.set(AUTH_COOKIE, 'after-restart')
+        row = client.get(path).json()
+        assert row['revision'] == 1 and row['inputs'] == inputs
+        assert row['results'] == saved | questions
+        assert client.get(path + '/analysis/result').json()['data']['overall_match_score'] == 77
+        assert client.get(path + '/questions/cached').json()['total'] == 10
+        tasks = client.get(path + '/tasks').json()
+        analysis = next(t for t in tasks if t['kind'] == 'analysis')
+        assert analysis['status'] == 'interrupted'
+        assert analysis['attempt'] == str(pending['attempt'])
+        assert next(t for t in tasks if t['kind'] == 'questions')['status'] == 'completed'
+        with pytest.raises(HistoryConflict):
+            store.finish_task(owner, record, 1, 'analysis', pending['attempt'], saved)
+        assert store.get(owner, record)['results'] == saved | questions
     assert not hasattr(app.state, 'history_store') and not hasattr(app.state, 'auth_service')
